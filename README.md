@@ -216,7 +216,3 @@ We performed multiple benchmarks for popular indicators across different technic
 ![1k_bars_log10](/static/benchmarks/1000_time_diff.png)
 
 ![1m_bars_log10](/static/benchmarks/1000000_time_diff.png)
-
----
-
-Made by [Nersent](https://nersent.com)
