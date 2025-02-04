@@ -1,0 +1,2 @@
+stdev = ta.stdev(close, 14)
+plot(ta.sma(ta.change(close) <= 0 ? 0 : stdev, 14), "_target_", color=#2962FF)

@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "pace",
+    # "benchmarks/pace",
+    # "example",
+    # "bindings/python"
+]

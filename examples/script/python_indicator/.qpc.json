@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "py": {
+      "module": "qpace_example_python_indicator"
+    }
+  },
+  "buildOptions": {
+    "installWheel": true,
+    "dir": "build"
+  }
+}

@@ -1,0 +1,344 @@
+//@version=5
+indicator("Zig Zag", overlay = true)
+
+type Settings
+    float  devThreshold = 5.0
+    int    depth = 10
+    color  lineColor = #2962FF
+    bool   extendLast = true
+    bool   displayReversalPrice = true
+    bool   displayCumulativeVolume = true
+    bool   displayReversalPriceChange = true
+    string differencePriceMode = "Absolute"
+    bool   draw = true
+    bool   allowZigZagOnOneBar = true
+
+
+// @type                                Represents a significant level that indicates directional movement or potential support and resistance.
+// @field ln                            A `line` object connecting the `start` and `end` chart points. 
+// @field lb                            A `label` object to display pivot values. 
+// @field isHigh                        A condition to determine whether the pivot is a pivot high. 
+// @field vol                           The cumulative volume for the pivot segment. 
+// @field start                         A `chart.point` object representing the coordinates of the previous point.
+// @field end                           A `chart.point` object representing the coordinate of the current point.
+type Pivot
+    line        ln
+    label       lb
+    bool        isHigh 
+    float       vol
+    chart.point start
+    chart.point end
+
+
+// @type                                An object to maintain a Zig Zag's settings, pivots, and cumulative volume. 
+// @field settings                      A `Settings` object to provide calculation and display properties.
+// @field pivots                        An array of `Pivot` objects. 
+// @field sumVol                        The volume sum for the current `Pivot` object's line segment. 
+// @field extend                        A `Pivot` object used to project a line from the last pivot point to the current bar. 
+type ZigZag
+    Settings     settings
+    array<Pivot> pivots
+    float        sumVol = 0
+    Pivot        extend = na
+
+
+
+// @function                            Identifies a pivot point when the `src` has not reached beyond its value 
+//                                      from `length` bars ago. Finds pivot highs when `isHigh` is `true`, and 
+//                                      finds pivot lows otherwise.
+// @param src                           (series float) The data series to calculate the pivot value from. 
+// @param length                        (series float) The length in bars required for pivot confirmation. 
+// @param isHigh                        (simple bool) Determines whether the pivot is a pivot high or pivot low. 
+// @returns                             (chart.point) A `chart.point` object when a pivot is found, `na` otherwise.
+findPivotPoint(series float src, series float length, simple bool isHigh) =>
+    float pivotPrice = nz(src[length])
+    if length == 0
+        chart.point.new(time, bar_index, pivotPrice)
+    else if length * 2 <= bar_index
+        bool isFound = true
+        for i = 0 to math.abs(length - 1)
+            if (isHigh and src[i] > pivotPrice) or (not isHigh and src[i] < pivotPrice)
+                isFound := false
+                break
+        for i = length + 1 to 2 * length
+            if (isHigh and src[i] >= pivotPrice) or (not isHigh and src[i] <= pivotPrice)
+                isFound := false
+                break
+        if isFound
+            chart.point.new(time[length], bar_index[length], pivotPrice)
+
+
+// @function                            Calculates the deviation percentage between the `price` and the `basePrice`. 
+// @param basePrice                     (series float) The start price. 
+// @param price                         (series float) The end price. 
+// @returns                             (float) The signed deviation percentage. 
+calcDev(series float basePrice, series float price) =>
+    float result = 100 * (price - basePrice) / math.abs(basePrice)
+
+
+// @function                            Calculates the difference between the `start` and `end` point as a price or 
+//                                      percentage difference and converts its value to a "string". 
+// @param start                         (series float) The start price. 
+// @param end                           (series float) The end price. 
+// @param settings                      (series Settings) A `Settings` object. 
+// @returns                             (string) A "string" representation of the difference between points. 
+priceRotationDiff(series float start, series float end, Settings settings) =>
+    float  diff    = end - start
+    string sign    = math.sign(diff) > 0 ? "+" : ""
+    string diffStr = switch settings.differencePriceMode 
+        "Absolute" => str.tostring(diff, format.mintick)  
+        =>            str.tostring(diff * 100 / start, format.percent)
+    string result  = str.format("({0}{1})", sign, diffStr) 
+
+
+// @function                            Creates a "string" containing the price, cumulative volume, and change in price 
+//                                      for the pivot.  
+// @param start                         (series float) The start price. 
+// @param end                           (series float) The end price. 
+// @param vol                           (series float) The pivot's cumulative volume.
+// @param settings                      (series Settings) A `Settings` object.
+// @returns                             (string) A "string" to display in pivot labels. 
+priceRotationAggregate(series float start, series float end, series float vol, Settings settings) =>
+    string str = ""
+    if settings.displayReversalPrice
+        str += str.tostring(end, format.mintick) + " "
+    if settings.displayReversalPriceChange
+        str += priceRotationDiff(start, end, settings) + " "
+    if settings.displayCumulativeVolume
+        str += "\n" + str.tostring(vol, format.volume)
+    str
+
+
+// @function                            Creates a label with coordinates from the `point` if the `settings` display 
+//                                      properties allow it. 
+// @param isHigh                        (series bool) The condition to determine the label's color and location. 
+// @param point                         (series chart.point) A `chart.point` object. 
+// @param settings                      (series Settings) A `Settings` object. 
+// @returns                             (void) The function does not return a value. 
+makePivotLabel(series bool isHigh, chart.point point, Settings settings) =>
+    if settings.displayReversalPrice or settings.displayReversalPriceChange or settings.displayCumulativeVolume
+        [yloc, txtColor] = switch 
+            isHigh => [yloc.abovebar, color.green]
+            =>        [yloc.belowbar, color.red]
+        label.new(point, style = label.style_none, xloc = xloc.bar_time, yloc = yloc, textcolor = txtColor)
+
+
+// @function                            Updates a `Pivot` object's properties, including its `end` point, 
+//                                      cumulative volume, label text, and label and line drawing locations. 
+//                                      Can be used as a function or method.
+// @param this                          (series Pivot) The `Pivot` object to update. 
+// @param end                           (series chart.point) A new `chart.point` for the `end` field of the `Pivot`. 
+// @param vol                           (series float) The cumulative volume of the `Pivot`.
+// @param settings                      (series Settings) A `Settings` object. 
+// @returns                             (void) The function does not return a value.
+method updatePivot(Pivot this, chart.point end, float vol, Settings settings) =>
+    this.end := end
+    this.vol := vol
+    if not na(this.lb)
+        this.lb.set_point(this.end)
+        this.lb.set_text(priceRotationAggregate(this.start.price, this.end.price, this.vol, settings))
+    this.ln.set_second_point(this.end)
+
+
+// @function                            Creates a new `Pivot` object, and assigns a line and label if the `draw` field 
+//                                      of the `settings` allows it.
+// @param start                         (series chart.point) A `chart.point` for the `start` of the `Pivot`. 
+// @param end                           (series chart.point) A `chart.point` for the `end` of the `Pivot`. 
+// @param vol                           (series float) The cumulative volume of the `Pivot`. 
+// @param isHigh                        (series bool) Specifies whether the `Pivot` represents a pivot high or pivot low. 
+// @param settings                      (series settings) A `Settings` object. 
+// @returns                             (Pivot) The new `Pivot` object. 
+newPivot(
+     series chart.point start, series chart.point end, series float vol, series bool isHigh, series Settings settings
+ ) =>
+    Pivot p = Pivot.new(na, na, isHigh, vol, start, end)
+    if settings.draw 
+        p.ln := line.new(start, end, xloc = xloc.bar_time, color = settings.lineColor, width = 2)
+        p.lb := makePivotLabel(isHigh, end, settings) 
+    p.updatePivot(end, vol, settings)
+    p
+
+
+// @function                            Deletes the `line` and `label` objects assigned to the `ln` and `lb` fields in 
+//                                      a `Pivot` object. 
+//                                      Can be used as a function or method.
+// @param this                          (series Pivot) The `Pivot` object to modify. 
+// @returns                             (void) The function does not return a value.
+method delete(series Pivot this) =>
+    if not na(this.ln)
+        this.ln.delete()
+    if not na(this.lb)
+        this.lb.delete()
+
+
+// @function                            Determines whether the `price` of the `point` reaches past the `price` of the 
+//                                      `end` chart point of a `Pivot` object. 
+//                                      Can be used as a function or method.
+// @param this                          (series Pivot) A `Pivot` object. 
+// @param point                         (series chart.point) A `chart.point` object.
+// @returns                             (bool) `true` if the `price` of the `point` reaches past that of the `end` 
+//                                      in the `Pivot` object, `false` otherwise.
+method isMorePrice(series Pivot this, series chart.point point) => 
+    int m = this.isHigh ? 1 : -1
+    bool result = point.price * m > this.end.price * m
+
+
+// @function                            Returns the last `Pivot` object from a `ZigZag` instance if it contains at 
+//                                      least one `Pivot`, and `na` otherwise.
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object. 
+// @returns                             (Pivot) The last `Pivot` object in the `ZigZag`. 
+method lastPivot(series ZigZag this) =>
+    int numberOfPivots = this.pivots.size()
+    Pivot result = numberOfPivots > 0 ? this.pivots.get(numberOfPivots - 1) : na
+
+
+// @function                            Updates the fields of the last `Pivot` in a `ZigZag` object and sets the 
+//                                      `sumVol` of the `ZigZag` to 0. 
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object. 
+// @param point                         (series chart.point) The `chart.point` for the `start` of the last `Pivot`.
+// @returns                             (void) The function does not return a value. 
+method updateLastPivot(series ZigZag this, series chart.point point) =>
+    Pivot lastPivot = this.lastPivot()
+    if this.pivots.size() == 1
+        lastPivot.start := point
+        if this.settings.draw
+            lastPivot.ln.set_first_point(point)
+    lastPivot.updatePivot(point, lastPivot.vol + this.sumVol, this.settings)
+    this.sumVol := 0
+
+
+// @function                            Pushes a new `Pivot` object into the `pivots` array of a `ZigZag` instance. 
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object.
+// @param new                           (series Pivot) The new `Pivot` to add to the ZigZag. 
+// @returns                             (void) The function does not return a value. 
+method newPivotFound(series ZigZag this, series Pivot new) =>
+    this.pivots.push(new)
+    this.sumVol := 0
+
+
+// @function                            Determines if a new pivot point is detected or if the properties of the 
+//                                      last `Pivot` in the `ZigZag` need to be updated by comparing the `end` of the 
+//                                      last `Pivot` to a new `point`. Updates the `ZigZag` and returns `true` if 
+//                                      either condition occurs. 
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object. 
+// @param isHigh                        (series bool) Determines whether it checks for a pivot high or pivot low.
+// @param point                         (chart.point) A `chart.point` to compare to the `end` of the last 
+//                                      `Pivot` in the `ZigZag`. 
+// @returns                             (bool) `true` if it updates the last `Pivot` or adds a new `Pivot` to 
+//                                      the `ZigZag`, `false` otherwise.
+method newPivotPointFound(series ZigZag this, simple bool isHigh, series chart.point point) =>
+    bool result = false
+    Pivot lastPivot = this.lastPivot()
+    if not na(lastPivot)
+        if lastPivot.isHigh == isHigh 
+            if lastPivot.isMorePrice(point)
+                this.updateLastPivot(point)
+                result := true
+        else
+            float dev = calcDev(lastPivot.end.price, point.price)
+            if (not lastPivot.isHigh and dev >= this.settings.devThreshold) or 
+                 (lastPivot.isHigh and dev <= -1 * this.settings.devThreshold)
+                newPivotFound(this, newPivot(lastPivot.end, point, this.sumVol, isHigh, this.settings))
+                result := true
+    else
+        this.newPivotFound(newPivot(point, point, this.sumVol, isHigh, this.settings))
+        result := true
+    result
+
+
+// @function                            Tries to find a new pivot point for the `ZigZag` instance. Updates the
+//                                      `ZigZag` and returns `true` when it registers a detected pivot.
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object.
+// @param src                           (series float) The data series to calculate the pivot value from.  
+// @param isHigh                        (simple bool) Determines whether it checks for a pivot high or pivot low. 
+// @param depth                         (series int) The number of bars to search for new pivots. 
+// @param registerPivot                 (series bool) A condition that determines whether or not to register a pivot. 
+// @returns                             (bool) `true` when a new pivot point is registered and the `ZigZag` is updated, 
+//                                      `false` otherwise.
+method tryFindPivot(
+     series ZigZag this, series float src, simple bool isHigh, series int depth, series bool registerPivot = true
+ ) =>
+    chart.point point = findPivotPoint(src, depth, isHigh)
+    bool result = not na(point) and registerPivot ? this.newPivotPointFound(isHigh, point) : false
+
+
+// @function                            Updates a `ZigZag` objects with new pivots, volume, lines, and labels.
+//                                      NOTE: This function must be called on every bar for accurate calculations.
+//                                      Can be used as a function or method.
+// @param this                          (series ZigZag) A `ZigZag` object.         
+// @returns                             (bool) `true` when a new pivot point is registered and the `ZigZag` is updated, 
+//                                      `false` otherwise.
+method update(series ZigZag this) =>
+    int depth = math.max(2, math.floor(this.settings.depth / 2))
+    this.sumVol += nz(volume[depth])
+    bool somethingChanged = this.tryFindPivot(high, true, depth)
+    somethingChanged := this.tryFindPivot(
+         low, false, depth, this.settings.allowZigZagOnOneBar or not somethingChanged
+     ) or somethingChanged
+    Pivot lastPivot = this.lastPivot()
+    // float remVol = math.sum(volume, math.max(depth, 1))
+    // if this.settings.extendLast and barstate.islast and not na(lastPivot)
+    //     bool isHigh = not lastPivot.isHigh
+    //     float curSeries = isHigh ? high : low
+    //     chart.point end = chart.point.new(time, bar_index, curSeries)
+    //     if na(this.extend) or somethingChanged
+    //         if not na(this.extend)
+    //             this.extend.delete()
+    //         this.extend := newPivot(lastPivot.end, end, this.sumVol, isHigh, this.settings)
+    //     this.extend.updatePivot(end, this.sumVol + remVol, this.settings)
+    somethingChanged
+
+
+// @function                            Instantiates a new `ZigZag` object with optional `settings`. 
+//                                      If no `settings` are provided, creates a `ZigZag` object with default settings. 
+// @param settings                      (series Settings) A `Settings` object. 
+// @returns                             (ZigZag) A new `ZigZag` instance. 
+newInstance(series Settings settings = na) =>
+    ZigZag result = ZigZag.new(na(settings) ? Settings.new() : settings, array.new<Pivot>())
+//#endregion
+
+
+plot(volume, title='volume')
+
+plot(calcDev(high, close), title='_target_calc_dev_')
+
+__target_pivot_point_high__ = findPivotPoint(close, 14, true)
+plot(na(__target_pivot_point_high__) ? na : __target_pivot_point_high__.time, title='_target_pivot_point_high_time_')
+plot(na(__target_pivot_point_high__) ? na : __target_pivot_point_high__.index, title='_target_pivot_point_high_bar_index_')
+plot(na(__target_pivot_point_high__) ? na : __target_pivot_point_high__.price, title='_target_pivot_point_high_price_')
+
+__target_pivot_point_low__ = findPivotPoint(close, 14, false)
+plot(na(__target_pivot_point_low__) ? na : __target_pivot_point_low__.time, title='_target_pivot_point_low_time_')
+plot(na(__target_pivot_point_low__) ? na : __target_pivot_point_low__.index, title='_target_pivot_point_low_bar_index_')
+plot(na(__target_pivot_point_low__) ? na : __target_pivot_point_low__.price, title='_target_pivot_point_low_price_')
+
+var zigZag = newInstance(
+  Settings.new(
+      input.float(5.0, "Price deviation for reversals (%)", 0.00001, 100.0, 0.5, "0.00001 - 100"),
+      input.int(10, "Pivot legs", 2),
+      input(#2962FF, "Line color", display = display.data_window),
+      input(true, "Extend to last bar", display = display.data_window),
+      input(true, "Display reversal price", display = display.data_window),
+      input(true, "Display cumulative volume", display = display.data_window),
+      input(true, "Display reversal price change", inline = "priceRev", display = display.data_window),
+      input.string("Absolute", "", ["Absolute", "Percent"], inline = "priceRev", display = display.data_window),
+      true)
+ )
+
+// Update 'zigZag' object on each bar with new ​pivots, ​volume, lines, labels.
+somethingChanged = zigZag.update()
+plot(na(somethingChanged) ? na : somethingChanged ? 1 : 0, title='_target_zigzag_something_changed_')
+plot(zigZag.sumVol, title='_target_zigzag_sum_vol_')
+plot(array.size(zigZag.pivots), title='_target_zigzag_pivots_count_')
+last_pivot = zigZag.lastPivot()
+plot(na(last_pivot) ? na : na(last_pivot.isHigh) ? na : last_pivot.isHigh ? 1 : 0, title='_target_zigzag_last_pivot_is_high_')
+plot(na(last_pivot) ? na : last_pivot.vol, title='_target_zigzag_last_pivot_vol_')
+plot(na(last_pivot) ? na : na(last_pivot.start) ? na : last_pivot.start.index, title='_target_zigzag_last_pivot_start_index_')
+plot(na(last_pivot) ? na : na(last_pivot.start) ? na : last_pivot.start.price, title='_target_zigzag_last_pivot_start_price_')
+plot(na(last_pivot) ? na : na(last_pivot.end) ? na : last_pivot.end.index, title='_target_zigzag_last_pivot_end_index_')
+plot(na(last_pivot) ? na : na(last_pivot.end) ? na : last_pivot.end.price, title='_target_zigzag_last_pivot_end_price_')
