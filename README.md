@@ -1,5 +1,3 @@
-<https://www.tradingview.com/v/BICzyhq0/>
-
 <div align="center">
   <img src="static/logo.svg" width="184">
 
