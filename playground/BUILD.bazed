@@ -1,0 +1,23 @@
+const WORKSPACE = ["lib", "playground"];
+
+rustFileSet("rs", {
+  srcs: glob("**/*.rs"),
+  deps: ["//lib:src"],
+});
+
+maturin("rs_py", {
+  deps: [":rs"],
+  scope: "qpace_playground_rs",
+  workspace: WORKSPACE,
+  args: `--interpreter python3.10 --release --skip-auditwheel`,
+});
+
+fileSet("src", {
+  srcs: glob("**/*.py"),
+  deps: ["//lib"],
+});
+
+pythonEntry("playground", {
+  main: "main.py",
+  deps: [":src", ":rs_py"],
+});

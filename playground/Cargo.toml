@@ -1,0 +1,27 @@
+[package]
+name = "qpace_playground_rs"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+name = "qpace_playground_rs"
+crate-type = ["cdylib", "rlib"]
+path = "lib.rs"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+qpace = { path = "../lib", features = ["bindings_py"] }
+# polars = { workspace = true }
+# colored = { workspace = true }
+# chrono = { workspace = true }
+# kdam = { workspace = true }
+# num-derive = { workspace = true }
+# num-traits = { workspace = true }
+# rand = { workspace = true }
+# serde = { workspace = true }
+# serde_json = { workspace = true }
+pyo3 = { version = "0.23", features = ["extension-module", "macros"] }
+pyo3-ffi = "0.23"
+pyo3-stub-gen = "0.6"
+pyo3-stub-gen-derive = "0.6"

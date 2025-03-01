@@ -1,0 +1,114 @@
+const WORKSPACE = ["lib"];
+
+rustFileSet("src_py", {
+  srcs: [glob("**/!(*.test).py"), "pyproject.toml", glob("**/*.pyi")],
+  deps: [],
+});
+
+rustFileSet("src_rs", {
+  srcs: [glob("**/!(*.test).rs")],
+});
+
+rustFileSet("src", {
+  deps: [":src_py", ":src_rs"],
+});
+
+rustFileSet("src_rs_test", {
+  srcs: [glob("**/*.test.rs"), glob("**/*.csv"), glob("**/*.json")],
+});
+
+rustBinary("main_rs", {
+  deps: [":src_rs"],
+  srcs: ["main.rs"],
+  target: "main",
+  workspace: WORKSPACE,
+});
+
+rustTest("test", {
+  deps: [":src_rs", ":src_rs_test"],
+  workspace: WORKSPACE,
+  nextestFlags: '--no-default-features --features="polars_utils"',
+});
+
+rustBinary("pyi", {
+  deps: [":src"],
+  target: "pyi",
+  workspace: WORKSPACE,
+});
+
+maturin("maturin", {
+  deps: [":src"],
+  scope: "qpace_rs",
+  workspace: WORKSPACE,
+  args: `--interpreter python3.10 --release --skip-auditwheel --features "bindings_py"`,
+});
+
+fileSet("lib", {
+  srcs: glob("**/*.*"),
+  deps: [":src_py", ":maturin"],
+  copy: true,
+});
+
+const MANIFEST_IN = `
+include README.md
+include LICENSE.md
+recursive-include pace/lib *
+recursive-include qpace_rs *`.replaceAll("\n", "\\n");
+
+// python -m twine upload *
+const SETUP_PY = `
+from setuptools import setup, find_packages
+
+setup(
+    name="qpace",
+    version="0.0.4",
+    package_dir={"qpace": "pace/lib", "qpace_rs": "pace/lib/qpace_rs"},
+    packages=["qpace", "qpace_rs"],
+    package_data={
+      "qpace_rs": ["qpace_rs.cp310-win_amd64.pyd"],
+    },
+    include_package_data=True,
+    python_requires=">=3.10",
+    install_requires=["numpy", "pandas", "matplotlib", "scikit-learn", "requests", "tqdm", "plotly"],
+    #platforms=["win_amd64"],
+)`
+  .replaceAll("\n", "\\n")
+  .replaceAll(`"`, `""`);
+
+const PYPROJECT_TOML = `
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+`
+  .replaceAll("\n", "\\n")
+  .replaceAll(`"`, `""`);
+
+unpackWheel(`maturin_unwheel`, (ctx) => ({
+  deps: [":maturin"],
+  dir: ctx.sandboxPath,
+}));
+
+execute("wheel", (ctx) => ({
+  command: [
+    `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
+    `node -e "require('fs').writeFileSync('setup.py', '${SETUP_PY}')"`,
+    `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
+    // "python -m build",
+    // only for current platform
+    `python setup.py bdist_wheel --plat-name win_amd64`,
+  ].join(" && "),
+  cwd: ctx.sandboxPath,
+  deps: [":src_py", ":maturin_unwheel"],
+  srcs: ["LICENSE.md", "README.md"],
+  run: true,
+}));
+
+execute("check", (ctx) => ({
+  command: [
+    `cargo run --bin pyi --no-default-features --features=bindings_py`,
+    `cargo check --package=qpace --no-default-features --features=bindings_wasm --target=wasm32-unknown-unknown`,
+    // `cargo check --package=qpace --no-default-features --features=bindings_py`,
+  ].join(" && "),
+  cwd: ctx.workspacePath,
+  run: true,
+}));

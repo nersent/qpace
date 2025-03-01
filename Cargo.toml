@@ -1,7 +1,53 @@
 [workspace]
-members = [
-    "pace",
-    # "benchmarks/pace",
-    # "example",
-    # "bindings/python"
-]
+resolver = "2"
+members = ["lib", "playground"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+
+description = "qpace"
+repository = "https://github.com/nersent/qpace"
+keywords = ["pyo3"]
+license = ""
+readme = "README.md"
+
+[profile.release]
+# lto = "fat"
+# codegen-units = 1
+panic = "abort"
+
+[profile.release_fat]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+
+[workspace.dependencies]
+chrono = { version = "0.4.39", features = ["serde", "wasmbind"] }
+cfg-if = "1.0.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+env_logger = "0.11"
+polars = { version = "0.32", features = ["parquet", "lazy"] }
+itertools = "0.12"
+thiserror = "1.0.64"
+num-derive = "0.4"
+num-traits = "0.2"
+num = "0.4"
+colored = "2.0.0"
+
+# similar-asserts = "1.4.2"
+# similar = "2.2.1"s
+# kdam = "0.5"
+# rand = "0.8.5"
+# prettytable-rs = "^0.10"
+# textplots = "0.8"
+# ndarray = "0.15.6"
+# plotters = "0.3.4"
+# csv = "1.2"
+# serde-pickle = "1.0"
+# rayon = "1.8.0"
+# dtoa = "1.0.9"
+# tqdm = "0.7.0"
+# env_logger = "0.11.5"
+# flate2 = "1.0"
