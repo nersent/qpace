@@ -1,10 +1,9 @@
+use crate::rs_utils::Float64Utils;
 use colored::Colorize;
 use std::path::PathBuf;
 
-use crate::rs_utils::Float64Utils;
-
 #[cfg(test)]
-#[cfg(feature = "polars_utils")]
+#[cfg(feature = "polars")]
 pub fn format_fixture_path(path: &str) -> PathBuf {
     let cwd = std::env::current_dir().unwrap();
     let normalized_path = cwd.join("fixtures").join(path);

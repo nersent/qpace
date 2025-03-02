@@ -1,0 +1,27 @@
+const WORKSPACE = ["core", "content"];
+
+rustFileSet("src_py", {
+  srcs: [glob("**/!(*.test).py"), "pyproject.toml", glob("**/*.pyi")],
+  deps: [],
+});
+
+rustFileSet("src_rs", {
+  srcs: [glob("**/!(*.test).rs")],
+});
+
+rustFileSet("src", {
+  deps: [":src_py", ":src_rs", "//core:src"],
+});
+
+maturin("maturin", {
+  deps: [":src"],
+  scope: "qpace_content",
+  workspace: WORKSPACE,
+  args: `--interpreter python3.10 --release --skip-auditwheel`,
+});
+
+fileSet("content", {
+  srcs: glob("**/*.*"),
+  deps: [":src_py", ":maturin"],
+  copy: true,
+});

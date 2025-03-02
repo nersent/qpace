@@ -10,7 +10,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   use polars::prelude::*;
   use polars::frame::DataFrame;
   use crate::rs_utils::{SeriesCastUtils};
@@ -162,10 +162,81 @@ pub trait OhlcvReader: Debug {
     fn into_box(self) -> Box<dyn OhlcvReader>;
     fn clone_box(&self) -> Box<dyn OhlcvReader>;
     fn as_any(&self) -> &dyn Any;
+
+    #[inline]
+    fn open(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.open()).collect()
+    }
+
+    #[inline]
+    fn high(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.high()).collect()
+    }
+
+    #[inline]
+    fn low(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.low()).collect()
+    }
+
+    #[inline]
+    fn close(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.close()).collect()
+    }
+
+    #[inline]
+    fn volume(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.volume()).collect()
+    }
+
+    #[inline]
+    fn hl2(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.hl2()).collect()
+    }
+
+    #[inline]
+    fn hlc3(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.hlc3()).collect()
+    }
+
+    #[inline]
+    fn hlcc4(&self) -> Vec<f64> {
+        self.all_bars().iter().map(|bar| bar.hlcc4()).collect()
+    }
+
+    #[inline]
+    fn open_time(&self) -> Vec<DateTime<Utc>> {
+        self.all_bars().iter().map(|bar| *bar.open_time()).collect()
+    }
+
+    #[inline]
+    fn close_time(&self) -> Vec<DateTime<Utc>> {
+        self.all_bars()
+            .iter()
+            .map(|bar| *bar.close_time())
+            .collect()
+    }
+
+    #[inline]
+    fn open_time_ms(&self) -> Vec<i64> {
+        self.all_bars()
+            .iter()
+            .map(|bar| bar.open_time_ms())
+            .collect()
+    }
+
+    #[inline]
+    fn close_time_ms(&self) -> Vec<i64> {
+        self.all_bars()
+            .iter()
+            .map(|bar| bar.close_time_ms())
+            .collect()
+    }
 }
 
 pub trait OhlcvWriter: Debug {
     fn push(&mut self, bar: OhlcvBar);
+
+    #[inline]
     fn push_many(&mut self, bars: &[OhlcvBar]) {
         for bar in bars {
             self.push(*bar);
@@ -395,7 +466,7 @@ impl Into<OhlcvLoader> for Ohlcv {
     }
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyo3(signature=(open_time=None, close_time=None, open=None, high=None, low=None, close=None, volume=None)))]
 #[inline]
@@ -481,7 +552,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
     }
 }}
 
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     #[inline]
     pub fn ohlcv_bars_from_polars(df: &DataFrame) -> Vec<OhlcvBar> {
         let cols = df.get_column_names();

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["lib", "playground"]
+members = ["core", "content"]
 
 [workspace.package]
 version = "0.0.1"
@@ -35,6 +35,8 @@ num-derive = "0.4"
 num-traits = "0.2"
 num = "0.4"
 colored = "2.0.0"
+comfy-table = "7.1"
+textplots = "0.8"
 
 # similar-asserts = "1.4.2"
 # similar = "2.2.1"s

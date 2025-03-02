@@ -7,7 +7,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   };
   use crate::rs_utils::{pyslice_to_range};
 }}
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
     use crate::rs_utils::{read_df};
     use crate::ohlcv::{ohlcv_bars_from_polars};
@@ -56,6 +56,18 @@ impl OhlcvBar {
     #[inline]
     pub fn py_close_time(&self) -> DateTime<Utc> {
         *self.close_time()
+    }
+
+    #[getter(open_time_ms)]
+    #[inline]
+    pub fn py_open_time_ms(&self) -> i64 {
+        self.open_time().timestamp_millis()
+    }
+
+    #[getter(close_time_ms)]
+    #[inline]
+    pub fn py_close_time_ms(&self) -> i64 {
+        self.close_time().timestamp_millis()
     }
 
     #[getter(open)]
@@ -113,7 +125,7 @@ impl OhlcvBar {
     }
 }
 
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     impl Ohlcv {
         #[inline]
         pub fn from_polars(df: &DataFrame) -> Ohlcv {
@@ -121,9 +133,8 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
         }
 
         #[inline]
-        pub fn read_path(path: &str) -> Ohlcv {
-            let path = Path::new(path);
-            let df = read_df(&path);
+        pub fn read_path(path: &Path) -> Ohlcv {
+            let df = read_df(path);
             Self::from_polars(&df)
         }
     }
@@ -221,12 +232,12 @@ impl ArcOhlcv {
         self.fmt()
     }
 
-    #[cfg(feature = "polars_utils")]
+    #[cfg(feature = "polars")]
     #[staticmethod]
     #[pyo3(name = "read_path")]
     #[inline]
     pub fn py_read_path(path: String) -> Self {
-        Ohlcv::read_path(&path).into()
+        Ohlcv::read_path(&Path::new(&path)).into()
     }
 
     #[staticmethod]
@@ -241,6 +252,60 @@ impl ArcOhlcv {
     #[inline]
     pub fn py_from_pandas(py: Python<'_>, df: &Bound<'_, PyAny>) -> PyResult<Self> {
         Ohlcv::py_from_pandas(py, df).map(|x| x.into())
+    }
+
+    #[getter(open)]
+    #[inline]
+    pub fn py_open(&self) -> Vec<f64> {
+        self.open()
+    }
+
+    #[getter(high)]
+    #[inline]
+    pub fn py_high(&self) -> Vec<f64> {
+        self.high()
+    }
+
+    #[getter(low)]
+    #[inline]
+    pub fn py_low(&self) -> Vec<f64> {
+        self.low()
+    }
+
+    #[getter(close)]
+    #[inline]
+    pub fn py_close(&self) -> Vec<f64> {
+        self.close()
+    }
+
+    #[getter(volume)]
+    #[inline]
+    pub fn py_volume(&self) -> Vec<f64> {
+        self.volume()
+    }
+
+    #[getter(open_time)]
+    #[inline]
+    pub fn py_open_time(&self) -> Vec<DateTime<Utc>> {
+        self.open_time()
+    }
+
+    #[getter(close_time)]
+    #[inline]
+    pub fn py_close_time(&self) -> Vec<DateTime<Utc>> {
+        self.close_time()
+    }
+
+    #[getter(open_time_ms)]
+    #[inline]
+    pub fn py_open_time_ms(&self) -> Vec<i64> {
+        self.open_time_ms()
+    }
+
+    #[getter(close_time_ms)]
+    #[inline]
+    pub fn py_close_time_ms(&self) -> Vec<i64> {
+        self.close_time_ms()
     }
 }
 
@@ -299,12 +364,12 @@ impl OhlcvLoader {
         self.push_many(&bars);
     }
 
-    #[cfg(feature = "polars_utils")]
+    #[cfg(feature = "polars")]
     #[staticmethod]
     #[pyo3(name = "read_path")]
     #[inline]
     pub fn py_read_path(path: String) -> Self {
-        Ohlcv::read_path(&path).into()
+        Ohlcv::read_path(&Path::new(&path)).into()
     }
 
     #[staticmethod]
@@ -319,5 +384,59 @@ impl OhlcvLoader {
     #[inline]
     pub fn py_from_pandas(py: Python<'_>, df: &Bound<'_, PyAny>) -> PyResult<Self> {
         Ohlcv::py_from_pandas(py, df).map(|x| x.into())
+    }
+
+    #[getter(open)]
+    #[inline]
+    pub fn py_open(&self) -> Vec<f64> {
+        self.open()
+    }
+
+    #[getter(high)]
+    #[inline]
+    pub fn py_high(&self) -> Vec<f64> {
+        self.high()
+    }
+
+    #[getter(low)]
+    #[inline]
+    pub fn py_low(&self) -> Vec<f64> {
+        self.low()
+    }
+
+    #[getter(close)]
+    #[inline]
+    pub fn py_close(&self) -> Vec<f64> {
+        self.close()
+    }
+
+    #[getter(volume)]
+    #[inline]
+    pub fn py_volume(&self) -> Vec<f64> {
+        self.volume()
+    }
+
+    #[getter(open_time)]
+    #[inline]
+    pub fn py_open_time(&self) -> Vec<DateTime<Utc>> {
+        self.open_time()
+    }
+
+    #[getter(close_time)]
+    #[inline]
+    pub fn py_close_time(&self) -> Vec<DateTime<Utc>> {
+        self.close_time()
+    }
+
+    #[getter(open_time_ms)]
+    #[inline]
+    pub fn py_open_time_ms(&self) -> Vec<i64> {
+        self.open_time_ms()
+    }
+
+    #[getter(close_time_ms)]
+    #[inline]
+    pub fn py_close_time_ms(&self) -> Vec<i64> {
+        self.close_time_ms()
     }
 }

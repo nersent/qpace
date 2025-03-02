@@ -9,7 +9,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   use polars::prelude::*;
   use polars::frame::DataFrame;
 }}
@@ -40,7 +40,7 @@ pub fn get_filename_extension(path: &Path) -> Option<&str> {
     return path.extension().and_then(OsStr::to_str);
 }
 
-cfg_if::cfg_if! { if #[cfg(feature = "polars_utils")] {
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   pub trait SeriesCastUtils {
       fn to_bool(&self) -> Vec<Option<bool>>;
       fn to_f64(&self) -> Vec<f64>;
@@ -268,4 +268,9 @@ impl OptionFloatUtils for Option<usize> {
     fn unwrap_nan(self) -> f64 {
         return self.map_or(f64::NAN, |v| v as f64);
     }
+}
+
+pub fn with_suffix(suffix: &str) -> impl Fn(f64) -> String {
+    let suffix = suffix.to_string();
+    move |value| format!("{:0.2}{}", value, suffix)
 }

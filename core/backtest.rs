@@ -11,7 +11,11 @@ use crate::{
     rs_utils::Float64Utils,
     signal::{Signal, SignalKind},
     trade::{Trade, TradeError, TradeEvent},
-    utils::{order_size_for_equity_pct, profit_factor, returns, round_to_min_tick, win_rate},
+    utils::{
+        avg_losing_trade, avg_trade, avg_win_loss_ratio, avg_winning_trade, gross_loss_pct,
+        gross_profit_pct, net_profit_pct, order_size_for_equity_pct, profit_factor, returns,
+        round_to_min_tick, win_rate,
+    },
 };
 use core::f64;
 use serde_json::json;
@@ -187,13 +191,28 @@ impl Backtest {
     }
 
     #[inline]
+    pub fn net_profit_pct(&self) -> f64 {
+        net_profit_pct(self.net_profit, self.initial_capital)
+    }
+
+    #[inline]
     pub fn gross_profit(&self) -> f64 {
         self.gross_profit
     }
 
     #[inline]
+    pub fn gross_profit_pct(&self) -> f64 {
+        gross_profit_pct(self.gross_profit, self.initial_capital)
+    }
+
+    #[inline]
     pub fn gross_loss(&self) -> f64 {
         self.gross_loss
+    }
+
+    #[inline]
+    pub fn gross_loss_pct(&self) -> f64 {
+        gross_loss_pct(self.gross_loss, self.initial_capital)
     }
 
     #[inline]
@@ -282,6 +301,26 @@ impl Backtest {
     #[inline]
     pub fn profit_factor(&self) -> f64 {
         profit_factor(self.gross_profit(), self.gross_loss())
+    }
+
+    #[inline]
+    pub fn avg_trade(&self) -> f64 {
+        avg_trade(self.net_profit, self.closed_trades.len())
+    }
+
+    #[inline]
+    pub fn avg_winning_trade(&self) -> f64 {
+        avg_winning_trade(self.gross_profit, self.winning_trades)
+    }
+
+    #[inline]
+    pub fn avg_losing_trade(&self) -> f64 {
+        avg_losing_trade(self.gross_loss, self.losing_trades)
+    }
+
+    #[inline]
+    pub fn avg_win_loss_ratio(&self) -> f64 {
+        avg_win_loss_ratio(self.avg_winning_trade(), self.avg_losing_trade())
     }
 
     fn set_price(&mut self) {
@@ -723,150 +762,319 @@ for i = 0 to array.size(trades) - 1
     }
 
     #[inline]
-    pub fn run_and_dump_debug(&mut self, signals: Vec<Option<Signal>>) -> BacktestDebugDump {
-        let mut dump = BacktestDebugDump::default();
-        for signal in signals {
-            let next = self.ctx.borrow_mut().next();
-            if next.is_none() {
-                break;
-            }
-            self.on_bar_open();
-            if signal.is_some() {
-                self.signal(signal.unwrap());
-            }
-            self.on_bar_close();
-            dump.next(self);
-        }
-        return dump;
+    pub fn dump_bar(&self) -> BacktestBarDump {
+        BacktestBarDump::dump(self)
     }
 }
 
-pub struct BacktestDebugDump {
-    pub equity: Vec<f64>,
-    pub net_equity: Vec<f64>,
-    pub position_size: Vec<f64>,
-    pub open_profit: Vec<f64>,
-    pub net_profit: Vec<f64>,
-    pub gross_profit: Vec<f64>,
-    pub gross_loss: Vec<f64>,
-    pub winning_trades: Vec<usize>,
-    pub losing_trades: Vec<usize>,
-    pub trades: Vec<Vec<Trade>>,
+pub struct BacktestBarDump {
+    pub bar_index: usize,
+    pub equity: f64,
+    pub net_equity: f64,
+    pub position_size: f64,
+    pub open_profit: f64,
+    pub net_profit: f64,
+    pub gross_profit: f64,
+    pub gross_loss: f64,
+    pub open_trades: usize,
+    pub closed_trades: usize,
+    pub winning_trades: usize,
+    pub losing_trades: usize,
+    pub trades: Vec<Trade>,
 }
 
-impl Default for BacktestDebugDump {
+impl Default for BacktestBarDump {
     fn default() -> Self {
         Self {
-            equity: vec![],
-            net_equity: vec![],
-            position_size: vec![],
-            open_profit: vec![],
-            net_profit: vec![],
-            gross_profit: vec![],
-            gross_loss: vec![],
-            winning_trades: vec![],
-            losing_trades: vec![],
+            bar_index: 0,
+            equity: f64::NAN,
+            net_equity: f64::NAN,
+            position_size: f64::NAN,
+            open_profit: f64::NAN,
+            net_profit: f64::NAN,
+            gross_profit: f64::NAN,
+            gross_loss: f64::NAN,
+            open_trades: 0,
+            closed_trades: 0,
+            winning_trades: 0,
+            losing_trades: 0,
             trades: vec![],
         }
     }
 }
 
-impl BacktestDebugDump {
-    pub fn next(&mut self, bt: &mut Backtest) {
-        self.equity.push(bt.equity());
-        self.net_equity.push(bt.net_equity());
-        self.position_size.push(bt.position_size());
-        self.open_profit.push(bt.open_profit());
-        self.net_profit.push(bt.net_profit());
-        self.gross_profit.push(bt.gross_profit());
-        self.gross_loss.push(bt.gross_loss());
-        self.winning_trades.push(bt.winning_trades());
-        self.losing_trades.push(bt.losing_trades());
-        self.trades.push(bt.trades().into_iter().cloned().collect());
+impl BacktestBarDump {
+    pub fn dump(bt: &Backtest) -> Self {
+        let mut dump = BacktestBarDump::default();
+        dump.bar_index = bt.ctx.borrow().bar_index();
+        dump.equity = bt.equity();
+        dump.net_equity = bt.net_equity();
+        dump.position_size = bt.position_size();
+        dump.open_profit = bt.open_profit();
+        dump.net_profit = bt.net_profit();
+        dump.gross_profit = bt.gross_profit();
+        dump.gross_loss = bt.gross_loss();
+        dump.open_trades = bt.open_trades().len();
+        dump.closed_trades = bt.closed_trades().len();
+        dump.winning_trades = bt.winning_trades();
+        dump.losing_trades = bt.losing_trades();
+        dump.trades = bt.trades().into_iter().cloned().collect();
+        return dump;
     }
 
-    pub fn assert_length(&self, len: usize) {
-        assert_eq!(self.equity.len(), len, "equity");
-        assert_eq!(self.net_equity.len(), len, "net_equity");
-        assert_eq!(self.position_size.len(), len, "position_size");
-        assert_eq!(self.open_profit.len(), len, "open_profit");
-        assert_eq!(self.net_profit.len(), len, "net_profit");
-        assert_eq!(self.gross_profit.len(), len, "gross_profit");
-        assert_eq!(self.gross_loss.len(), len, "gross_loss");
-        assert_eq!(self.winning_trades.len(), len, "winning_trades");
-        assert_eq!(self.losing_trades.len(), len, "losing_trades");
-        assert_eq!(self.trades.len(), len, "trades");
-    }
+    // pub fn assert_length(actual: &[BacktestBarDump], expected: &Backtest, len: usize) {
+    //     assert_eq!(self.equity.len(), len, "equity");
+    //     assert_eq!(self.net_equity.len(), len, "net_equity");
+    //     assert_eq!(self.position_size.len(), len, "position_size");
+    //     assert_eq!(self.open_profit.len(), len, "open_profit");
+    //     assert_eq!(self.net_profit.len(), len, "net_profit");
+    //     assert_eq!(self.gross_profit.len(), len, "gross_profit");
+    //     assert_eq!(self.gross_loss.len(), len, "gross_loss");
+    //     assert_eq!(self.winning_trades.len(), len, "winning_trades");
+    //     assert_eq!(self.losing_trades.len(), len, "losing_trades");
+    //     assert_eq!(self.trades.len(), len, "trades");
+    // }
+    // pub fn assert_compare(&mut self, other: &BacktestDebugDump) {
+    //     self.assert_length(other.equity.len());
+    //     for i in 0..self.equity.len() {
+    //         self.assert_compare_at(other, i);
+    //     }
+    // }
 
-    pub fn assert_compare_at(&self, other: &BacktestDebugDump, idx: usize) {
+    pub fn assert_compare(&self, expected: &BacktestBarDump) {
+        let idx = self.bar_index;
         let price_eps = 1.0;
         let position_size_eps = 0.000001;
-        assert!(
-            self.equity[idx].compare_with_precision(other.equity[idx], price_eps),
-            "[{}] equity: {:?} != {:?}",
-            idx,
-            self.equity[idx],
-            other.equity[idx]
+        let debug_msg_prefix = format!("[{}] ", idx);
+        assert_eq!(
+            self.bar_index, expected.bar_index,
+            "{}bar_index: {:?} != {:?}",
+            debug_msg_prefix, self.bar_index, expected.bar_index
         );
         assert!(
-            self.net_equity[idx].compare_with_precision(other.net_equity[idx], price_eps),
-            "[{}] net_equity: {:?} != {:?}",
-            idx,
-            self.net_equity[idx],
-            other.net_equity[idx]
+            self.equity
+                .compare_with_precision(expected.equity, price_eps),
+            "{:?}equity: {:?} != {:?}",
+            debug_msg_prefix,
+            self.equity,
+            expected.equity
         );
         assert!(
-            self.position_size[idx]
-                .compare_with_precision(other.position_size[idx], position_size_eps),
-            "[{}] position_size: {:?} != {:?}",
-            idx,
-            self.position_size[idx],
-            other.position_size[idx]
+            self.net_equity
+                .compare_with_precision(expected.net_equity, price_eps),
+            "{}net_equity: {:?} != {:?}",
+            debug_msg_prefix,
+            self.net_equity,
+            expected.net_equity
         );
         assert!(
-            self.open_profit[idx].compare_with_precision(other.open_profit[idx], price_eps),
-            "[{}] open_profit: {:?} != {:?}",
-            idx,
-            self.open_profit[idx],
-            other.open_profit[idx]
+            self.position_size
+                .compare_with_precision(expected.position_size, position_size_eps),
+            "{}position_size: {:?} != {:?}",
+            debug_msg_prefix,
+            self.position_size,
+            expected.position_size
         );
         assert!(
-            self.net_profit[idx].compare_with_precision(other.net_profit[idx], price_eps),
-            "[{}] net_profit: {:?} != {:?}",
-            idx,
-            self.net_profit[idx],
-            other.net_profit[idx]
+            self.open_profit
+                .compare_with_precision(expected.open_profit, price_eps),
+            "{}open_profit: {:?} != {:?}",
+            debug_msg_prefix,
+            self.open_profit,
+            expected.open_profit
         );
         assert!(
-            self.gross_profit[idx].compare_with_precision(other.gross_profit[idx], price_eps),
-            "[{}] gross_profit: {:?} != {:?}",
-            idx,
-            self.gross_profit[idx],
-            other.gross_profit[idx]
+            self.net_profit
+                .compare_with_precision(expected.net_profit, price_eps),
+            "{}net_profit: {:?} != {:?}",
+            debug_msg_prefix,
+            self.net_profit,
+            expected.net_profit
         );
         assert!(
-            self.gross_loss[idx].compare_with_precision(other.gross_loss[idx], price_eps),
-            "[{}] gross_loss: {:?} != {:?}",
-            idx,
-            self.gross_loss[idx],
-            other.gross_loss[idx]
+            self.gross_profit
+                .compare_with_precision(expected.gross_profit, price_eps),
+            "{}gross_profit: {:?} != {:?}",
+            debug_msg_prefix,
+            self.gross_profit,
+            expected.gross_profit
+        );
+        assert!(
+            self.gross_loss
+                .compare_with_precision(expected.gross_loss, price_eps),
+            "{}gross_loss: {:?} != {:?}",
+            debug_msg_prefix,
+            self.gross_loss,
+            expected.gross_loss
         );
         assert_eq!(
-            self.winning_trades[idx], other.winning_trades[idx],
-            "[{}] winning_trades: {:?} != {:?}",
-            idx, self.winning_trades[idx], other.winning_trades[idx]
+            self.open_trades, expected.open_trades,
+            "{}open_trades: {:?} != {:?}",
+            debug_msg_prefix, self.open_trades, expected.open_trades
         );
         assert_eq!(
-            self.losing_trades[idx], other.losing_trades[idx],
-            "[{}] losing_trades: {:?} != {:?}",
-            idx, self.losing_trades[idx], other.losing_trades[idx]
+            self.closed_trades, expected.closed_trades,
+            "{}closed_trades: {:?} != {:?}",
+            debug_msg_prefix, self.closed_trades, expected.closed_trades
+        );
+        assert_eq!(
+            self.winning_trades, expected.winning_trades,
+            "{}winning_trades: {:?} != {:?}",
+            debug_msg_prefix, self.winning_trades, expected.winning_trades
+        );
+        assert_eq!(
+            self.losing_trades, expected.losing_trades,
+            "{}losing_trades: {:?} != {:?}",
+            debug_msg_prefix, self.losing_trades, expected.losing_trades
+        );
+        assert_eq!(
+            self.trades.len(),
+            expected.trades.len(),
+            "{}trades: {:?} != {:?}",
+            debug_msg_prefix,
+            self.trades.len(),
+            expected.trades.len()
+        );
+        assert_eq!(
+            self.open_trades + self.closed_trades,
+            expected.trades.len(),
+            "{}open_trades + closed_trades: {:?} + {:?} != {:?}",
+            debug_msg_prefix,
+            self.open_trades,
+            self.closed_trades,
+            expected.trades.len()
+        );
+        let actual_trades = &self.trades;
+        let expected_trades = &expected.trades;
+        for expected_trade in expected_trades.iter() {
+            let actual_trade = actual_trades.iter().find(|t| {
+                if t.entry().is_none() || expected_trade.entry().is_none() {
+                    return false;
+                }
+                if t.exit().is_none() || expected_trade.exit().is_none() {
+                    return false;
+                }
+                return t.entry().unwrap().id() == expected_trade.entry().unwrap().id()
+                    && t.exit().unwrap().id() == expected_trade.exit().unwrap().id();
+            });
+            assert!(
+                actual_trade.is_some(),
+                "{}{:?} trade not found",
+                debug_msg_prefix,
+                expected_trade,
+            );
+            let actual_trade = actual_trade.unwrap();
+            Self::assert_compare_trade(actual_trade, expected_trade, &debug_msg_prefix);
+        }
+    }
+
+    fn assert_compare_trade(actual: &Trade, expected: &Trade, msg_prefix: &str) {
+        let msg_suffix = &format!(
+            " | actual: {:?}, expected: {:?}",
+            actual.entry(),
+            expected.entry()
+        );
+        Self::assert_compare_trade_event(
+            actual.entry(),
+            expected.entry(),
+            true,
+            msg_prefix,
+            msg_suffix,
+        );
+        Self::assert_compare_trade_event(
+            actual.exit(),
+            expected.exit(),
+            false,
+            msg_prefix,
+            msg_suffix,
+        );
+        assert_eq!(
+            actual.direction(),
+            expected.direction(),
+            "{}direction: {:?} != {:?}{}",
+            msg_prefix,
+            actual.direction(),
+            expected.direction(),
+            msg_suffix
+        );
+        assert_eq!(
+            actual.is_closed(),
+            expected.is_closed(),
+            "{}is_closed: {:?} != {:?}{}",
+            msg_prefix,
+            actual.is_closed(),
+            expected.is_closed(),
+            msg_suffix
+        );
+        assert!(
+            actual
+                .size()
+                .compare_with_precision(expected.size(), 0.000001),
+            "{}size: {:?} != {:?}{}",
+            msg_prefix,
+            actual.size(),
+            expected.size(),
+            msg_suffix
+        );
+        assert!(
+            actual.pnl().compare_with_precision(expected.pnl(), 1.0),
+            "{}pnl: {:?} != {:?}{}",
+            msg_prefix,
+            actual.pnl(),
+            expected.pnl(),
+            msg_suffix
         );
     }
 
-    pub fn assert_compare(&mut self, other: &BacktestDebugDump) {
-        self.assert_length(other.equity.len());
-        for i in 0..self.equity.len() {
-            self.assert_compare_at(other, i);
-        }
+    fn assert_compare_trade_event(
+        actual: Option<&TradeEvent>,
+        expected: Option<&TradeEvent>,
+        is_entry: bool,
+        msg_prefix: &str,
+        msg_suffix: &str,
+    ) {
+        let msg_prefix = format!(
+            "{}{}: ",
+            msg_prefix,
+            if is_entry { "entry" } else { "exit" }
+        );
+        assert_eq!(
+            actual.map(|x| x.fill_bar_index()),
+            expected.map(|x| x.fill_bar_index()),
+            "{}.fill_bar_index: {:?} != {:?}{}",
+            msg_prefix,
+            actual.map(|x| x.fill_bar_index()),
+            expected.map(|x| x.fill_bar_index()),
+            msg_suffix
+        );
+        assert_eq!(
+            actual.map(|x| x.order_bar_index()),
+            expected.map(|x| x.order_bar_index()),
+            "{}.order_bar_index: {:?} != {:?}{}",
+            msg_prefix,
+            actual.map(|x| x.order_bar_index()),
+            expected.map(|x| x.order_bar_index()),
+            msg_suffix
+        );
+        assert!(
+            actual
+                .map(|x| x.price())
+                .unwrap_or(f64::NAN)
+                .compare_with_precision(expected.map(|x| x.price()).unwrap_or(f64::NAN), 1.0),
+            "{}.price: {:?} != {:?}{}",
+            msg_prefix,
+            actual.map(|x| x.price()),
+            expected.map(|x| x.price()),
+            msg_suffix
+        );
+        assert_eq!(
+            actual.map(|x| x.id()),
+            expected.map(|x| x.id()),
+            "{}.id: {:?} != {:?}{}",
+            msg_prefix,
+            actual.map(|x| x.id()),
+            expected.map(|x| x.id()),
+            msg_suffix
+        );
     }
 }

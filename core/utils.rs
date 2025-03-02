@@ -11,7 +11,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
     use wasm_bindgen::prelude::*;
 }}
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[inline]
@@ -19,7 +19,7 @@ pub fn hl2(high: f64, low: f64) -> f64 {
     return (high + low) / 2.0;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[inline]
@@ -27,7 +27,7 @@ pub fn hlc3(high: f64, low: f64, close: f64) -> f64 {
     return (high + low + close) / 3.0;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[inline]
@@ -35,7 +35,7 @@ pub fn hlcc4(high: f64, low: f64, close: f64) -> f64 {
     return (high + low + close + close) / 4.0;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = roundContracts))]
 #[doc = "Rounds `size` to the nearest multiple of the minimum order quantity."]
@@ -50,7 +50,7 @@ pub fn round_contracts(size: f64, min_qty: f64) -> f64 {
     // return (size * round_val).floor() / round_val;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = validateContracts))]
 #[doc = "Checks if `size` is a valid order quantity by comparing it to the minimum order quantity."]
@@ -59,7 +59,7 @@ pub fn validate_contracts(size: f64, min_qty: f64) -> bool {
     return min_qty.is_nan() || !size.is_nan() && size.abs() >= min_qty;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = roundToMinTick))]
 #[inline]
@@ -73,7 +73,7 @@ pub fn round_to_min_tick(value: f64, min_tick: f64) -> f64 {
     return (value / min_tick).round() * min_tick;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = orderSize))]
 #[inline]
@@ -106,7 +106,7 @@ pub fn order_size(
     return (equity_pct * equity * exchange_rate) / (instrument_price * point_value);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = orderSizeForEquityPct))]
 #[inline]
@@ -169,7 +169,7 @@ pub fn stdev(values: &[f64]) -> f64 {
     return stdev_from_var(var(values));
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = pctChange))]
 #[inline]
@@ -196,7 +196,7 @@ pub fn returns(equity: &[f64], pad: bool) -> Vec<f64> {
     return returns;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction(name = "returns", signature = (equity, pad=false)))]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = returns))]
 #[inline]
@@ -272,7 +272,7 @@ pub fn expectancy(pnl_series: &[f64]) -> f64 {
     return expectancy;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = expectancyScore))]
 #[inline]
@@ -280,7 +280,7 @@ pub fn expectancy_score(expectancy: f64, opportunity_bars: f64) -> f64 {
     return expectancy * opportunity_bars;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction(name = "expectancy"))]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = expectancy))]
 #[inline]
@@ -288,7 +288,7 @@ pub fn py_expectancy(pnl_series: Vec<f64>) -> f64 {
     return expectancy(&pnl_series);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = pnl))]
 #[inline]
@@ -296,7 +296,7 @@ pub fn pnl(qty: f64, entry_price: f64, current_price: f64) -> f64 {
     return (current_price - entry_price) * qty;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = profitFactor))]
 #[inline]
@@ -307,7 +307,7 @@ pub fn profit_factor(gross_profit: f64, gross_loss: f64) -> f64 {
     return gross_profit / gross_loss;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = longNetProfitRatio))]
 #[inline]
@@ -318,7 +318,7 @@ pub fn long_net_profit_ratio(long_net_profit: f64, short_net_profit: f64) -> f64
     return long_net_profit / short_net_profit * -1.0;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = winRate))]
 #[inline]
@@ -329,7 +329,7 @@ pub fn win_rate(profitable_trades: usize, total_trades: usize) -> f64 {
     return (profitable_trades as f64) / (total_trades as f64);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = avgTrade))]
 #[inline]
@@ -340,7 +340,7 @@ pub fn avg_trade(net_profit: f64, closed_trades: usize) -> f64 {
     return net_profit / (closed_trades as f64);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = avgWinningTrade))]
 #[inline]
@@ -351,7 +351,7 @@ pub fn avg_winning_trade(gross_profit: f64, winning_trades: usize) -> f64 {
     return gross_profit / (winning_trades as f64);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = avgLosingTrade))]
 #[inline]
@@ -362,7 +362,7 @@ pub fn avg_losing_trade(gross_loss: f64, losing_trades: usize) -> f64 {
     return gross_loss / (losing_trades as f64);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = avgWinLossRatio))]
 #[inline]
@@ -373,7 +373,7 @@ pub fn avg_win_loss_ratio(avg_winning_trade: f64, avg_losing_trade: f64) -> f64 
     return avg_winning_trade / avg_losing_trade;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = omegaRatio))]
 #[inline]
@@ -388,7 +388,7 @@ pub fn omega_ratio(
     return (positive_returns_sum - risk_free_rate) / negative_returns_sum;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = sharpeRatio))]
 #[inline]
@@ -399,7 +399,18 @@ pub fn sharpe_ratio(mean_returns: f64, std_returns: f64, risk_free_rate: f64) ->
     return (mean_returns - risk_free_rate) / std_returns;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
+#[cfg_attr(feature = "bindings_py", pyfunction)]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = sharpeRatioFromEquity))]
+#[inline]
+pub fn sharpe_ratio_from_equity(equity: Vec<f64>, risk_free_rate: f64) -> f64 {
+    let returns = returns(&equity, false);
+    let mean_returns = mean(&returns);
+    let std_returns = stdev(&returns);
+    return sharpe_ratio(mean_returns, std_returns, risk_free_rate);
+}
+
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = sortinoRatio))]
 #[inline]
@@ -410,7 +421,19 @@ pub fn sortino_ratio(mean_returns: f64, negative_returns_stdev: f64, risk_free_r
     return (mean_returns - risk_free_rate) / negative_returns_stdev;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
+#[cfg_attr(feature = "bindings_py", pyfunction)]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = sortinoRatioFromEquity))]
+#[inline]
+pub fn sortino_ratio_from_equity(equity: Vec<f64>, risk_free_rate: f64) -> f64 {
+    let returns = returns(&equity, false);
+    let mean_returns = mean(&returns);
+    let negative_returns: Vec<f64> = returns.iter().filter(|x| **x < 0.0).cloned().collect();
+    let negative_returns_stdev = stdev(&negative_returns);
+    return sortino_ratio(mean_returns, negative_returns_stdev, risk_free_rate);
+}
+
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = netProfitPct))]
 #[inline]
@@ -418,7 +441,7 @@ pub fn net_profit_pct(net_profit: f64, initial_capital: f64) -> f64 {
     return 100.0 * net_profit / initial_capital;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = grossProfitPct))]
 #[inline]
@@ -426,7 +449,7 @@ pub fn gross_profit_pct(gross_profit: f64, initial_capital: f64) -> f64 {
     return 100.0 * gross_profit / initial_capital;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = grossLossPct))]
 #[inline]
@@ -434,7 +457,7 @@ pub fn gross_loss_pct(gross_loss: f64, initial_capital: f64) -> f64 {
     return 100.0 * gross_loss / initial_capital;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = longNetProfitPct))]
 #[inline]
@@ -442,7 +465,7 @@ pub fn long_net_profit_pct(long_net_profit: f64, initial_capital: f64) -> f64 {
     return long_net_profit / initial_capital;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = shortNetProfitPct))]
 #[inline]
@@ -450,15 +473,34 @@ pub fn short_net_profit_pct(short_net_profit: f64, initial_capital: f64) -> f64 
     return short_net_profit / initial_capital;
 }
 
-#[inline]
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = maxDrawdownPct))]
+#[inline]
 pub fn max_drawdown_pct(max_dd: f64, net_equity_max: f64) -> f64 {
     return max_dd / net_equity_max;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+// #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
+// #[cfg_attr(feature = "bindings_py", pyfunction)]
+// #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = maxDrawdownPctFromEquity))]
+// #[inline]
+// pub fn max_drawdown_pct_from_equity(equity: Vec<f64>) -> f64 {
+//     let mut max_dd = 0.0;
+//     let mut max_equity = 0.0;
+//     for eq in equity {
+//         if eq > max_equity {
+//             max_equity = eq;
+//         }
+//         let dd = max_equity - eq;
+//         if dd > max_dd {
+//             max_dd = dd;
+//         }
+//     }
+//     return max_dd / max_equity;
+// }
+
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = maxRunUpPct))]
 #[inline]
@@ -466,7 +508,26 @@ pub fn max_run_up_pct(max_run_up: f64, bar_equity_max: f64) -> f64 {
     return max_run_up / bar_equity_max;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+// #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
+// #[cfg_attr(feature = "bindings_py", pyfunction)]
+// #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = maxRunUpPctFromEquity))]
+// #[inline]
+// pub fn max_run_up_pct_from_equity(equity: Vec<f64>) -> f64 {
+//     let mut max_run_up = 0.0;
+//     let mut min_equity = f64::INFINITY;
+//     for eq in equity {
+//         if eq < min_equity {
+//             min_equity = eq;
+//         }
+//         let run_up = eq - min_equity;
+//         if run_up > max_run_up {
+//             max_run_up = run_up;
+//         }
+//     }
+//     return max_run_up / min_equity;
+// }
+
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = kellyCriterion))]
 #[doc = "https://python.plainenglish.io/the-kelly-criterion-maximizing-returns-through-optimal-betting-32781a768ffb"]
@@ -476,7 +537,7 @@ pub fn kelly_criterion(win_prob: f64, profit_factor: f64) -> f64 {
     return (profit_factor * win_prob - q) / profit_factor;
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[doc = "https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/"]
@@ -485,7 +546,7 @@ pub fn accuracy(tp_count: f64, fp_count: f64, fn_count: f64, tn_count: f64) -> f
     return (tp_count + tn_count) / (tp_count + fp_count + fn_count + tn_count);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[doc = "https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/"]
@@ -494,7 +555,7 @@ pub fn sensitivity(tp_count: f64, fp_count: f64) -> f64 {
     return tp_count / (tp_count + fp_count);
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction(module = "utils"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]
 #[doc = "https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/"]

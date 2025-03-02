@@ -1,8 +1,11 @@
 {
-  "name": "@nersent/qpace",
+  "name": "qpace",
   "version": "0.0.1",
+  "private": true,
   "scripts": {
-    "bazed:clean": "rimraf build"
+    "bazed:clean": "rimraf build",
+    "wasm": "wasm-pack build ./core --target nodejs --no-default-features --features=bindings_wasm",
+    "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py --features=polars"
   },
   "devDependencies": {
     "@swc/cli": "^0.3.6",

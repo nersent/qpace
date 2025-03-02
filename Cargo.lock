@@ -455,6 +455,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "drawille"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e64e461c3f1e69d99372620640b3fd5f0309eeda2e26e4af69f6760c0e1df845"
+dependencies = [
+ "colored",
+ "fnv",
+]
+
+[[package]]
 name = "dyn-clone"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -544,6 +554,12 @@ dependencies = [
  "crc32fast",
  "miniz_oxide",
 ]
+
+[[package]]
+name = "fnv"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "foreign_vec"
@@ -1554,26 +1570,6 @@ dependencies = [
 
 [[package]]
 name = "pyo3-stub-gen"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e2906d67f2fa9b6079665a1d097c25530f54a8a6a40da5544370786f0adb523"
-dependencies = [
- "anyhow",
- "chrono",
- "inventory",
- "itertools 0.13.0",
- "log",
- "maplit",
- "num-complex",
- "numpy",
- "pyo3",
- "pyo3-stub-gen-derive 0.6.2",
- "serde",
- "toml",
-]
-
-[[package]]
-name = "pyo3-stub-gen"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca7c2d6e22cba51cc9766b6dee4087218cc445fdf99db62fa4f269e074351b46"
@@ -1587,20 +1583,9 @@ dependencies = [
  "num-complex",
  "numpy",
  "pyo3",
- "pyo3-stub-gen-derive 0.7.0",
+ "pyo3-stub-gen-derive",
  "serde",
  "toml",
-]
-
-[[package]]
-name = "pyo3-stub-gen-derive"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea3f50b3dca9a392772e45ed6db1066773c74d2be00399f46ab53cbab67a36f9"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.98",
 ]
 
 [[package]]
@@ -1615,12 +1600,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "qpace"
+name = "qpace_content"
+version = "0.0.1"
+dependencies = [
+ "polars",
+ "pyo3",
+ "pyo3-build-config",
+ "pyo3-ffi",
+ "pyo3-stub-gen",
+ "pyo3-stub-gen-derive",
+ "qpace_core",
+]
+
+[[package]]
+name = "qpace_core"
 version = "1.0.0"
 dependencies = [
  "cfg-if",
  "chrono",
  "colored",
+ "comfy-table",
  "console_error_panic_hook",
  "env_logger",
  "itertools 0.12.1",
@@ -1629,24 +1628,15 @@ dependencies = [
  "num-traits",
  "polars",
  "pyo3",
+ "pyo3-build-config",
  "pyo3-ffi",
- "pyo3-stub-gen 0.7.0",
- "pyo3-stub-gen-derive 0.7.0",
+ "pyo3-stub-gen",
+ "pyo3-stub-gen-derive",
  "serde",
  "serde_json",
+ "textplots",
  "thiserror",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "qpace_playground_rs"
-version = "0.0.1"
-dependencies = [
- "pyo3",
- "pyo3-ffi",
- "pyo3-stub-gen 0.6.2",
- "pyo3-stub-gen-derive 0.6.2",
- "qpace",
 ]
 
 [[package]]
@@ -1767,6 +1757,15 @@ name = "regex-syntax"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
+
+[[package]]
+name = "rgb"
+version = "0.8.50"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57397d16646700483b67d2dd6511d79318f9d057fdbd21a4066aeac8b41d310a"
+dependencies = [
+ "bytemuck",
+]
 
 [[package]]
 name = "rustc-demangle"
@@ -2023,6 +2022,16 @@ name = "target-lexicon"
 version = "0.12.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
+
+[[package]]
+name = "textplots"
+version = "0.8.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f7657a0066c9f9663659db0665319adff8b0943305fc73eddf1010e5a2072b1"
+dependencies = [
+ "drawille",
+ "rgb",
+]
 
 [[package]]
 name = "thiserror"

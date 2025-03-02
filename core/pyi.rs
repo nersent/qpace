@@ -1,7 +1,7 @@
 cfg_if::cfg_if! {
 if #[cfg(feature = "bindings_py")]
 {
-use qpace::stub_info;
+use qpace_core::stub_info;
 }
 }
 

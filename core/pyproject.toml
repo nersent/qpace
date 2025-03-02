@@ -10,4 +10,4 @@ classifiers = []
 [project.optional-dependencies]
 
 [tool.maturin]
-module-name = "qpace_rs"
+module-name = "qpace_core"

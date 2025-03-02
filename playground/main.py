@@ -1,41 +1,66 @@
 from datetime import datetime, timezone
 import os
+import sys
+
+from matplotlib import pyplot as plt
 import lib as qp
 import pandas as pd
 
 WORKSPACE_PATH = os.getenv("BAZED_WORKSPACE_ROOT", os.getcwd())
 
 
+def load_ohlcv_df(path: str) -> pd.DataFrame:
+    df: pd.DataFrame = pd.read_csv(path)
+    df["open_time"] = pd.to_datetime(df["__open_time__"], utc=True, unit="s")
+    df["close_time"] = pd.to_datetime(df["__close_time__"], utc=True, unit="s")
+    df["open"] = df["__open__"]
+    df["high"] = df["__high__"]
+    df["low"] = df["__low__"]
+    df["close"] = df["__close__"]
+    df["volume"] = df["__volume__"]
+    df = df[["open_time", "close_time", "open", "high", "low", "close", "volume"]]
+    return df
+
+
 if __name__ == "__main__":
     ohlcv_path = os.path.join(WORKSPACE_PATH, "playground/btc.csv")
-    ohlcv_df: pd.DataFrame = pd.read_csv(ohlcv_path)
-    ohlcv_df["open_time"] = pd.to_datetime(
-        ohlcv_df["__open_time__"], utc=True, unit="s"
-    )
-    ohlcv_df["close_time"] = pd.to_datetime(
-        ohlcv_df["__close_time__"], utc=True, unit="s"
-    )
-    ohlcv_df["open"] = ohlcv_df["__open__"]
-    ohlcv_df["high"] = ohlcv_df["__high__"]
-    ohlcv_df["low"] = ohlcv_df["__low__"]
-    ohlcv_df["close"] = ohlcv_df["__close__"]
-    ohlcv_df["volume"] = ohlcv_df["__volume__"]
-    ohlcv_df = ohlcv_df[
-        ["open_time", "close_time", "open", "high", "low", "close", "volume"]
-    ]
+    ohlcv_df = load_ohlcv_df(ohlcv_path)
     ohlcv = qp.Ohlcv.from_pandas(ohlcv_df)
-
     ctx = qp.Ctx.from_ohlcv(ohlcv, qp.SymInfo.btc_usd())
-    bt = qp.Backtest(ctx, qp.BacktestConfig())
+
+    # x = qp.ta.aroon(ctx, 14)
+    # aroon_up, aroon_down = zip(*x)
+    # plt.plot(ohlcv.open_time[0:90], aroon_up[0:90], label="aroon_up")
+    # plt.plot(ohlcv.open_time[0:90], aroon_down[0:90], label="aroon_down")
+    # plt.show()
+
+    vi = qp.ta.vortex_indicator(ctx.fork(), 14)
+    bt = qp.Backtest(ctx.fork(), qp.BacktestConfig())
+
     for bar_index in bt:
-        if bar_index == 10:
-            print(f"[{bar_index}] short")
+        if bt.ctx.bar.open_time.year < 2023:
+            continue
+        vi_plus, vi_minus = vi[bar_index]
+        if vi_plus > vi_minus:
+            bt.signal(qp.Signal.long())
+        elif vi_plus < vi_minus:
             bt.signal(qp.Signal.short())
-        elif bar_index == 20:
-            print(f"[{bar_index}] close all")
+        else:
             bt.signal(qp.Signal.close_all())
-    print(bt.summary())
-    print(bt.to_pine())
+    bt.print()
+    # print(bt.summary())
+    # print(bt.to_pine())
+
+    # bt = qp.Backtest(ctx, qp.BacktestConfig())
+    # for bar_index in bt:
+    #     if bar_index == 10:
+    #         print(f"[{bar_index}] short")
+    #         bt.signal(qp.Signal.short())
+    #     elif bar_index == 50:
+    #         print(f"[{bar_index}] close all")
+    #         bt.signal(qp.Signal.close_all())
+    # print(bt.summary())
+    # print(bt.to_pine())
     # ctx.next()
     # bt.on_bar_open()
     # print(bt.equity)
