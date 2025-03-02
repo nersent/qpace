@@ -33,9 +33,19 @@
 
 - Comparable results to TradingView Pine
 
-- Extremly fast backtesting - supports vectorized and standalone signals\
+- Extremely fast backtesting with vectorization support
 
-- Rich collection of built-in technical analysis indicators - written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)
+- OHLCV - loading, resampling, and more
+
+- Performance metrics - sharpe, sortino, omega, and more
+
+- Utility functions - position sizing, risk management, and more
+
+- Parameter optimization
+  - Grid Search
+  - Genetic Evolution
+
+- TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)
   - Accumulation/Distribution (ACCDIST)
   - Relative Strength Index (RSI)
   - Moving Average Convergence Divergence (MACD)
@@ -45,10 +55,11 @@
   - True Range (TR)
   - Exponential Moving Average (EMA)
   - Simple Moving Average (SMA)
-  - RMA
-  - VWMA
-  - LWMA
-  - SWMA
+  - Relative Moving Average (RMA)
+  - Volume Weighted Moving Average (VWMA)
+  - Linear Weighted Moving Average (LWMA)
+  - Symmetrically Weighted Moving Average (SWMA)
+  - Hull Moving Average (HMA)
   - Choppiness Index (CHOP)
   - Chande Kroll Stop (CKS)
   - Aroon
@@ -59,10 +70,10 @@
   - Cumulative (CUM)
   - Bars Since
   - Rate of Chance (ROC)
-  - SuperTrend
+  - Super Trend
   - Chaikin Money Flow (CMF)
   - Coppock Curve
-  - Doncnian Channels
+  - Donchian Channels
   - Price Oscillator
   - Relative Vigor Index (RVGI)
   - Relative Volatility Index (RVI)
