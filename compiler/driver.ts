@@ -1,5 +1,20 @@
 export const QPC_CONFIG_FILENAME = ".qpc.json";
 
+export interface FileSystem {
+  exists: (path: string) => Promise<boolean> | boolean;
+  read(filename: string): Promise<Buffer | undefined> | Buffer | undefined;
+  read(
+    path: string,
+    encoding: "utf8",
+  ): Promise<string | undefined> | string | undefined;
+  write(path: string, data: Buffer): Promise<void> | void;
+  write(
+    path: string,
+    data: string,
+    encoding: "utf8",
+  ): Promise<void> | void;
+}
+
 export interface CompilerOptions {
   [key: string]: any;
   rs?: {
@@ -27,6 +42,12 @@ export type Os = "macos" | "linux" | "windows";
 export type Arch = "x86_64" | "arm64";
 export type Target = `py`;
 
+export interface TargetTriple {
+  os: Os;
+  arch: Arch;
+  target: Target;
+}
+
 export interface ProgramOptions {
   [key: string]: any;
   compilerOptions?: CompilerOptions;
@@ -46,22 +67,9 @@ export interface Program {
   host: CompilerHost;
 }
 
-export type Encoding = "binary" | "utf8";
 
 export interface CompilerHost {
   rootNames: string[];
-  fileExists: (filename: string) => Promise<boolean> | boolean;
-  readFile(filename: string): Promise<Buffer | undefined> | Buffer | undefined;
-  readFile(
-    filename: string,
-    encoding: "utf8",
-  ): Promise<string | undefined> | string | undefined;
-  writeFile(filename: string, data: Buffer): Promise<void> | void;
-  writeFile(
-    filename: string,
-    data: string,
-    encoding: "utf8",
-  ): Promise<void> | void;
 }
 
 export interface DriverBuildOptions {
@@ -70,11 +78,7 @@ export interface DriverBuildOptions {
   checkOnly?: boolean;
 }
 
-export interface TargetSpec {
-  os?: Os;
-  arch?: Arch;
-  target?: Target;
-}
+
 
 export abstract class Driver {
   constructor(public readonly program: Program) {}
