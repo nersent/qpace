@@ -1,7 +1,7 @@
 const WORKSPACE = ["core", "content"];
 
 rustFileSet("src_py", {
-  srcs: [glob("**/!(*.test).py"), "pyproject.toml", glob("**/*.pyi")],
+  srcs: [glob("**/!(*.test).py"), glob("**/*.pyi"), glob("**/*.toml")],
   deps: [],
 });
 
