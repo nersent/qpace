@@ -99,7 +99,7 @@ jobs:
 
       - name: Build
         run: |
-          pnpm bazed run //lib --verbose
+          pnpm bazed build //core --verbose
 
       # - name: Test
       #   run: |
