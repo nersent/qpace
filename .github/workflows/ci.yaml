@@ -100,7 +100,8 @@ jobs:
       - name: Build
         run: |
           pnpm bazed build //core --verbose
-
+          pnpm bazed build //content --verbose
+          pnpm bazed build //lib --verbose
       # - name: Test
       #   run: |
       #     pnpm bazed run //pace/lib:test --verbose

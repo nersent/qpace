@@ -38,9 +38,9 @@ export interface CompilerOptions {
   emitOnly?: boolean;
 }
 
-export type Os = "macos" | "linux" | "windows";
-export type Arch = "x86_64" | "arm64";
-export type Target = `py`;
+export type Os =  "macos" | "linux" | "windows" | "unknown";
+export type Arch = "x86_64" | "arm64" | "unknown";
+export type Target = `py`| "unknown";
 
 export interface TargetTriple {
   os: Os;
