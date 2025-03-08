@@ -19,8 +19,15 @@ message BuildRequest {
   repeated File files = 3;
 }
 
+enum Status {
+  OK = 0;
+  ERROR = 1;
+}
+
 message BuildResponse {
   repeated File files = 1;
+  Status status = 2;
+  optional string message = 3;
 }
 
 message BuildResponseEvent {

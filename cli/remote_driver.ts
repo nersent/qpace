@@ -4,12 +4,10 @@ import { CompilerClient } from "~/compiler/proto/compiler_grpc_pb";
 import { exists } from "~/base/node/fs";
 import { readFile, writeFile } from "fs/promises";
 import { FileSystem } from "~/compiler/driver";
-import {
-  BuildConfigEvent,
-  BuildRequestEvent,
-} from "~/compiler/proto/compiler_pb";
+import { BuildRequest } from "~/compiler/proto/compiler_pb";
 import * as compilerApi from "~/compiler/proto/compiler_pb";
 import { glob } from "glob";
+import chalk from "chalk";
 
 export class OsFileSystem implements FileSystem {
   constructor(public readonly rootDir: string) {}
@@ -61,54 +59,52 @@ export class RemoteDriver implements Driver {
   }
 
   public async build(): Promise<void> {
+    const cwd = this.program.getRootDir();
     const fs = this.program.getFs();
     const paths = await this.collectSrcFiles();
-    const cwd = this.program.getRootDir();
 
-    return new Promise<void>(async (_resolve, _reject) => {
-      const stream = this.client.build();
+    for (const path of paths) {
+      console.log(chalk.blackBright(`-> ${path}`));
+    }
 
+    const req = new BuildRequest();
+    req.setQpcConfig(JSON.stringify(this.program.getConfig()));
+    req.setTarget("gowno");
+    const reqFiles: compilerApi.File[] = [];
+    reqFiles.push(
+      ...(await Promise.all(
+        paths.map(async (path) => {
+          const data = await fs.read(path);
+          return new compilerApi.File().setPath(path).setData(data);
+        }),
+      )),
+    );
+    req.setFilesList(reqFiles);
+
+    const stream = this.client.build(req);
+
+    await new Promise<void>((_resolve, _reject) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
-        if (e.hasEnd()) {
-          return _resolve();
-        }
-        if (e.hasLog()) {
-          const message = e.getLog()!.getMessage();
-          if (message != null) {
+        if (e.hasMessage()) {
+          const message = e.getMessage();
+          if (message.length) {
             console.log(message);
           }
-          return;
         }
-        if (e.hasFile()) {
-          const file = e.getFile()!.getFile()!;
-          const buffer = Buffer.from(file.getData());
-          const path = resolve(cwd, file.getPath());
-          await fs.write(path, buffer);
+        if (e.hasResponse()) {
+          const res = e.getResponse()!;
+          await Promise.all(
+            res.getFilesList().map(async (file) => {
+              await fs.write(file.getPath(), Buffer.from(file.getData_asU8()));
+            }),
+          );
+          _resolve();
           return;
         }
       });
-
-      {
-        const e = new BuildRequestEvent().setConfig(
-          new BuildConfigEvent()
-            .setQpcConfig(JSON.stringify(this.program.getConfig()))
-            .setTarget("gowno"),
-        );
-        stream.write(e);
-      }
-
-      await Promise.all(
-        paths.map(async (path) => {
-          const data = await fs.read(path);
-          const e = new BuildRequestEvent().setFile(
-            new compilerApi.FileEvent().setFile(
-              new compilerApi.File().setPath(path).setData(data),
-            ),
-          );
-          stream.write(e);
-        }),
-      );
     });
+
+    console.log(chalk.greenBright("Done"));
   }
 
   public async check(): Promise<void> {}

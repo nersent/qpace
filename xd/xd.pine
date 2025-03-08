@@ -1,2 +1,2 @@
-xd(float x) =>
+export xd(float x): string =>
     69.420

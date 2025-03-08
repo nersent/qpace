@@ -50,7 +50,6 @@ const main = async (): Promise<void> => {
   const client = new Client({});
   const driver: Driver = new RemoteDriver(program, client.compilerClient);
   // console.log(program.getConfig());
-  console.log('building')
   await driver.build();
   // const qp = await import("../core/pkg/qpace_core.js");
   // const program = new Command();
