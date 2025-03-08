@@ -13,10 +13,12 @@ message File {
   bytes data = 4;
 }
 
+
 message BuildRequest {
   string qpc_config = 1;
   optional string target = 2;
   repeated File files = 3;
+  optional bool check_only = 4;
 }
 
 enum BuildStatus {

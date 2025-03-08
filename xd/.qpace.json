@@ -1,9 +1,0 @@
-{
-  "python": {
-    "package": "qpace_content"
-  },
-  "emitDir": ".",
-  "include": [
-    "./**/*.pine"
-  ]
-}

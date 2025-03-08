@@ -1,13 +1,19 @@
-import { basename, resolve } from "path";
-import { Driver, Program } from "~/compiler/driver";
-import { CompilerClient } from "~/compiler/proto/compiler_grpc_pb";
-import { exists } from "~/base/node/fs";
 import { readFile, writeFile } from "fs/promises";
-import { FileSystem } from "~/compiler/driver";
+import { basename, resolve } from "path";
+
+import { ClientReadableStream } from "@grpc/grpc-js";
+import chalk from "chalk";
+import { glob } from "glob";
+
+import { exec } from "../base/node/exec";
+import { prettifyTime } from "../base/node/time";
+import { Config } from "../compiler/config";
+
+import { exists } from "~/base/node/fs";
+import { Driver, Program, FileSystem } from "~/compiler/driver";
+import { CompilerClient } from "~/compiler/proto/compiler_grpc_pb";
 import { BuildRequest } from "~/compiler/proto/compiler_pb";
 import * as compilerApi from "~/compiler/proto/compiler_pb";
-import { glob } from "glob";
-import chalk from "chalk";
 
 export class OsFileSystem implements FileSystem {
   constructor(public readonly rootDir: string) {}
@@ -60,16 +66,60 @@ export class RemoteDriver implements Driver {
 
   public async build(): Promise<void> {
     const cwd = this.program.getRootDir();
+    console.log(chalk.blackBright(`Building ${cwd}`));
+
+    const req = await this.createBuildRequest();
+    const stream = this.client.build(req);
+
+    const startTime = Date.now();
+    const res = await this.resolveBuild(stream);
+    const endTime = Date.now();
+
+    this.logEnd({ status: res.getStatus(), startTime, endTime });
+  }
+
+  public async check(): Promise<void> {
+    const cwd = this.program.getRootDir();
+    console.log(chalk.blackBright(`Checking ${cwd}`));
+
+    const req = await this.createBuildRequest();
+    req.setCheckOnly(true);
+    const stream = this.client.build(req);
+
+    const startTime = Date.now();
+    const res = await this.resolveBuild(stream);
+    const endTime = Date.now();
+
+    this.logEnd({ status: res.getStatus(), startTime, endTime });
+  }
+
+  private logEnd({
+    status,
+    startTime,
+    endTime,
+  }: {
+    status: compilerApi.BuildStatus;
+    startTime: number;
+    endTime: number;
+  }): void {
+    if (status === compilerApi.BuildStatus.ERROR) {
+      console.log(
+        chalk.redBright(`Failed in ${prettifyTime(endTime - startTime)}`),
+      );
+    } else if (status === compilerApi.BuildStatus.OK) {
+      console.log(
+        chalk.green(`Finished in ${prettifyTime(endTime - startTime)}`),
+      );
+    }
+  }
+
+  private async createBuildRequest(): Promise<BuildRequest> {
+    const config = this.program.getConfig();
     const fs = this.program.getFs();
     const paths = await this.collectSrcFiles();
-
-    for (const path of paths) {
-      console.log(chalk.blackBright(`-> ${path}`));
-    }
-
+    console.log(chalk.blackBright(paths.map((r) => `→ ${r}`).join("\n")));
     const req = new BuildRequest();
-    req.setQpcConfig(JSON.stringify(this.program.getConfig()));
-    req.setTarget("gowno");
+    req.setQpcConfig(JSON.stringify(config));
     const reqFiles: compilerApi.File[] = [];
     reqFiles.push(
       ...(await Promise.all(
@@ -80,10 +130,14 @@ export class RemoteDriver implements Driver {
       )),
     );
     req.setFilesList(reqFiles);
+    return req;
+  }
 
-    const stream = this.client.build(req);
-
-    await new Promise<void>((_resolve, _reject) => {
+  private resolveBuild(
+    stream: ClientReadableStream<compilerApi.BuildResponseEvent>,
+  ): Promise<compilerApi.BuildResponse> {
+    const fs = this.program.getFs();
+    return new Promise<compilerApi.BuildResponse>((_resolve) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
         if (e.hasMessage()) {
           const message = e.getMessage();
@@ -95,17 +149,22 @@ export class RemoteDriver implements Driver {
           const res = e.getResponse()!;
           await Promise.all(
             res.getFilesList().map(async (file) => {
-              await fs.write(file.getPath(), Buffer.from(file.getData_asU8()));
+              const path = file.getPath();
+              await fs.write(path, Buffer.from(file.getData_asU8()));
+              console.log(chalk.blackBright(`← ${path}`));
             }),
           );
-          _resolve();
+          _resolve(res);
           return;
         }
       });
     });
-
-    console.log(chalk.greenBright("Done"));
   }
 
-  public async check(): Promise<void> {}
+  private async installPipWheel(path: string): Promise<void> {
+    await exec({
+      command: `pip install "${path}" --force-reinstall`,
+      io: true,
+    });
+  }
 }

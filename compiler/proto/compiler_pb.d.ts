@@ -52,6 +52,11 @@ export class BuildRequest extends jspb.Message {
     setFilesList(value: Array<File>): BuildRequest;
     addFiles(value?: File, index?: number): File;
 
+    hasCheckOnly(): boolean;
+    clearCheckOnly(): void;
+    getCheckOnly(): boolean | undefined;
+    setCheckOnly(value: boolean): BuildRequest;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BuildRequest.AsObject;
     static toObject(includeInstance: boolean, msg: BuildRequest): BuildRequest.AsObject;
@@ -67,6 +72,7 @@ export namespace BuildRequest {
         qpcConfig: string,
         target?: string,
         filesList: Array<File.AsObject>,
+        checkOnly?: boolean,
     }
 }
 

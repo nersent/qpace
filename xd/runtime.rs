@@ -5,7 +5,7 @@ https://qpace.dev
 
 https://github.com/nersent/qpace
 
-Date: 2025-03-08T12:12:53.558Z
+Date: 2025-03-08T12:51:31.121Z
 */
 
 use std::ops::{AddAssign, SubAssign};

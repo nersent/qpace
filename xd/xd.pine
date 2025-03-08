@@ -1,2 +1,2 @@
-export xd(float x): string =>
-    69.420
+export xd(float x): float =>
+    69.420 'War'

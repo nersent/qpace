@@ -423,7 +423,8 @@ proto.compiler.BuildRequest.toObject = function(includeInstance, msg) {
     qpcConfig: jspb.Message.getFieldWithDefault(msg, 1, ""),
     target: jspb.Message.getFieldWithDefault(msg, 2, ""),
     filesList: jspb.Message.toObjectList(msg.getFilesList(),
-    proto.compiler.File.toObject, includeInstance)
+    proto.compiler.File.toObject, includeInstance),
+    checkOnly: jspb.Message.getBooleanFieldWithDefault(msg, 4, false)
   };
 
   if (includeInstance) {
@@ -472,6 +473,10 @@ proto.compiler.BuildRequest.deserializeBinaryFromReader = function(msg, reader) 
       var value = new proto.compiler.File;
       reader.readMessage(value,proto.compiler.File.deserializeBinaryFromReader);
       msg.addFiles(value);
+      break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setCheckOnly(value);
       break;
     default:
       reader.skipField();
@@ -522,6 +527,13 @@ proto.compiler.BuildRequest.serializeBinaryToWriter = function(message, writer) 
       3,
       f,
       proto.compiler.File.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeBool(
+      4,
+      f
     );
   }
 };
@@ -616,6 +628,42 @@ proto.compiler.BuildRequest.prototype.addFiles = function(opt_value, opt_index) 
  */
 proto.compiler.BuildRequest.prototype.clearFilesList = function() {
   return this.setFilesList([]);
+};
+
+
+/**
+ * optional bool check_only = 4;
+ * @return {boolean}
+ */
+proto.compiler.BuildRequest.prototype.getCheckOnly = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.compiler.BuildRequest} returns this
+ */
+proto.compiler.BuildRequest.prototype.setCheckOnly = function(value) {
+  return jspb.Message.setField(this, 4, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.compiler.BuildRequest} returns this
+ */
+proto.compiler.BuildRequest.prototype.clearCheckOnly = function() {
+  return jspb.Message.setField(this, 4, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.compiler.BuildRequest.prototype.hasCheckOnly = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

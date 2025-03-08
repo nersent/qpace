@@ -5,7 +5,7 @@ https://qpace.dev
 
 https://github.com/nersent/qpace
 
-Date: 2025-03-08T12:12:53.558Z
+Date: 2025-03-08T12:51:31.121Z
 */
 
 use std::cell::RefCell;
@@ -25,10 +25,89 @@ use qpace_core::{
 mod runtime;
 
 use runtime::{OhlcvSeries, PineCtx, PineBool, PineInt, PineFloat, PineNa, PineString, PineColor, PineSeries, PineAny, PineObject, PinePlot, PineHline};
+      
+    
+
+#[doc = "qpc_main_64(): void"]
+fn _8_qpc_main_64_3401a6(ctx: &PineCtx) -> () {
+{}}
 use pyo3::prelude::*;
 use pyo3::{
   pyfunction, pymodule, types::{PyModule, PyModuleMethods}, wrap_pyfunction, wrap_pymodule, Bound, PyResult
 };
 use qpace_core::ctx_py::PyCtx;
           
-#[pymodule(name = "qpace_content")]pub fn py_mod_qpace_content(m: &Bound<'_, PyModule>) -> PyResult<()> {Ok(())}
+#[pyclass(unsendable)]struct ScriptContext__8_qpc_main_64_3401a6 {pctx: PineCtx,
+ohlcv: runtime::OhlcvSeries,}
+
+impl ScriptContext__8_qpc_main_64_3401a6 {
+    fn new(ctx: Rc<RefCell<Ctx>>, ) -> Self {
+        Self {pctx: PineCtx::new_bt(ctx.clone(), Backtest::new(ctx.clone(), BacktestConfig::default())),
+ohlcv: runtime::OhlcvSeries::new(ctx.clone()),}
+    }
+
+    fn next(&mut self) {
+        self.ohlcv.next();
+        let _0_open_0da3b0 = &self.ohlcv.open;
+let _1_high_0da3b0 = &self.ohlcv.high;
+let _2_low_0da3b0 = &self.ohlcv.low;
+let _3_close_0da3b0 = &self.ohlcv.close;
+let _4_volume_0da3b0 = &self.ohlcv.volume;
+let _5_hl2_0da3b0 = &self.ohlcv.hl2;
+let _6_hlc3_0da3b0 = &self.ohlcv.hlc3;
+let _7_hlcc4_0da3b0 = &self.ohlcv.hlcc4;
+        _8_qpc_main_64_3401a6(&self.pctx);
+    }
+}
+
+#[pymethods]
+impl ScriptContext__8_qpc_main_64_3401a6 {
+    #[new]
+#[pyo3(signature=(ctx,))]pub fn py_new(py: Python, ctx: &Bound<'_, PyAny>) -> ScriptContext__8_qpc_main_64_3401a6 {
+        let ctx = PyCtx::downcast_py(py, &ctx);
+        let ctx: Rc<RefCell<Ctx>> = ctx.into();
+        return ScriptContext__8_qpc_main_64_3401a6::new(ctx,  )}
+    #[pyo3(name = "collect")]pub fn py_collect(&mut self, py: Python, collect: HashSet<String>) -> HashMap<String, Py<PyAny>> {
+      
+
+      
+
+      // for bar_index in self.pctx.ctx.clone() {
+      loop {
+          let bar_index = self.pctx.ctx.borrow_mut().next();
+          if bar_index.is_none() {
+              break;
+          }
+          let bar_index = bar_index.unwrap();
+          self.next();
+          self.pctx.bt.as_ref().map(|bt| bt.borrow_mut().on_bar_open());
+          
+          self.pctx.bt.as_ref().map(|bt| bt.borrow_mut().on_bar_close());
+      }
+
+      let mut values: HashMap<String, Py<PyAny>> = HashMap::new();
+      
+
+      return values;
+  }
+
+    /*
+    #[pyo3(name = "get_ctx")]
+    pub fn py_ctx(&self) -> Ctx {
+        return self.pctx.ctx.clone();
+    }
+    */
+
+    /*
+    #[pyo3(name = "get_bt")]
+    pub fn py_bt(&self) -> Backtest {
+        return self.pctx.bt.as_ref().unwrap().replace(Backtest::new(
+            self.pctx.ctx.clone(),
+            BacktestConfig::default(),
+        ));
+    }
+    */
+}
+    
+#[pymodule(name = "qpace_artifact")]pub fn py_mod_qpace_artifact(m: &Bound<'_, PyModule>) -> PyResult<()> {m.add_class::<ScriptContext__8_qpc_main_64_3401a6>()?;
+Ok(())}

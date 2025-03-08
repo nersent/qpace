@@ -9,17 +9,22 @@ module.exports = {
   plugins: ["@typescript-eslint", "prettier", "import"],
   settings: {
     "import/resolver": {
-      typescript: {},
+      "typescript": { "alwaysTryTypes": true },
+    },
+    "react": {
+      "version": "detect"
     },
   },
   extends: [
     "eslint:recommended",
+    "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "plugin:import/recommended",
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
+    "plugin:react-hooks/recommended"
   ],
   parserOptions: {
     ecmaVersion: "latest",
@@ -46,13 +51,17 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/no-explicit-any": "off",
+    "react/react-in-jsx-scope": "off",
     "@typescript-eslint/no-var-requires": "off",
     "no-empty": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-inferrable-types": "off",
+    // 'react-hooks/exhaustive-deps': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-this-alias': 'off',
     'no-async-promise-executor': 'off',
+    'react/no-unescaped-entities': 'off',
+    'react/display-name': 'off',
     'prefer-const': 'off',
     "@typescript-eslint/no-namespace": "off",
     "import/order": [

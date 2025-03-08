@@ -8,6 +8,7 @@ export interface TargetTriple {
   target: Target;
 }
 
+export const QPC_DIR = ".qpace";
 export const QPC_CONFIG_FILENAME = ".qpace.json";
 
 export interface Config {
@@ -24,6 +25,8 @@ export interface Config {
   emit?: boolean;
   /* Directory to emit compiled code. default: `.qpc` */
   emitDir?: string;
+  /* Directory to output compilation artifacts. default: `build` */
+  buildDir?: string;
   /* Files included in the build. default: `["**\/*.pine"]` */
   include?: string[];
   /* Files excluded from the build. default: `["node_modules", "build", "dist", "target", "__pycache__"]` */
@@ -42,8 +45,8 @@ export interface PythonConfig {
   installWheel?: boolean;
   /* Name of qpace python package. default: `qpace` */
   qpacePackage?: string;
-  /* Name of python package being built. default: `qpace_artifact` */ 
-  package?: string
+  /* Name of python package being built. default: `qpace_artifact` */
+  package?: string;
 }
 
 export interface WasmConfig {
@@ -74,9 +77,17 @@ export const getDefaultConfig = (): Config => {
       bindings: false,
     },
     emit: false,
-    emitDir: ".qpc",
+    emitDir: ".",
+    buildDir: "build",
     include: ["**/*.pine"],
-    exclude: ["node_modules", "build", "dist", "target", "__pycache__"],
+    exclude: [
+      "node_modules",
+      "build",
+      "dist",
+      "target",
+      "__pycache__",
+      QPC_DIR,
+    ],
   };
 };
 
