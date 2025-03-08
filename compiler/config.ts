@@ -1,15 +1,40 @@
 export type Os = "macos" | "linux" | "windows" | "unknown";
 export type Arch = "x86_64" | "arm64" | "unknown";
-export type Target = `py` | "unknown";
 
-export interface TargetTriple {
-  os: Os;
-  arch: Arch;
-  target: Target;
-}
+export const TARGETS = [
+  "python-x86_64-linux",
+  "python-x86_64-windows",
+  "python-x86_64-macos",
+] as const;
+
+export type Target = typeof TARGETS[number];
+
+export const extractArchFromTarget = (target: Target): Arch => {
+  if (target.includes("x86_64")) {
+    return "x86_64";
+  } else if (target.includes("arm64")) {
+    return "arm64";
+  }
+  return "unknown";
+};
+
+export const extractOsFromTarget = (target: Target): Os => {
+  if (target.includes("linux")) {
+    return "linux";
+  } else if (target.includes("windows")) {
+    return "windows";
+  } else if (target.includes("macos")) {
+    return "macos";
+  }
+  return "unknown";
+};
 
 export const QPC_DIR = ".qpace";
 export const QPC_CONFIG_FILENAME = ".qpace.json";
+
+export enum FileTag {
+  QPC_PYTHON_WHEEL = "qpc_python_wheel",
+}
 
 export interface Config {
   [key: string]: any;

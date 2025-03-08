@@ -1,0 +1,23 @@
+[package]
+name = "qpace_playground_lib"
+version = "0.0.1"
+edition = "2021"
+
+# [profile.release]
+# lto = "fat"
+# codegen-units = 1
+# panic = "abort"
+
+[lib]
+name = "qpace_playground_lib"
+crate-type = ["cdylib", "rlib"]
+path = "lib.rs"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module", "macros"] }
+pyo3-ffi = "0.23"
+pyo3-stub-gen = "0.6"
+pyo3-stub-gen-derive = "0.6"
+qpace_core = { path = "../core" }
