@@ -1,0 +1,31 @@
+{
+  "compiler": {
+    "noDeadCode": true
+  },
+  "rust": {
+    "qpaceCoreCrate": "qpace_core"
+  },
+  "python": {
+    "bindings": true,
+    "installWheel": true,
+    "qpacePackage": "qpace",
+    "package": "qpace_artifact"
+  },
+  "wasm": {
+    "bindings": false
+  },
+  "emit": false,
+  "emitDir": ".",
+  "buildDir": "build",
+  "include": [
+    "**/*.pine"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "target",
+    "__pycache__",
+    ".qpace"
+  ]
+}

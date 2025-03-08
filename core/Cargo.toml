@@ -36,10 +36,20 @@ bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook"]
 # polars_utils = ["polars"]
 
 [dependencies]
-cfg-if = { workspace = true }
-chrono = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
+chrono = { version = "0.4.39", features = ["serde", "wasmbind"] }
+cfg-if = "1.0.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+env_logger = { version = "0.11", optional = true }
+polars = { version = "0.32", features = ["parquet", "lazy"], optional = true }
+itertools = "0.12"
+thiserror = "1.0.64"
+num-derive = "0.4"
+num-traits = "0.2"
+num = "0.4"
+colored = "2.0.0"
+comfy-table = { version = "7.1", optional = true }
+textplots = { version = "0.8", optional = true }
 js-sys = { version = "0.3.77", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
@@ -51,15 +61,30 @@ pyo3 = { version = "0.23", optional = true, features = [
 pyo3-ffi = { version = "0.23", optional = true }
 pyo3-stub-gen = { version = "0.7", optional = true }
 pyo3-stub-gen-derive = { version = "0.7", optional = true }
-env_logger = { workspace = true, optional = true }
-polars = { workspace = true, optional = true }
-itertools = { workspace = true }
-thiserror = { workspace = true }
-num-derive = { workspace = true }
-num-traits = { workspace = true }
-colored = { workspace = true }
-comfy-table = { workspace = true, optional = true }
-textplots = { workspace = true, optional = true }
+# cfg-if = { workspace = true }
+# chrono = { workspace = true }
+# serde = { workspace = true }
+# serde_json = { workspace = true }
+# js-sys = { version = "0.3.77", optional = true }
+# wasm-bindgen = { version = "0.2", optional = true }
+# console_error_panic_hook = { version = "0.1", optional = true }
+# pyo3 = { version = "0.23", optional = true, features = [
+#   "extension-module",
+#   "macros",
+#   "chrono",
+# ] }
+# pyo3-ffi = { version = "0.23", optional = true }
+# pyo3-stub-gen = { version = "0.7", optional = true }
+# pyo3-stub-gen-derive = { version = "0.7", optional = true }
+# env_logger = { workspace = true, optional = true }
+# polars = { workspace = true, optional = true }
+# itertools = { workspace = true }
+# thiserror = { workspace = true }
+# num-derive = { workspace = true }
+# num-traits = { workspace = true }
+# colored = { workspace = true }
+# comfy-table = { workspace = true, optional = true }
+# textplots = { workspace = true, optional = true }
 
 [build-dependencies]
 pyo3-build-config = { version = "0.23" }

@@ -31,7 +31,7 @@ class Script:
     def __init__(self, ctx: Ctx, config: Config = Config()):
         self.ctx = ctx
         self.config = config
-        self.__inner__ = __lib__.ScriptContext__8_qpc_main_64_3401a6(ctx, )
+        self.__inner__ = __lib__.ScriptContext__8_qpc_main_61_aa65ec(ctx, )
         self.locals = []
         self.bt: Backtest = None
 
