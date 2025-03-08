@@ -19,14 +19,14 @@ message BuildRequest {
   repeated File files = 3;
 }
 
-enum Status {
+enum BuildStatus {
   OK = 0;
   ERROR = 1;
 }
 
 message BuildResponse {
   repeated File files = 1;
-  Status status = 2;
+  BuildStatus status = 2;
   optional string message = 3;
 }
 
