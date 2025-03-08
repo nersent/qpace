@@ -11,12 +11,12 @@ interface ICompilerService extends grpc.ServiceDefinition<grpc.UntypedServiceImp
     build: ICompilerService_IBuild;
 }
 
-interface ICompilerService_IBuild extends grpc.MethodDefinition<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent> {
+interface ICompilerService_IBuild extends grpc.MethodDefinition<compiler_pb.BuildRequest, compiler_pb.BuildResponseEvent> {
     path: "/compiler.Compiler/Build";
-    requestStream: true;
+    requestStream: false;
     responseStream: true;
-    requestSerialize: grpc.serialize<compiler_pb.BuildRequestEvent>;
-    requestDeserialize: grpc.deserialize<compiler_pb.BuildRequestEvent>;
+    requestSerialize: grpc.serialize<compiler_pb.BuildRequest>;
+    requestDeserialize: grpc.deserialize<compiler_pb.BuildRequest>;
     responseSerialize: grpc.serialize<compiler_pb.BuildResponseEvent>;
     responseDeserialize: grpc.deserialize<compiler_pb.BuildResponseEvent>;
 }
@@ -24,17 +24,16 @@ interface ICompilerService_IBuild extends grpc.MethodDefinition<compiler_pb.Buil
 export const CompilerService: ICompilerService;
 
 export interface ICompilerServer extends grpc.UntypedServiceImplementation {
-    build: grpc.handleBidiStreamingCall<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
+    build: grpc.handleServerStreamingCall<compiler_pb.BuildRequest, compiler_pb.BuildResponseEvent>;
 }
 
 export interface ICompilerClient {
-    build(): grpc.ClientDuplexStream<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
-    build(options: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
-    build(metadata: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
+    build(request: compiler_pb.BuildRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<compiler_pb.BuildResponseEvent>;
+    build(request: compiler_pb.BuildRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<compiler_pb.BuildResponseEvent>;
 }
 
 export class CompilerClient extends grpc.Client implements ICompilerClient {
     constructor(address: string, credentials: grpc.ChannelCredentials, options?: Partial<grpc.ClientOptions>);
-    public build(options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
-    public build(metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientDuplexStream<compiler_pb.BuildRequestEvent, compiler_pb.BuildResponseEvent>;
+    public build(request: compiler_pb.BuildRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<compiler_pb.BuildResponseEvent>;
+    public build(request: compiler_pb.BuildRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<compiler_pb.BuildResponseEvent>;
 }

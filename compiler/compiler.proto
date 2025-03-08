@@ -3,7 +3,7 @@ syntax = "proto3";
 package compiler;
 
 service Compiler {
-  rpc Build(stream BuildRequestEvent) returns (stream BuildResponseEvent) {}
+  rpc Build(BuildRequest) returns (stream BuildResponseEvent) {}
 }
 
 message File {
@@ -13,41 +13,77 @@ message File {
   bytes data = 4;
 }
 
-message BuildConfigEvent {
+message BuildRequest {
   string qpc_config = 1;
   optional string target = 2;
+  repeated File files = 3;
 }
 
-message BuildRequestEvent {
-  oneof kind {
-    BuildConfigEvent config = 1;
-    FileEvent file = 2;
-    EndEvent end = 3;
-  }
-}
-
-message LogEvent {
-  string message = 1;
-}
-
-message FileEvent {
-  File file = 1;
-}
-
-enum Status {
-  OK = 0;
-  ERROR = 1;
-}
-
-message EndEvent {
-  Status status = 1;
-  optional string message = 2;
+message BuildResponse {
+  repeated File files = 1;
 }
 
 message BuildResponseEvent {
   oneof kind {
-    LogEvent log = 1;
-    FileEvent file = 2;
-    EndEvent end = 3;
+    string message = 1;
+    BuildResponse end = 2;
   }
 }
+
+
+// service Compiler {
+//   rpc Build(stream BuildRequestEvent) returns (stream BuildResponseEvent) {}
+// }
+
+// message File {
+//   string path = 1;
+//   string checksum = 2;
+//   repeated string tags = 3;
+//   bytes data = 4;
+// }
+
+// message FileReceipt {
+//   string path = 1;
+//   string checksum = 2;
+// }
+
+// message BuildConfigEvent {
+//   string qpc_config = 1;
+//   optional string target = 2;
+// }
+
+// message BuildRequestEvent {
+//   oneof kind {
+//     BuildConfigEvent config = 1;
+//     FileEvent file = 2;
+//     EndEvent end = 3;
+//     FileReceipt receipt = 4;
+//   }
+// }
+
+// message LogEvent {
+//   string message = 1;
+// }
+
+// message FileEvent {
+//   File file = 1;
+// }
+
+// enum Status {
+//   OK = 0;
+//   ERROR = 1;
+// }
+
+// message EndEvent {
+//   Status status = 1;
+//   optional string message = 2;
+// }
+
+// message BuildResponseEvent {
+//   oneof kind {
+//     LogEvent log = 1;
+//     FileEvent file = 2;
+//     EndEvent end = 3;
+//     FileReceipt receipt = 4;
+//   }
+// }

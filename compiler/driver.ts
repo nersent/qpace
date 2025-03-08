@@ -16,7 +16,7 @@ export interface Driver {
 export interface Program {
   getRootDir: () => string;
   getConfig: () => Config;
-  getFileSystem: () => FileSystem;
+  getFs: () => FileSystem;
 }
 
 // export interface DriverBuildOptions {

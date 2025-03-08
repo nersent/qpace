@@ -1,13 +1,13 @@
 import { Command } from "commander";
-import { Driver, OsFileSystem, Program } from "../compiler/driver";
+import { Driver, Program } from "../compiler/driver";
 import {
   Config,
   getDefaultConfig,
   mergeConfigs,
   QPC_CONFIG_FILENAME,
-} from "../compiler/common";
+} from "~/compiler/config";
 import { resolve } from "path";
-import { RemoteDriver } from "./remote_driver";
+import { OsFileSystem, RemoteDriver } from "./remote_driver";
 import { exists, readJson } from "~/base/node/fs";
 import { Client } from "~/lib/client";
 
@@ -40,16 +40,17 @@ const loadProgram = async (rootDir: string): Promise<Program> => {
   return {
     getRootDir: () => rootDir,
     getConfig: () => config,
-    getFileSystem: () => new OsFileSystem(rootDir),
+    getFs: () => new OsFileSystem(rootDir),
   };
 };
 
 const main = async (): Promise<void> => {
-  const rootDir = `C:\\projects\\nersent\\qpace\\content`;
+  const rootDir = `C:\\projects\\nersent\\qpace\\xd`;
   const program = await loadProgram(rootDir);
   const client = new Client({});
   const driver: Driver = new RemoteDriver(program, client.compilerClient);
   // console.log(program.getConfig());
+  console.log('building')
   await driver.build();
   // const qp = await import("../core/pkg/qpace_core.js");
   // const program = new Command();

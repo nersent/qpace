@@ -3,7 +3,11 @@ fileSet("py", {
   deps: ["//core", "//content"],
 });
 
+tsLibrary("ts_src", {
+  srcs: [glob("**/*.ts")],
+});
+
 fileSet("wasm", {
-  srcs: [glob("**/*.(js|ts|tsx)"), "package.json"],
-  deps: ["//base/js", "//core:wasm"],
+  srcs: ["package.json"],
+  deps: ["//base/node", "//core:wasm", ":ts_src"],
 });
