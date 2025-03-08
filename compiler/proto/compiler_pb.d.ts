@@ -75,8 +75,8 @@ export class BuildResponse extends jspb.Message {
     getFilesList(): Array<File>;
     setFilesList(value: Array<File>): BuildResponse;
     addFiles(value?: File, index?: number): File;
-    getStatus(): Status;
-    setStatus(value: Status): BuildResponse;
+    getStatus(): BuildStatus;
+    setStatus(value: BuildStatus): BuildResponse;
 
     hasMessage(): boolean;
     clearMessage(): void;
@@ -96,7 +96,7 @@ export class BuildResponse extends jspb.Message {
 export namespace BuildResponse {
     export type AsObject = {
         filesList: Array<File.AsObject>,
-        status: Status,
+        status: BuildStatus,
         message?: string,
     }
 }
@@ -139,7 +139,7 @@ export namespace BuildResponseEvent {
 
 }
 
-export enum Status {
+export enum BuildStatus {
     OK = 0,
     ERROR = 1,
 }
