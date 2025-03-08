@@ -795,7 +795,7 @@ proto.compiler.BuildResponseEvent.oneofGroups_ = [[1,2]];
 proto.compiler.BuildResponseEvent.KindCase = {
   KIND_NOT_SET: 0,
   MESSAGE: 1,
-  END: 2
+  RESPONSE: 2
 };
 
 /**
@@ -837,7 +837,7 @@ proto.compiler.BuildResponseEvent.prototype.toObject = function(opt_includeInsta
 proto.compiler.BuildResponseEvent.toObject = function(includeInstance, msg) {
   var f, obj = {
     message: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    end: (f = msg.getEnd()) && proto.compiler.BuildResponse.toObject(includeInstance, f)
+    response: (f = msg.getResponse()) && proto.compiler.BuildResponse.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -881,7 +881,7 @@ proto.compiler.BuildResponseEvent.deserializeBinaryFromReader = function(msg, re
     case 2:
       var value = new proto.compiler.BuildResponse;
       reader.readMessage(value,proto.compiler.BuildResponse.deserializeBinaryFromReader);
-      msg.setEnd(value);
+      msg.setResponse(value);
       break;
     default:
       reader.skipField();
@@ -919,7 +919,7 @@ proto.compiler.BuildResponseEvent.serializeBinaryToWriter = function(message, wr
       f
     );
   }
-  f = message.getEnd();
+  f = message.getResponse();
   if (f != null) {
     writer.writeMessage(
       2,
@@ -967,10 +967,10 @@ proto.compiler.BuildResponseEvent.prototype.hasMessage = function() {
 
 
 /**
- * optional BuildResponse end = 2;
+ * optional BuildResponse response = 2;
  * @return {?proto.compiler.BuildResponse}
  */
-proto.compiler.BuildResponseEvent.prototype.getEnd = function() {
+proto.compiler.BuildResponseEvent.prototype.getResponse = function() {
   return /** @type{?proto.compiler.BuildResponse} */ (
     jspb.Message.getWrapperField(this, proto.compiler.BuildResponse, 2));
 };
@@ -980,7 +980,7 @@ proto.compiler.BuildResponseEvent.prototype.getEnd = function() {
  * @param {?proto.compiler.BuildResponse|undefined} value
  * @return {!proto.compiler.BuildResponseEvent} returns this
 */
-proto.compiler.BuildResponseEvent.prototype.setEnd = function(value) {
+proto.compiler.BuildResponseEvent.prototype.setResponse = function(value) {
   return jspb.Message.setOneofWrapperField(this, 2, proto.compiler.BuildResponseEvent.oneofGroups_[0], value);
 };
 
@@ -989,8 +989,8 @@ proto.compiler.BuildResponseEvent.prototype.setEnd = function(value) {
  * Clears the message field making it undefined.
  * @return {!proto.compiler.BuildResponseEvent} returns this
  */
-proto.compiler.BuildResponseEvent.prototype.clearEnd = function() {
-  return this.setEnd(undefined);
+proto.compiler.BuildResponseEvent.prototype.clearResponse = function() {
+  return this.setResponse(undefined);
 };
 
 
@@ -998,7 +998,7 @@ proto.compiler.BuildResponseEvent.prototype.clearEnd = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.compiler.BuildResponseEvent.prototype.hasEnd = function() {
+proto.compiler.BuildResponseEvent.prototype.hasResponse = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 

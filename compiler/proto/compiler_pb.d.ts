@@ -99,10 +99,10 @@ export class BuildResponseEvent extends jspb.Message {
     getMessage(): string;
     setMessage(value: string): BuildResponseEvent;
 
-    hasEnd(): boolean;
-    clearEnd(): void;
-    getEnd(): BuildResponse | undefined;
-    setEnd(value?: BuildResponse): BuildResponseEvent;
+    hasResponse(): boolean;
+    clearResponse(): void;
+    getResponse(): BuildResponse | undefined;
+    setResponse(value?: BuildResponse): BuildResponseEvent;
 
     getKindCase(): BuildResponseEvent.KindCase;
 
@@ -119,13 +119,13 @@ export class BuildResponseEvent extends jspb.Message {
 export namespace BuildResponseEvent {
     export type AsObject = {
         message: string,
-        end?: BuildResponse.AsObject,
+        response?: BuildResponse.AsObject,
     }
 
     export enum KindCase {
         KIND_NOT_SET = 0,
         MESSAGE = 1,
-        END = 2,
+        RESPONSE = 2,
     }
 
 }
