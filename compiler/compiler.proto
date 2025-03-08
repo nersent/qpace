@@ -26,6 +26,6 @@ message BuildResponse {
 message BuildResponseEvent {
   oneof kind {
     string message = 1;
-    BuildResponse end = 2;
+    BuildResponse response = 2;
   }
 }
