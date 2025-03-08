@@ -1,0 +1,3 @@
+tsLibrary("compiler", {
+  srcs: glob("**/*.ts"),
+});

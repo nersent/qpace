@@ -52,8 +52,9 @@ pub mod utils;
 
 #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction(name = "get_version"))]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = getVersion))]
 pub fn get_version() -> String {
-    return "qpace_lib@0.0.1".to_string();
+    return "0.0.1".to_string();
 }
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {

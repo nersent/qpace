@@ -1,0 +1,8 @@
+tsLibrary("node", {
+  srcs: [glob("**/!(*.test).ts")],
+  deps: [],
+});
+
+tsLibrary("test_src", {
+  srcs: [glob("**/*.test.ts")],
+});

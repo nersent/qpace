@@ -5,7 +5,8 @@
   "scripts": {
     "bazed:clean": "rimraf build",
     "wasm": "wasm-pack build ./core --target nodejs --no-default-features --features=bindings_wasm",
-    "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py --features=polars"
+    "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py --features=polars",
+    "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler"
   },
   "devDependencies": {
     "@swc/cli": "^0.3.6",
@@ -26,11 +27,14 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@nersent/bazed": "^0.0.34",
+    "@grpc/grpc-js": "^1.12.0",
+    "@grpc/proto-loader": "^0.7.13",
+    "@nersent/bazed": "^0.0.36",
     "axios": "^0.27.2",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "commander": "^13.1.0",
+    "google-protobuf": "^3.21.4",
     "nodejs-polars": "^0.8.3"
   }
 }

@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "preserveWatchOutput": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "jsx": "preserve",
+    "noImplicitOverride": true,
+    "strictPropertyInitialization": true,
+    "downlevelIteration": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "module": "esnext",
+    "target": "es2021",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"]
+    }
+  },
+  "include": ["./**/*.ts", "./compiler/**/*.ts"],
+  "exclude": [
+    "bazel-stratis3",
+    "bazel-out",
+    "external",
+    "bazel-testlogs",
+    "node_modules",
+    "build",
+    "target",
+    "third_party",
+    "__pycache__"
+  ]
+}

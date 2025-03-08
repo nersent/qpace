@@ -1,8 +1,18 @@
-fileSet("src", {
+fileSet("py_src", {
   srcs: glob("**/*.py"),
 });
 
-pythonEntry("playground", {
+pythonEntry("py", {
   main: "main.py",
-  deps: [":src", "//lib"],
+  deps: [":py_src", "//lib"],
+});
+
+tsLibrary("ts_src", {
+  srcs: glob("**/*.ts"),
+  deps: ["//core:wasm"],
+});
+
+nodeEntry("ts", {
+  main: "main.js",
+  deps: [":ts_src"],
 });

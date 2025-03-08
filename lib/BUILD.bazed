@@ -1,4 +1,9 @@
-fileSet("lib", {
+fileSet("py", {
   srcs: glob("**/*.py"),
   deps: ["//core", "//content"],
+});
+
+fileSet("wasm", {
+  srcs: [glob("**/*.(js|ts|tsx)"), "package.json"],
+  deps: ["//base/js", "//core:wasm"],
 });

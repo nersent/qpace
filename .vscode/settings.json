@@ -2,5 +2,15 @@
   "rust-analyzer.showUnlinkedFileNotification": false,
   "files.associations": {
     "*.bazed": "javascript"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

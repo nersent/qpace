@@ -49,6 +49,20 @@ fileSet("core", {
   copy: true,
 });
 
+fileSet("wasm_src", {
+  srcs: glob("**/*.*"),
+  deps: [":src_py", ":src_rs"],
+  copy: true,
+});
+
+rustWasm("wasm", {
+  deps: [":wasm_src"],
+  workspace: WORKSPACE,
+  args: [
+    "--target nodejs --release --no-default-features --features=bindings_wasm",
+  ],
+});
+
 const MANIFEST_IN = `
 include README.md
 include LICENSE.md
