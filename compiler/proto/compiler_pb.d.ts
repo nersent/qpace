@@ -160,7 +160,8 @@ export enum BuildStatus {
 export enum BuildStage {
     START = 0,
     END = 1,
-    BUILD_WAITING = 2,
-    BUILD_PYTHON_WHEEL_START = 3,
-    BUILD_PYTHON_WHEEL_END = 4,
+    ACQUIRE_START = 2,
+    ACQUIRE_END = 3,
+    PYTHON_WHEEL_START = 4,
+    PYTHON_WHEEL_END = 5,
 }
