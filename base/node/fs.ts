@@ -1,4 +1,5 @@
 import { mkdtemp, readFile, stat, writeFile } from "fs/promises";
+import { FileHandle, mkdir as _mkdir } from "node:fs/promises";
 import { tmpdir } from "os";
 import { resolve } from "path";
 
@@ -36,4 +37,10 @@ export const writeJson = async <T>(
 export const tmpDir = async (prefix?: string): Promise<string> => {
   prefix = resolve(tmpdir(), prefix ?? Date.now().toString());
   return await mkdtemp(prefix);
+};
+
+export const createDir = async (path: string): Promise<void> => {
+  if (!(await exists(path))) {
+    await _mkdir(path, { recursive: true });
+  }
 };

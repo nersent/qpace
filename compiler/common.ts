@@ -5,6 +5,7 @@ export const TARGETS = [
   "python-x86_64-linux",
   "python-x86_64-windows",
   "python-x86_64-macos",
+  "python-arm64-macos",
 ] as const;
 
 export type Target = typeof TARGETS[number];

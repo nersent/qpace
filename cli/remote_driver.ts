@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "fs/promises";
-import { basename, resolve } from "path";
+import { basename, dirname, normalize, resolve } from "path";
 
 import { ClientReadableStream } from "@grpc/grpc-js";
 import chalk from "chalk";
@@ -7,52 +7,34 @@ import { glob } from "glob";
 
 import { exec } from "../base/node/exec";
 import { prettifyTime } from "../base/node/time";
-import { Config } from "../compiler/config";
 
-import { exists } from "~/base/node/fs";
-import { Driver, Program, FileSystem } from "~/compiler/driver";
+import { createDir } from "~/base/node/fs";
+import { Config, FileTag, Target } from "~/compiler/common";
 import { CompilerClient } from "~/compiler/proto/compiler_grpc_pb";
 import { BuildRequest } from "~/compiler/proto/compiler_pb";
 import * as compilerApi from "~/compiler/proto/compiler_pb";
 
-export class OsFileSystem implements FileSystem {
-  constructor(public readonly rootDir: string) {}
-
-  public resolve(path: string): string {
-    return resolve(this.rootDir, path);
-  }
-
-  public async exists(path: string): Promise<boolean> {
-    path = this.resolve(path);
-    return exists(path);
-  }
-
-  public read(path: string): Promise<Buffer>;
-  public read(path: string, encoding: "utf8"): Promise<string>;
-  public read(path: string, encoding?: "utf8"): Promise<Buffer | string> {
-    path = this.resolve(path);
-    return readFile(path, encoding);
-  }
-
-  public write(
-    path: string,
-    data: Buffer | string,
-    encoding?: "utf8",
-  ): Promise<void> {
-    path = this.resolve(path);
-    return writeFile(path, data, encoding);
-  }
+export interface RemoteDriverOpts {
+  config: Config;
+  client: CompilerClient;
+  rootDir: string;
 }
 
-export class RemoteDriver implements Driver {
-  constructor(
-    public readonly program: Program,
-    public readonly client: CompilerClient,
-  ) {}
+export class RemoteDriver {
+  public readonly config: Config;
+  public readonly client: CompilerClient;
+  public readonly rootDir: string;
+  private emittedPythonWheel = false;
+
+  constructor(opts: RemoteDriverOpts) {
+    this.config = opts.config;
+    this.client = opts.client;
+    this.rootDir = opts.rootDir;
+  }
 
   public async collectSrcFiles(): Promise<string[]> {
-    const cwd = this.program.getRootDir();
-    const config = this.program.getConfig();
+    const cwd = this.rootDir;
+    const config = this.config;
     const excludes: string[] = [...(config.exclude ?? [])];
     const includes: string[] = [...(config.include ?? [])];
     const srcPaths: string[] = [];
@@ -64,11 +46,11 @@ export class RemoteDriver implements Driver {
     return srcPaths.map((r) => basename(r, cwd));
   }
 
-  public async build(): Promise<void> {
-    const cwd = this.program.getRootDir();
-    console.log(chalk.blackBright(`Building ${cwd}`));
-
+  public async build({ target }: { target?: Target }): Promise<void> {
     const req = await this.createBuildRequest();
+    if (target != null) {
+      req.setTarget(target);
+    }
     const stream = this.client.build(req);
 
     const startTime = Date.now();
@@ -79,9 +61,6 @@ export class RemoteDriver implements Driver {
   }
 
   public async check(): Promise<void> {
-    const cwd = this.program.getRootDir();
-    console.log(chalk.blackBright(`Checking ${cwd}`));
-
     const req = await this.createBuildRequest();
     req.setCheckOnly(true);
     const stream = this.client.build(req);
@@ -114,17 +93,15 @@ export class RemoteDriver implements Driver {
   }
 
   private async createBuildRequest(): Promise<BuildRequest> {
-    const config = this.program.getConfig();
-    const fs = this.program.getFs();
     const paths = await this.collectSrcFiles();
     console.log(chalk.blackBright(paths.map((r) => `→ ${r}`).join("\n")));
     const req = new BuildRequest();
-    req.setQpcConfig(JSON.stringify(config));
+    req.setQpcConfig(JSON.stringify(this.config));
     const reqFiles: compilerApi.File[] = [];
     reqFiles.push(
       ...(await Promise.all(
         paths.map(async (path) => {
-          const data = await fs.read(path);
+          const data = await readFile(resolve(this.rootDir, path));
           return new compilerApi.File().setPath(path).setData(data);
         }),
       )),
@@ -136,7 +113,6 @@ export class RemoteDriver implements Driver {
   private resolveBuild(
     stream: ClientReadableStream<compilerApi.BuildResponseEvent>,
   ): Promise<compilerApi.BuildResponse> {
-    const fs = this.program.getFs();
     return new Promise<compilerApi.BuildResponse>((_resolve) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
         if (e.hasMessage()) {
@@ -148,11 +124,7 @@ export class RemoteDriver implements Driver {
         if (e.hasResponse()) {
           const res = e.getResponse()!;
           await Promise.all(
-            res.getFilesList().map(async (file) => {
-              const path = file.getPath();
-              await fs.write(path, Buffer.from(file.getData_asU8()));
-              console.log(chalk.blackBright(`← ${path}`));
-            }),
+            res.getFilesList().map((r) => this.onReceivedFile(r)),
           );
           _resolve(res);
           return;
@@ -161,7 +133,25 @@ export class RemoteDriver implements Driver {
     });
   }
 
+  private async onReceivedFile(file: compilerApi.File): Promise<void> {
+    console.log(chalk.blackBright(`← ${normalize(file.getPath())}`));
+
+    const path = resolve(this.rootDir, file.getPath());
+    const tags = file.getTagsList();
+    const data = Buffer.from(file.getData_asU8());
+
+    await createDir(dirname(path));
+    await writeFile(path, data);
+
+    if (tags.includes(FileTag.QPC_PYTHON_WHEEL)) {
+      this.emittedPythonWheel = true;
+      await this.installPipWheel(path);
+      return;
+    }
+  }
+
   private async installPipWheel(path: string): Promise<void> {
+    console.log(`Installing python wheel`);
     await exec({
       command: `pip install "${path}" --force-reinstall`,
       io: true,

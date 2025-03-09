@@ -25,6 +25,14 @@ enum BuildStatus {
   ERROR = 1;
 }
 
+enum BuildStage {
+  START = 0;
+  END = 1;
+  BUILD_WAITING = 2;
+  BUILD_PYTHON_WHEEL_START = 3;
+  BUILD_PYTHON_WHEEL_END = 4;
+}
+
 message BuildResponse {
   repeated File files = 1;
   BuildStatus status = 2;
@@ -35,5 +43,6 @@ message BuildResponseEvent {
   oneof kind {
     string message = 1;
     BuildResponse response = 2;
+    BuildStage stage = 3;
   }
 }

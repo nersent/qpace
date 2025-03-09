@@ -119,6 +119,11 @@ export class BuildResponseEvent extends jspb.Message {
     getResponse(): BuildResponse | undefined;
     setResponse(value?: BuildResponse): BuildResponseEvent;
 
+    hasStage(): boolean;
+    clearStage(): void;
+    getStage(): BuildStage;
+    setStage(value: BuildStage): BuildResponseEvent;
+
     getKindCase(): BuildResponseEvent.KindCase;
 
     serializeBinary(): Uint8Array;
@@ -135,12 +140,14 @@ export namespace BuildResponseEvent {
     export type AsObject = {
         message: string,
         response?: BuildResponse.AsObject,
+        stage: BuildStage,
     }
 
     export enum KindCase {
         KIND_NOT_SET = 0,
         MESSAGE = 1,
         RESPONSE = 2,
+        STAGE = 3,
     }
 
 }
@@ -148,4 +155,12 @@ export namespace BuildResponseEvent {
 export enum BuildStatus {
     OK = 0,
     ERROR = 1,
+}
+
+export enum BuildStage {
+    START = 0,
+    END = 1,
+    BUILD_WAITING = 2,
+    BUILD_PYTHON_WHEEL_START = 3,
+    BUILD_PYTHON_WHEEL_END = 4,
 }

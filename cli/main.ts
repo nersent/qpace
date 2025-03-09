@@ -1,33 +1,22 @@
 import { resolve } from "path";
 
 import chalk from "chalk";
-import { Command } from "commander";
-
-import { Driver, Program } from "../compiler/driver";
+import { Command, Option } from "commander";
 
 import { loadQp } from "./qp";
-import { OsFileSystem, RemoteDriver } from "./remote_driver";
+import { RemoteDriver } from "./remote_driver";
 
 import { exists, readJson, writeJson } from "~/base/node/fs";
+import { isLinux, isMacOs, isWindows } from "~/base/node/os";
 import {
   Config,
   getDefaultConfig,
   mergeConfigs,
   QPC_CONFIG_FILENAME,
-} from "~/compiler/config";
+  Target,
+  TARGETS,
+} from "~/compiler/common";
 import { Client } from "~/lib/client";
-
-// import { ApiClient } from "./api_client";
-// import { CliService } from "./cli_service";
-// import { CompilerCli } from "./compiler_cli";
-// import { RemoteDriver } from "./remote_driver";
-
-// const apiClient = new ApiClient({});
-// const cliService = new CliService({
-//   compilerModule: new CompilerCli(
-//     (program) => new RemoteDriver(program, { apiClient }),
-//   ),
-// });
 
 const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 
@@ -58,15 +47,28 @@ const loadOrCreateConfig = async (dir: string): Promise<Config> => {
   return await readJson(configPath);
 };
 
-const createProgram = async (
-  rootDir: string,
-  config: Config,
-): Promise<Program> => {
-  return {
-    getRootDir: () => rootDir,
-    getConfig: () => config,
-    getFs: () => new OsFileSystem(rootDir),
-  };
+const BUILD_TARGETS = [...TARGETS, "python"] as const;
+
+const tryMapBuildTarget = (
+  buildTarget: typeof BUILD_TARGETS[number],
+): Target | undefined => {
+  if (TARGETS.includes(buildTarget as any)) {
+    return buildTarget as Target;
+  }
+  const arch = process.arch;
+  if (buildTarget === "python" && isMacOs() && arch === "arm64") {
+    return "python-arm64-macos";
+  }
+  if (buildTarget === "python" && isMacOs() && arch === "x64") {
+    return "python-x86_64-macos";
+  }
+  if (buildTarget === "python" && isWindows() && arch === "x64") {
+    return "python-x86_64-windows";
+  }
+  if (buildTarget === "python" && isLinux() && arch === "x64") {
+    return "python-x86_64-linux";
+  }
+  return;
 };
 
 const main = async (): Promise<void> => {
@@ -83,16 +85,18 @@ const main = async (): Promise<void> => {
   program
     .command("build")
     .option("--emit", `Emits compiled files`)
-    .option("--target <target>", `Target platform`)
+    .addOption(
+      new Option("--target <target>", `Target platform`).choices(BUILD_TARGETS),
+    )
     .option("--emit-dir <path>", `Output directory`)
     .option("--dir <path>", `Output directory`)
     .option("--config", `Config file`)
     .option("--install-wheel", `Installs generated python wheel artifact`)
     .option("--cwd <path>", `Project root directory`)
     .action(async (options) => {
-      const cwd =
+      const rootDir =
         options.cwd != null ? resolve(CWD_PATH, options.cwd) : CWD_PATH;
-      const config = await loadOrCreateConfig(cwd);
+      const config = await loadOrCreateConfig(rootDir);
       config.emitDir = options.emitDir ?? config.emitDir;
       config.emit = options.emit ?? config.emit;
       config.python ??= {};
@@ -100,22 +104,37 @@ const main = async (): Promise<void> => {
         options.installWheel ?? config.python.installWheel;
       config.buildDir = options.dir ?? config.buildDir;
 
-      const program = await createProgram(cwd, config);
+      const target = tryMapBuildTarget(options.target);
+      if (options.target != null && target == null) {
+        throw new Error(`Unsupported target: ${options.target}`);
+      }
+
+      if (target == null && !config.emit) {
+        throw new Error(`--target must be specified or --emit enabled`);
+      }
+
       const client = new Client({});
-      const driver: Driver = new RemoteDriver(program, client.compilerClient);
-      await driver.build();
+      const driver = new RemoteDriver({
+        client: client.compilerClient,
+        config,
+        rootDir,
+      });
+      await driver.build({ target });
     });
   program
     .command("check")
     .option("--config", `Config file`)
     .option("--cwd <path>", `Project root directory`)
     .action(async (options) => {
-      const cwd =
+      const rootDir =
         options.cwd != null ? resolve(CWD_PATH, options.cwd) : CWD_PATH;
-      const config = await loadOrCreateConfig(cwd);
-      const program = await createProgram(cwd, config);
+      const config = await loadOrCreateConfig(rootDir);
       const client = new Client({});
-      const driver: Driver = new RemoteDriver(program, client.compilerClient);
+      const driver = new RemoteDriver({
+        client: client.compilerClient,
+        config,
+        rootDir,
+      });
       await driver.check();
     });
   program.parse();
