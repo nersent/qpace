@@ -39,6 +39,7 @@
     "chokidar": "^3.5.3",
     "commander": "^13.1.0",
     "google-protobuf": "^3.21.4",
-    "nodejs-polars": "^0.8.3"
+    "nodejs-polars": "^0.8.3",
+    "ora": "^5.4.1"
   }
 }

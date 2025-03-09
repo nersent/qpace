@@ -107,6 +107,40 @@ export namespace BuildResponse {
     }
 }
 
+export class BuildStartEvent extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BuildStartEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: BuildStartEvent): BuildStartEvent.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BuildStartEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BuildStartEvent;
+    static deserializeBinaryFromReader(message: BuildStartEvent, reader: jspb.BinaryReader): BuildStartEvent;
+}
+
+export namespace BuildStartEvent {
+    export type AsObject = {
+    }
+}
+
+export class BuildEndEvent extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BuildEndEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: BuildEndEvent): BuildEndEvent.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BuildEndEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BuildEndEvent;
+    static deserializeBinaryFromReader(message: BuildEndEvent, reader: jspb.BinaryReader): BuildEndEvent;
+}
+
+export namespace BuildEndEvent {
+    export type AsObject = {
+    }
+}
+
 export class BuildResponseEvent extends jspb.Message { 
 
     hasMessage(): boolean;
@@ -119,10 +153,15 @@ export class BuildResponseEvent extends jspb.Message {
     getResponse(): BuildResponse | undefined;
     setResponse(value?: BuildResponse): BuildResponseEvent;
 
-    hasStage(): boolean;
-    clearStage(): void;
-    getStage(): BuildStage;
-    setStage(value: BuildStage): BuildResponseEvent;
+    hasStart(): boolean;
+    clearStart(): void;
+    getStart(): BuildStartEvent | undefined;
+    setStart(value?: BuildStartEvent): BuildResponseEvent;
+
+    hasEnd(): boolean;
+    clearEnd(): void;
+    getEnd(): BuildEndEvent | undefined;
+    setEnd(value?: BuildEndEvent): BuildResponseEvent;
 
     getKindCase(): BuildResponseEvent.KindCase;
 
@@ -140,14 +179,16 @@ export namespace BuildResponseEvent {
     export type AsObject = {
         message: string,
         response?: BuildResponse.AsObject,
-        stage: BuildStage,
+        start?: BuildStartEvent.AsObject,
+        end?: BuildEndEvent.AsObject,
     }
 
     export enum KindCase {
         KIND_NOT_SET = 0,
         MESSAGE = 1,
         RESPONSE = 2,
-        STAGE = 3,
+        START = 3,
+        END = 4,
     }
 
 }
@@ -155,13 +196,4 @@ export namespace BuildResponseEvent {
 export enum BuildStatus {
     OK = 0,
     ERROR = 1,
-}
-
-export enum BuildStage {
-    START = 0,
-    END = 1,
-    ACQUIRE_START = 2,
-    ACQUIRE_END = 3,
-    PYTHON_WHEEL_START = 4,
-    PYTHON_WHEEL_END = 5,
 }

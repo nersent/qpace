@@ -4,6 +4,7 @@ import { basename, dirname, normalize, resolve } from "path";
 import { ClientReadableStream } from "@grpc/grpc-js";
 import chalk from "chalk";
 import { glob } from "glob";
+import ora, { Ora } from "ora";
 
 import { exec } from "../base/node/exec";
 import { prettifyTime } from "../base/node/time";
@@ -110,15 +111,38 @@ export class RemoteDriver {
     return req;
   }
 
-  private resolveBuild(
+  private async resolveBuild(
     stream: ClientReadableStream<compilerApi.BuildResponseEvent>,
   ): Promise<compilerApi.BuildResponse> {
+    let spinner: Ora | undefined;
+
     return new Promise<compilerApi.BuildResponse>((_resolve) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
         if (e.hasMessage()) {
           const message = e.getMessage();
           if (message.length) {
             console.log(message);
+          }
+          return;
+        }
+        if (e.hasStage()) {
+          const stage = e.getStage();
+          switch (stage) {
+            case compilerApi.BuildStage.ACQUIRE_START: {
+              spinner = ora(`Acquiring resources`).start();
+              break;
+            }
+            case compilerApi.BuildStage.PYTHON_WHEEL_START: {
+              spinner = ora(`Building python wheel`).start();
+              setTimeout(() => {
+                spinner.text = "Xdd";
+              }, 2000);
+              break;
+            }
+            case compilerApi.BuildStage.PYTHON_WHEEL_END: {
+              spinner?.succeed();
+              break;
+            }
           }
         }
         if (e.hasResponse()) {
