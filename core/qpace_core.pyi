@@ -6,46 +6,6 @@ import datetime
 import typing
 from enum import Enum, auto
 
-class ArcOhlcv:
-    r"""
-    Multi-threaded immutable OHLCV data.
-    """
-    bars: builtins.list[OhlcvBar]
-    open: builtins.list[builtins.float]
-    high: builtins.list[builtins.float]
-    low: builtins.list[builtins.float]
-    close: builtins.list[builtins.float]
-    volume: builtins.list[builtins.float]
-    open_time: builtins.list[datetime.datetime]
-    close_time: builtins.list[datetime.datetime]
-    open_time_ms: builtins.list[builtins.int]
-    close_time_ms: builtins.list[builtins.int]
-    def __new__(cls,bars:typing.Optional[typing.Sequence[OhlcvBar]]=None): ...
-    def bars_from_slice(self, slice:slice) -> builtins.list[OhlcvBar]:
-        ...
-
-    def bar(self, index:builtins.int) -> OhlcvBar:
-        ...
-
-    def __len__(self) -> builtins.int:
-        ...
-
-    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
-        ...
-
-    @staticmethod
-    def read_path(path:builtins.str) -> ArcOhlcv:
-        ...
-
-    @staticmethod
-    def from_bars(bars:typing.Sequence[OhlcvBar]) -> ArcOhlcv:
-        ...
-
-    @staticmethod
-    def from_pandas(df:typing.Any) -> ArcOhlcv:
-        ...
-
-
 class Backtest:
     config: BacktestConfig
     ctx: Ctx
@@ -122,6 +82,12 @@ class Backtest:
     def __iter__(self) -> Backtest:
         ...
 
+    def print_metrics(self) -> None:
+        ...
+
+    def print(self) -> None:
+        ...
+
 
 class BacktestConfig:
     initial_capital: builtins.float
@@ -132,24 +98,17 @@ class Ctx:
     bar_index: builtins.int
     bar: OhlcvBar
     is_initialized: builtins.bool
-    sym_info: SymInfo
-    ohlcv: typing.Optional[Ohlcv]
-    arc_ohlcv: typing.Optional[ArcOhlcv]
-    @staticmethod
-    def from_arc_ohlcv(ohlcv:ArcOhlcv, sym_info:typing.Optional[SymInfo]=None) -> Ctx:
-        ...
-
-    @staticmethod
-    def from_ohlcv(ohlcv:Ohlcv, sym_info:typing.Optional[SymInfo]=None) -> Ctx:
-        ...
-
+    sym: Sym
+    timeframe: Timeframe
+    ohlcv: Ohlcv
+    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None, timeframe:typing.Optional[Timeframe]=None): ...
     def fork(self) -> Ctx:
+        r"""
+        Creates a new instance starting from first bar. Reuses same OHLCV and symbol.
+        """
         ...
 
     def next(self) -> typing.Optional[builtins.int]:
-        r"""
-        Creates a fresh instance that can be run again. Reuses same OHLCV and symbol.
-        """
         ...
 
     def __len__(self) -> builtins.int:
@@ -164,7 +123,7 @@ class Ctx:
 
 class Ohlcv:
     r"""
-    Single-threaded mutable OHLCV data.
+    Multi-thread mutable OHLCV dataframe. Uses `Arc<RwLock<Ohlcv>>` internally.
     """
     bars: builtins.list[OhlcvBar]
     open: builtins.list[builtins.float]
@@ -176,7 +135,18 @@ class Ohlcv:
     close_time: builtins.list[datetime.datetime]
     open_time_ms: builtins.list[builtins.int]
     close_time_ms: builtins.list[builtins.int]
-    def __new__(cls,bars:typing.Optional[typing.Sequence[OhlcvBar]]=None): ...
+    @staticmethod
+    def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
+        ...
+
+    @staticmethod
+    def from_pandas(df:typing.Any) -> Ohlcv:
+        ...
+
+    @staticmethod
+    def read_path(path:builtins.str) -> Ohlcv:
+        ...
+
     def bars_from_slice(self, slice:slice) -> builtins.list[OhlcvBar]:
         ...
 
@@ -186,25 +156,13 @@ class Ohlcv:
     def __len__(self) -> builtins.int:
         ...
 
-    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
-        ...
-
     def push(self, bar:OhlcvBar) -> None:
         ...
 
     def push_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
         ...
 
-    @staticmethod
-    def read_path(path:builtins.str) -> Ohlcv:
-        ...
-
-    @staticmethod
-    def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
-        ...
-
-    @staticmethod
-    def from_pandas(df:typing.Any) -> Ohlcv:
+    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
         ...
 
 
@@ -266,20 +224,19 @@ class Signal:
         ...
 
 
-class SymInfo:
+class Sym:
     min_tick: builtins.float
     min_qty: builtins.float
-    timeframe: Timeframe
     @staticmethod
-    def btc_usd() -> SymInfo:
+    def btc_usd() -> Sym:
         ...
 
     @staticmethod
-    def eth_usd() -> SymInfo:
+    def eth_usd() -> Sym:
         ...
 
     @staticmethod
-    def sol_usd() -> SymInfo:
+    def sol_usd() -> Sym:
         ...
 
 

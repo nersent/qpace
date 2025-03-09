@@ -10,27 +10,29 @@ import { exec } from "../base/node/exec";
 import { prettifyTime } from "../base/node/time";
 
 import { createDir } from "~/base/node/fs";
-import { Config, FileTag, Target } from "~/compiler/common";
-import { CompilerClient } from "~/compiler/proto/compiler_grpc_pb";
-import { BuildRequest } from "~/compiler/proto/compiler_pb";
-import * as compilerApi from "~/compiler/proto/compiler_pb";
+import { Config, FileTag, Target } from "~/common/compiler";
+import { CompilerApiClient } from "~/common/proto/compiler_grpc_pb";
+import { BuildRequest } from "~/common/proto/compiler_pb";
+import * as compilerApi from "~/common/proto/compiler_pb";
 
 export interface RemoteDriverOpts {
   config: Config;
-  client: CompilerClient;
+  client: CompilerApiClient;
   rootDir: string;
+  verbose?: boolean;
 }
 
 export class RemoteDriver {
   public readonly config: Config;
-  public readonly client: CompilerClient;
+  public readonly client: CompilerApiClient;
   public readonly rootDir: string;
-  private emittedPythonWheel = false;
+  public readonly verbose: boolean;
 
   constructor(opts: RemoteDriverOpts) {
     this.config = opts.config;
     this.client = opts.client;
     this.rootDir = opts.rootDir;
+    this.verbose = opts.verbose ?? false;
   }
 
   public async collectSrcFiles(): Promise<string[]> {
@@ -48,17 +50,84 @@ export class RemoteDriver {
   }
 
   public async build({ target }: { target?: Target }): Promise<void> {
+    const shouldReceivePythonWheel =
+      target?.startsWith("python") && this.config.python?.installWheel;
+
     const req = await this.createBuildRequest();
     if (target != null) {
       req.setTarget(target);
     }
+
     const stream = this.client.build(req);
 
     const startTime = Date.now();
-    const res = await this.resolveBuild(stream);
-    const endTime = Date.now();
+    let spinner: Ora | undefined;
+    let receivedPythonWheel = false;
 
-    this.logEnd({ status: res.getStatus(), startTime, endTime });
+    const res = await new Promise<compilerApi.BuildResponse>((_resolve) => {
+      stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
+        if (e.hasMessage()) {
+          const message = e.getMessage();
+          if (message.length) {
+            console.log(message);
+          }
+          return;
+        }
+        if (e.hasStart()) {
+          spinner = ora(`Building`).start();
+          return;
+        }
+        if (e.hasEnd()) {
+          spinner = spinner?.succeed()?.stop();
+          return;
+        }
+        if (e.hasResponse()) {
+          const res = e.getResponse()!;
+          const files = res.getFilesList();
+          await Promise.all(files.map((r) => this.onReceivedFile(r)));
+          const pythonWheelFile = files.find((r) =>
+            r.getTagsList().includes(FileTag.QPC_PYTHON_WHEEL),
+          );
+          if (pythonWheelFile != null) {
+            spinner = ora(`Installing python wheel`).start();
+            receivedPythonWheel = true;
+            const wheelPath = resolve(this.rootDir, pythonWheelFile.getPath());
+            const execRes = await exec({
+              command: `pip install "${wheelPath}" --force-reinstall`,
+              io: this.verbose,
+            });
+            if (execRes.exitCode === 0) {
+              spinner = spinner?.succeed()?.stop();
+            } else {
+              spinner = spinner?.fail()?.stop();
+              res.setStatus(compilerApi.BuildStatus.ERROR);
+              if (!this.verbose) {
+                process.stdout.write(execRes.stdout);
+                process.stderr.write(execRes.stderr);
+              }
+            }
+          }
+          _resolve(res);
+          return;
+        }
+      });
+    });
+
+    let status = res.getStatus();
+    if (shouldReceivePythonWheel && !receivedPythonWheel) {
+      status = compilerApi.BuildStatus.ERROR;
+      console.log(chalk.redBright(`Failed to receive python wheel`));
+    }
+
+    const endTime = Date.now();
+    this.logEnd({ status, startTime, endTime });
+
+    if (this.config.python?.bindings) {
+      console.log(chalk.blueBright(`Import from python using:`));
+      console.log(
+        chalk.blackBright(`import ${this.config.python.package} as pine`),
+      );
+    }
   }
 
   public async check(): Promise<void> {
@@ -86,6 +155,7 @@ export class RemoteDriver {
       console.log(
         chalk.redBright(`Failed in ${prettifyTime(endTime - startTime)}`),
       );
+      process.exitCode = 1;
     } else if (status === compilerApi.BuildStatus.OK) {
       console.log(
         chalk.green(`Finished in ${prettifyTime(endTime - startTime)}`),
@@ -111,46 +181,13 @@ export class RemoteDriver {
     return req;
   }
 
-  private async resolveBuild(
+  private resolveBuild(
     stream: ClientReadableStream<compilerApi.BuildResponseEvent>,
   ): Promise<compilerApi.BuildResponse> {
-    let spinner: Ora | undefined;
-
     return new Promise<compilerApi.BuildResponse>((_resolve) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
-        if (e.hasMessage()) {
-          const message = e.getMessage();
-          if (message.length) {
-            console.log(message);
-          }
-          return;
-        }
-        if (e.hasStage()) {
-          const stage = e.getStage();
-          switch (stage) {
-            case compilerApi.BuildStage.ACQUIRE_START: {
-              spinner = ora(`Acquiring resources`).start();
-              break;
-            }
-            case compilerApi.BuildStage.PYTHON_WHEEL_START: {
-              spinner = ora(`Building python wheel`).start();
-              setTimeout(() => {
-                spinner.text = "Xdd";
-              }, 2000);
-              break;
-            }
-            case compilerApi.BuildStage.PYTHON_WHEEL_END: {
-              spinner?.succeed();
-              break;
-            }
-          }
-        }
         if (e.hasResponse()) {
-          const res = e.getResponse()!;
-          await Promise.all(
-            res.getFilesList().map((r) => this.onReceivedFile(r)),
-          );
-          _resolve(res);
+          _resolve(e.getResponse()!);
           return;
         }
       });
@@ -161,24 +198,9 @@ export class RemoteDriver {
     console.log(chalk.blackBright(`← ${normalize(file.getPath())}`));
 
     const path = resolve(this.rootDir, file.getPath());
-    const tags = file.getTagsList();
     const data = Buffer.from(file.getData_asU8());
 
     await createDir(dirname(path));
     await writeFile(path, data);
-
-    if (tags.includes(FileTag.QPC_PYTHON_WHEEL)) {
-      this.emittedPythonWheel = true;
-      await this.installPipWheel(path);
-      return;
-    }
-  }
-
-  private async installPipWheel(path: string): Promise<void> {
-    console.log(`Installing python wheel`);
-    await exec({
-      command: `pip install "${path}" --force-reinstall`,
-      io: true,
-    });
   }
 }

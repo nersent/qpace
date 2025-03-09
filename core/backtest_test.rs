@@ -18,10 +18,10 @@ mod test {
     use crate::{
         backtest::{Backtest, BacktestBarDump, BacktestConfig},
         ctx::Ctx,
-        ohlcv::{ArcOhlcv, Ohlcv, OhlcvReader},
+        ohlcv::{Ohlcv, OhlcvReader},
         orderbook::OrderConfig,
         rs_utils::{read_df, Float64Utils, OptionFloatUtils, SeriesCastUtils},
-        sym::SymInfo,
+        sym::Sym,
         test_utils::format_fixture_path,
         trade::{Trade, TradeDirection, TradeEvent},
     };
@@ -126,11 +126,11 @@ mod test {
         if let Some(fixture_path) = &backtest_fixture.config.fixture {
             let _df = read_df(&format_path(fixture_path));
 
-            let dp: ArcOhlcv = Ohlcv::from_polars(&_df).into();
+            let dp: Ohlcv = Ohlcv::from_polars(&_df).into();
 
             println!("{:?}", backtest_fixture.config.sym_info);
 
-            let mut sym_info = SymInfo::default();
+            let mut sym_info = Sym::default();
 
             if let Some(sym_info_config) = &backtest_fixture.config.sym_info {
                 sym_info
@@ -138,7 +138,12 @@ mod test {
                     .set_min_qty(sym_info_config.min_qty);
             }
 
-            let _ctx = Ctx::new(dp.into_box(), sym_info);
+            let _ctx = {
+                let mut ctx = Ctx::new();
+                ctx.set_ohlcv(dp.into_box());
+                ctx.set_sym(sym_info);
+                ctx
+            };
 
             backtest_fixture.timeline = Some(BacktestFixtureTimeline {
                 equity: Some(_df.column("equity").unwrap().to_f64()),
@@ -159,10 +164,11 @@ mod test {
         } else {
             let price = backtest_fixture.config.price.clone().unwrap();
 
-            ctx = Some(Ctx::new(
-                Ohlcv::from_uniform_price(price).into_box(),
-                SymInfo::default(),
-            ));
+            let ctx = Some({
+                let mut ctx = Ctx::new();
+                ctx.set_ohlcv(Ohlcv::from_uniform_price(price).into_box());
+                ctx
+            });
         }
         let ctx = Rc::new(RefCell::new(ctx.unwrap()));
 

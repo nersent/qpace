@@ -1,10 +1,7 @@
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
-use crate::{
-    signal::{Signal, SignalKind},
-    sym::{SymInfo, Timeframe},
-};
+use crate::signal::{Signal, SignalKind};
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   #[wasm_bindgen(js_name = "SignalKind")]

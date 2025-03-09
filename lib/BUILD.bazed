@@ -1,13 +1,82 @@
-fileSet("py", {
-  srcs: glob("**/*.py"),
-  deps: ["//core", "//content"],
+fileSet("py_src", {
+  srcs: [glob("**/*.py")],
+  deps: ["//core", "//lib/content:src_py_content"],
 });
 
 tsLibrary("ts_src", {
   srcs: [glob("**/*.ts")],
+  deps: ["//common"],
 });
 
 fileSet("wasm", {
   srcs: ["package.json"],
   deps: ["//base/node", "//core:wasm", ":ts_src"],
 });
+
+const MANIFEST_IN = `
+include README.md
+include LICENSE.md
+include lib/*
+include lib/xd/*
+include qpace_core/*
+include qpace_content/*
+`.replaceAll("\n", "\\n");
+
+// python -m twine upload *
+const SETUP_PY = `
+from setuptools import setup, find_packages
+
+local_packages = find_packages("lib")
+print(local_packages)
+
+setup(
+    name="qpace",
+    version="0.0.4",
+    package_dir={"": "lib", "qpace": "lib", "qpace_core": "lib/qpace_core", "qpace_content": "lib/qpace_content"},
+    packages=[*local_packages, "qpace"],
+    package_data={
+      "qpace_core": ["qpace_core.cp310-win_amd64.pyd"],
+      "qpace_content": ["qpace_content.cp310-win_amd64.pyd"],
+    },
+    include_package_data=True,
+    python_requires=">=3.10",
+    install_requires=["numpy", "pandas", "matplotlib", "scikit-learn", "requests", "tqdm", "plotly"],
+    #platforms=["win_amd64"],
+)`
+  .replaceAll("\n", "\\n")
+  .replaceAll(`"`, `""`);
+
+const PYPROJECT_TOML = `
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+`
+  .replaceAll("\n", "\\n")
+  .replaceAll(`"`, `""`);
+
+unpackWheel(`maturin_unwheel_core`, (ctx) => ({
+  deps: ["//core:maturin"],
+  dir: ctx.sandboxPath,
+}));
+
+unpackWheel(`maturin_unwheel_content`, (ctx) => ({
+  deps: ["//lib/content:maturin"],
+  dir: ctx.sandboxPath,
+}));
+
+execute("wheel", (ctx) => ({
+  command: [
+    `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
+    `node -e "require('fs').writeFileSync('setup.py', '${SETUP_PY}')"`,
+    `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
+    `python setup.py bdist_wheel --plat-name win_amd64`,
+  ].join(" && "),
+  cwd: ctx.sandboxPath,
+  deps: [
+    ":py_src",
+    "//:md",
+    ":maturin_unwheel_core",
+    ":maturin_unwheel_content",
+  ],
+  run: true,
+}));

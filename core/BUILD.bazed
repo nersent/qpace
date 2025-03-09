@@ -44,7 +44,7 @@ maturin("maturin", {
 });
 
 fileSet("core", {
-  srcs: glob("**/*.*"),
+  // srcs: glob("**/*.*"),
   deps: [":src_py", ":maturin"],
   copy: true,
 });
@@ -63,60 +63,6 @@ rustWasm("wasm", {
   ],
 });
 
-const MANIFEST_IN = `
-include README.md
-include LICENSE.md
-recursive-include pace/lib *
-recursive-include qpace_core *`.replaceAll("\n", "\\n");
-
-// python -m twine upload *
-const SETUP_PY = `
-from setuptools import setup, find_packages
-
-setup(
-    name="qpace",
-    version="0.0.4",
-    package_dir={"qpace": "pace/lib", "qpace_rs": "pace/lib/qpace_rs"},
-    packages=["qpace", "qpace_rs"],
-    package_data={
-      "qpace_rs": ["qpace_rs.cp310-win_amd64.pyd"],
-    },
-    include_package_data=True,
-    python_requires=">=3.10",
-    install_requires=["numpy", "pandas", "matplotlib", "scikit-learn", "requests", "tqdm", "plotly"],
-    #platforms=["win_amd64"],
-)`
-  .replaceAll("\n", "\\n")
-  .replaceAll(`"`, `""`);
-
-const PYPROJECT_TOML = `
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-`
-  .replaceAll("\n", "\\n")
-  .replaceAll(`"`, `""`);
-
-unpackWheel(`maturin_unwheel`, (ctx) => ({
-  deps: [":maturin"],
-  dir: ctx.sandboxPath,
-}));
-
-execute("wheel", (ctx) => ({
-  command: [
-    `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
-    `node -e "require('fs').writeFileSync('setup.py', '${SETUP_PY}')"`,
-    `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
-    // "python -m build",
-    // only for current platform
-    `python setup.py bdist_wheel --plat-name win_amd64`,
-  ].join(" && "),
-  cwd: ctx.sandboxPath,
-  deps: [":src_py", ":maturin_unwheel"],
-  srcs: ["LICENSE.md", "README.md"],
-  run: true,
-}));
-
 execute("check", (ctx) => ({
   command: [
     `cargo run --bin pyi --no-default-features --features=bindings_py`,
@@ -126,3 +72,57 @@ execute("check", (ctx) => ({
   cwd: ctx.workspacePath,
   run: true,
 }));
+
+// const MANIFEST_IN = `
+// include README.md
+// include LICENSE.md
+// recursive-include pace/lib *
+// recursive-include qpace_core *`.replaceAll("\n", "\\n");
+
+// // python -m twine upload *
+// const SETUP_PY = `
+// from setuptools import setup, find_packages
+
+// setup(
+//     name="qpace",
+//     version="0.0.4",
+//     package_dir={"qpace": "pace/lib", "qpace_rs": "pace/lib/qpace_rs"},
+//     packages=["qpace", "qpace_rs"],
+//     package_data={
+//       "qpace_rs": ["qpace_rs.cp310-win_amd64.pyd"],
+//     },
+//     include_package_data=True,
+//     python_requires=">=3.10",
+//     install_requires=["numpy", "pandas", "matplotlib", "scikit-learn", "requests", "tqdm", "plotly"],
+//     #platforms=["win_amd64"],
+// )`
+//   .replaceAll("\n", "\\n")
+//   .replaceAll(`"`, `""`);
+
+// const PYPROJECT_TOML = `
+// [build-system]
+// requires = ["setuptools", "wheel"]
+// build-backend = "setuptools.build_meta"
+// `
+//   .replaceAll("\n", "\\n")
+//   .replaceAll(`"`, `""`);
+
+// unpackWheel(`maturin_unwheel`, (ctx) => ({
+//   deps: [":maturin"],
+//   dir: ctx.sandboxPath,
+// }));
+
+// execute("wheel", (ctx) => ({
+//   command: [
+//     `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
+//     `node -e "require('fs').writeFileSync('setup.py', '${SETUP_PY}')"`,
+//     `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
+//     // "python -m build",
+//     // only for current platform
+//     `python setup.py bdist_wheel --plat-name win_amd64`,
+//   ].join(" && "),
+//   cwd: ctx.sandboxPath,
+//   deps: [":src_py", ":maturin_unwheel"],
+//   srcs: ["LICENSE.md", "README.md"],
+//   run: true,
+// }));

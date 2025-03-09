@@ -32,6 +32,9 @@ dependencies:
   nodejs-polars:
     specifier: ^0.8.3
     version: 0.8.4
+  object-hash:
+    specifier: ^3.0.0
+    version: 3.0.0
   ora:
     specifier: ^5.4.1
     version: 5.4.1
@@ -52,6 +55,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.8.10
     version: 20.17.19
+  '@types/object-hash':
+    specifier: ^3.0.2
+    version: 3.0.6
   '@typescript-eslint/eslint-plugin':
     specifier: 5.60.1
     version: 5.60.1(@typescript-eslint/parser@5.60.1)(eslint@8.46.0)(typescript@5.7.3)
@@ -1361,6 +1367,10 @@ packages:
     resolution: {integrity: sha512-LEwC7o1ifqg/6r2gn9Dns0f1rhK+fPFDoMiceTJ6kWmVk6bgXBI/9IOWfVan4WiAavK9pIVWdX0/e3J+eEUh5A==}
     dependencies:
       undici-types: 6.19.8
+
+  /@types/object-hash@3.0.6:
+    resolution: {integrity: sha512-fOBV8C1FIu2ELinoILQ+ApxcUKz4ngq+IWUYrxSGjXzzjUALijilampwkMgEtJ+h2njAW3pi853QpzNVCHB73w==}
+    dev: true
 
   /@types/responselike@1.0.3:
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}

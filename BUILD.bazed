@@ -1,0 +1,3 @@
+fileSet("md", {
+  srcs: ["README.md", "LICENSE.md"],
+});

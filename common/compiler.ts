@@ -1,3 +1,5 @@
+import { MD5 as md5 } from "object-hash";
+
 export type Os = "macos" | "linux" | "windows" | "unknown";
 export type Arch = "x86_64" | "arm64" | "unknown";
 
@@ -114,6 +116,14 @@ export const getDefaultConfig = (): Config => {
       "__pycache__",
       QPC_DIR,
     ],
+  };
+};
+
+export const getInitConfig = (): Config => {
+  return {
+    python: {
+      package: `qpace_script_${md5(Date.now()).slice(0, 6)}`,
+    },
   };
 };
 

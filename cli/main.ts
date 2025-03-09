@@ -3,7 +3,6 @@ import { resolve } from "path";
 import chalk from "chalk";
 import { Command, Option } from "commander";
 
-import { loadQp } from "./qp";
 import { RemoteDriver } from "./remote_driver";
 
 import { exists, readJson, writeJson } from "~/base/node/fs";
@@ -11,11 +10,12 @@ import { isLinux, isMacOs, isWindows } from "~/base/node/os";
 import {
   Config,
   getDefaultConfig,
+  getInitConfig,
   mergeConfigs,
   QPC_CONFIG_FILENAME,
   Target,
   TARGETS,
-} from "~/compiler/common";
+} from "~/common/compiler";
 import { Client } from "~/lib/client";
 
 const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
@@ -35,7 +35,7 @@ const loadConfig = async (dir: string): Promise<Config> => {
 const loadOrCreateConfig = async (dir: string): Promise<Config> => {
   const configPath = resolve(dir, QPC_CONFIG_FILENAME);
   if (!(await exists(configPath))) {
-    const config = getDefaultConfig();
+    const config = getInitConfig();
     console.log(
       chalk.yellowBright(
         `Warning: Config file not found at ${configPath}. Creating a default config file.`,
@@ -44,7 +44,7 @@ const loadOrCreateConfig = async (dir: string): Promise<Config> => {
     await writeJson(configPath, config, true);
     return config;
   }
-  return await readJson(configPath);
+  return await loadConfig(dir);
 };
 
 const BUILD_TARGETS = [...TARGETS, "python"] as const;
@@ -73,7 +73,7 @@ const tryMapBuildTarget = (
 
 const main = async (): Promise<void> => {
   const program = new Command();
-  const qp = await loadQp();
+  const qp = await import("../core/pkg/qpace_core.js");
   program.version(`qpace_core = ${qp.getVersion()}`);
   program
     .command("auth")
@@ -115,7 +115,7 @@ const main = async (): Promise<void> => {
 
       const client = new Client({});
       const driver = new RemoteDriver({
-        client: client.compilerClient,
+        client: client.compilerApiClient,
         config,
         rootDir,
       });
@@ -131,7 +131,7 @@ const main = async (): Promise<void> => {
       const config = await loadOrCreateConfig(rootDir);
       const client = new Client({});
       const driver = new RemoteDriver({
-        client: client.compilerClient,
+        client: client.compilerApiClient,
         config,
         rootDir,
       });

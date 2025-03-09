@@ -6,14 +6,19 @@ use std::rc::Rc;
 use qpace_core::backtest::{Backtest, BacktestConfig};
 use qpace_core::ctx::Ctx;
 use qpace_core::ohlcv::{Ohlcv, OhlcvReader};
-use qpace_core::sym::SymInfo;
+use qpace_core::sym::Sym;
 
 fn main() {
     let workspace_root = std::env::var("BAZED_WORKSPACE_ROOT").unwrap();
     let out_path = Path::new(&workspace_root).join("out");
     let ohlcv_path = Path::new(&workspace_root).join("playground/btc.csv");
     let ohlcv = Ohlcv::read_path(&ohlcv_path);
-    let ctx = Rc::new(RefCell::new(Ctx::new(ohlcv.into_box(), SymInfo::btc_usd())));
+    let ctx = Rc::new(RefCell::new({
+        let mut ctx = Ctx::new();
+        ctx.set_ohlcv(ohlcv.into_box());
+        ctx.set_sym(Sym::default());
+        ctx
+    }));
     let bt = Rc::new(RefCell::new(Backtest::new(
         ctx.clone(),
         BacktestConfig::default(),

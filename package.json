@@ -14,6 +14,7 @@
     "@swc/plugin-styled-components": "^1.5.67",
     "@types/cli-progress": "^1.8.1",
     "@types/node": "^20.8.10",
+    "@types/object-hash": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "5.60.1",
     "@typescript-eslint/parser": "5.60.1",
     "babel-jest": "29.4.3",
@@ -40,6 +41,7 @@
     "commander": "^13.1.0",
     "google-protobuf": "^3.21.4",
     "nodejs-polars": "^0.8.3",
+    "object-hash": "^3.0.0",
     "ora": "^5.4.1"
   }
 }

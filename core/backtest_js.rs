@@ -6,11 +6,11 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
 use crate::{
     backtest::{Backtest, BacktestConfig},
     ctx::Ctx,
-    ohlcv::{ArcOhlcv, Ohlcv, OhlcvBar, OhlcvLoader, OhlcvReader, OhlcvWriter},
+    ohlcv::{Ohlcv, OhlcvBar, OhlcvReader, OhlcvWriter},
     orderbook::{OrderBookError, OrderConfig},
     rs_utils::get_oldest_possible_datetime,
     signal::Signal,
-    sym::SymInfo,
+    sym::Sym,
     trade::Trade,
 };
 use chrono::{DateTime, Utc};

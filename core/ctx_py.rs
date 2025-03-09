@@ -12,9 +12,11 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     ctx::Ctx,
-    ohlcv::{ArcOhlcv, Ohlcv, OhlcvBar, OhlcvLoader, OhlcvReader, OhlcvWriter},
+    ohlcv::{Ohlcv, OhlcvBar, OhlcvReader, OhlcvWriter},
+    ohlcv_py::PyOhlcv,
     rs_utils::get_oldest_possible_datetime,
-    sym::SymInfo,
+    sym::Sym,
+    timeframe::Timeframe,
 };
 use chrono::{DateTime, Utc};
 
@@ -24,21 +26,16 @@ use chrono::{DateTime, Utc};
 #[derive(Clone)]
 pub struct PyCtx {
     ctx: Rc<RefCell<Ctx>>,
+    ohlcv: PyOhlcv,
 }
 
 #[cfg(feature = "bindings_py")]
 impl PyCtx {
     #[inline]
-    pub fn new(ohlcv: Box<dyn OhlcvReader>, sym_info: SymInfo) -> Self {
-        Self {
-            ctx: Rc::new(RefCell::new(Ctx::new(ohlcv, sym_info))),
-        }
-    }
-
-    #[inline]
     pub fn fork(&self) -> Self {
         Self {
             ctx: Rc::new(RefCell::new(self.ctx.borrow().fork())),
+            ohlcv: self.ohlcv.clone(),
         }
     }
 
@@ -64,24 +61,19 @@ impl Into<Rc<RefCell<Ctx>>> for PyCtx {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyCtx {
-    #[staticmethod]
-    #[pyo3(
-        name = "from_arc_ohlcv",
-        signature = (ohlcv, sym_info=None)
-    )]
-    pub fn py_from_arc_ohlcv(ohlcv: ArcOhlcv, sym_info: Option<SymInfo>) -> Self {
-        let sym_info = sym_info.unwrap_or_else(|| SymInfo::default());
-        Self::new(ohlcv.clone_box(), sym_info)
-    }
-
-    #[staticmethod]
-    #[pyo3(
-        name = "from_ohlcv",
-        signature = (ohlcv, sym_info=None)
-    )]
-    pub fn py_from_ohlcv(ohlcv: OhlcvLoader, sym_info: Option<SymInfo>) -> Self {
-        let sym_info = sym_info.unwrap_or_else(|| SymInfo::default());
-        Self::new(ohlcv.clone_box(), sym_info)
+    #[new]
+    #[pyo3(signature = (ohlcv, sym=None, timeframe=None))]
+    pub fn py_new(ohlcv: PyOhlcv, sym: Option<Sym>, timeframe: Option<Timeframe>) -> Self {
+        let sym = sym.unwrap_or_else(|| Sym::default());
+        let timeframe = timeframe.unwrap_or_else(|| Timeframe::default());
+        let mut ctx = Ctx::new();
+        ctx.set_ohlcv(ohlcv.clone_box());
+        ctx.set_sym(sym);
+        ctx.set_timeframe(timeframe);
+        Self {
+            ctx: Rc::new(RefCell::new(ctx)),
+            ohlcv,
+        }
     }
 
     #[getter(bar_index)]
@@ -102,33 +94,33 @@ impl PyCtx {
         self.ctx.borrow().is_initialized()
     }
 
-    #[getter(sym_info)]
+    #[getter(sym)]
     #[inline]
-    pub fn py_sym_info(&self) -> SymInfo {
-        *self.ctx.borrow().sym_info()
+    pub fn py_sym(&self) -> Sym {
+        *self.ctx.borrow().sym()
+    }
+
+    #[getter(timeframe)]
+    #[inline]
+    pub fn py_timeframe(&self) -> Timeframe {
+        *self.ctx.borrow().timeframe()
     }
 
     #[getter(ohlcv)]
     #[inline]
-    pub fn py_ohlcv(&self) -> Option<OhlcvLoader> {
-        self.ctx.borrow().ohlcv().into()
-    }
-
-    #[getter(arc_ohlcv)]
-    #[inline]
-    pub fn py_arc_ohlcv(&self) -> Option<ArcOhlcv> {
-        self.ctx.borrow().ohlcv().into()
+    pub fn py_ohlcv(&self) -> PyOhlcv {
+        self.ohlcv.clone()
     }
 
     #[pyo3(name = "fork")]
     #[inline]
+    #[doc = "Creates a new instance starting from first bar. Reuses same OHLCV and symbol."]
     pub fn py_fork(&self) -> Self {
         self.fork()
     }
 
     #[pyo3(name = "next")]
     #[inline]
-    #[doc = "Creates a fresh instance that can be run again. Reuses same OHLCV and symbol."]
     pub fn py_next_(&self) -> Option<usize> {
         self.ctx.borrow_mut().next()
     }

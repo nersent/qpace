@@ -5,8 +5,9 @@ use std::{
 };
 
 use crate::{
-    ohlcv::{OhlcvBar, OhlcvReader},
-    sym::SymInfo,
+    ohlcv::{Ohlcv, OhlcvBar, OhlcvReader},
+    sym::Sym,
+    timeframe::Timeframe,
 };
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
@@ -23,25 +24,48 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
 
 pub struct Ctx {
     ohlcv: Box<dyn OhlcvReader>,
-    sym_info: SymInfo,
+    sym: Sym,
+    timeframe: Timeframe,
     bar_index: usize,
     is_initialized: bool,
 }
 
 impl Ctx {
     #[inline]
-    pub fn new(ohlcv: Box<dyn OhlcvReader>, sym_info: SymInfo) -> Self {
+    pub fn new() -> Self {
         Self {
-            ohlcv,
-            sym_info,
+            ohlcv: Ohlcv::default().into_box(),
+            sym: Sym::default(),
+            timeframe: Timeframe::default(),
             bar_index: 0,
             is_initialized: false,
         }
     }
 
     #[inline]
+    pub fn set_ohlcv(&mut self, ohlcv: Box<dyn OhlcvReader>) {
+        self.ohlcv = ohlcv;
+    }
+
+    #[inline]
+    pub fn set_sym(&mut self, sym: Sym) {
+        self.sym = sym;
+    }
+
+    #[inline]
+    pub fn set_timeframe(&mut self, timeframe: Timeframe) {
+        self.timeframe = timeframe;
+    }
+
+    #[inline]
     pub fn fork(&self) -> Self {
-        Self::new(self.ohlcv.clone_box(), self.sym_info.clone())
+        Self {
+            ohlcv: self.ohlcv.clone_box(),
+            sym: self.sym.clone(),
+            timeframe: self.timeframe.clone(),
+            bar_index: self.bar_index,
+            is_initialized: self.is_initialized,
+        }
     }
 
     #[inline]
@@ -70,8 +94,13 @@ impl Ctx {
     }
 
     #[inline]
-    pub fn sym_info(&self) -> &SymInfo {
-        &self.sym_info
+    pub fn sym(&self) -> &Sym {
+        &self.sym
+    }
+
+    #[inline]
+    pub fn timeframe(&self) -> &Timeframe {
+        &self.timeframe
     }
 
     #[inline]

@@ -2,12 +2,12 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
   use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
 }}
-use crate::sym::{SymInfo, Timeframe};
+use crate::sym::Sym;
 
 #[cfg(feature = "bindings_py")]
 #[gen_stub_pymethods]
 #[pymethods]
-impl SymInfo {
+impl Sym {
     #[getter(min_tick)]
     #[inline]
     #[doc = "
@@ -25,12 +25,6 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
     #[doc = "https://www.tradingcode.net/tradingview/equity-percent-default-order/#order-size-formula"]
     pub fn py_min_qty(&self) -> f64 {
         self.min_qty()
-    }
-
-    #[getter(timeframe)]
-    #[inline]
-    pub fn py_timeframe(&self) -> Timeframe {
-        *self.timeframe()
     }
 
     #[staticmethod]

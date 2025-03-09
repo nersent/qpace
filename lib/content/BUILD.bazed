@@ -1,4 +1,4 @@
-const WORKSPACE = ["core", "content"];
+const WORKSPACE = ["core", "lib/content"];
 
 rustFileSet("src_py", {
   srcs: [glob("**/!(*.test).py"), glob("**/*.pyi"), glob("**/*.toml")],
@@ -21,7 +21,12 @@ maturin("maturin", {
 });
 
 fileSet("content", {
-  srcs: glob("**/*.*"),
+  // srcs: glob("**/*.*"),
   deps: [":src_py", ":maturin"],
+  copy: true,
+});
+
+fileSet("src_py_content", {
+  srcs: glob("**/*.py"),
   copy: true,
 });

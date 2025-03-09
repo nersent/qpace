@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core", "content", "playground"]
+members = ["core", "lib/content", "playground"]
 
 [workspace.package]
 version = "0.0.1"

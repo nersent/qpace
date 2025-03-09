@@ -93,7 +93,7 @@ pub struct Backtest {
 impl Backtest {
     #[inline]
     pub fn new(ctx: Rc<RefCell<Ctx>>, config: BacktestConfig) -> Self {
-        let min_qty = ctx.borrow().sym_info().min_qty();
+        let min_qty = ctx.borrow().sym().min_qty();
         let initial_capital = config.initial_capital;
         let mut s = Self {
             ctx,
@@ -326,7 +326,7 @@ impl Backtest {
     fn set_price(&mut self) {
         let ctx = self.ctx.borrow();
         let bar = ctx.bar();
-        let sym_info = ctx.sym_info();
+        let sym_info = ctx.sym();
 
         let orderbook_price = if self.config.process_orders_on_close {
             bar.close()
@@ -342,7 +342,7 @@ impl Backtest {
 
     fn set_position_size(&mut self, size: f64) {
         let ctx = self.ctx.borrow();
-        let sym_info = ctx.sym_info();
+        let sym_info = ctx.sym();
         self.position_size = sym_info.round_contracts(size);
     }
 
@@ -400,7 +400,7 @@ impl Backtest {
                     1.0,
                 );
 
-                let order_size = ctx.sym_info().round_contracts(order_size);
+                let order_size = ctx.sym().round_contracts(order_size);
 
                 if order_size == 0.0 {
                     return None;
@@ -565,7 +565,7 @@ impl Backtest {
                 open_trade_index += 1;
             }
 
-            if self.ctx.borrow().sym_info().validate_contracts(fill_size) {
+            if self.ctx.borrow().sym().validate_contracts(fill_size) {
                 self.on_trade_open(fill_size, order.tag().clone())?;
             }
         }

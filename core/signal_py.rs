@@ -2,10 +2,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
   use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
 }}
-use crate::{
-    signal::{Signal, SignalKind},
-    sym::{SymInfo, Timeframe},
-};
+use crate::signal::{Signal, SignalKind};
 
 #[cfg(feature = "bindings_py")]
 #[gen_stub_pymethods]

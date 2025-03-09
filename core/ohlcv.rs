@@ -246,10 +246,21 @@ pub trait OhlcvWriter: Debug {
 
 #[derive(Clone, Debug)]
 pub struct Ohlcv {
-    bars: Vec<OhlcvBar>,
+    pub bars: Vec<OhlcvBar>,
+}
+
+impl Default for Ohlcv {
+    fn default() -> Self {
+        Self::empty()
+    }
 }
 
 impl Ohlcv {
+    #[inline]
+    pub fn empty() -> Self {
+        Self { bars: vec![] }
+    }
+
     #[inline]
     pub fn from_bars(bars: Vec<OhlcvBar>) -> Self {
         Self { bars }
@@ -316,153 +327,6 @@ impl OhlcvWriter for Ohlcv {
     #[inline]
     fn push(&mut self, bar: OhlcvBar) {
         self.bars.push(bar);
-    }
-}
-
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "ArcOhlcv"))]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = ArcOhlcv))]
-#[derive(Clone, Debug)]
-#[doc = "Multi-threaded immutable OHLCV data."]
-pub struct ArcOhlcv {
-    inner: Arc<Ohlcv>,
-}
-
-impl ArcOhlcv {
-    pub fn from_bars(bars: Vec<OhlcvBar>) -> Self {
-        Self {
-            inner: Arc::new(Ohlcv::from_bars(bars)),
-        }
-    }
-}
-
-impl OhlcvReader for ArcOhlcv {
-    #[inline]
-    fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    #[inline]
-    fn bar(&self, index: usize) -> &OhlcvBar {
-        self.inner.bar(index)
-    }
-
-    #[inline]
-    fn bars(&self, range: Range<usize>) -> &[OhlcvBar] {
-        self.inner.bars(range)
-    }
-
-    #[inline]
-    fn into_box(self) -> Box<dyn OhlcvReader> {
-        Box::new(self)
-    }
-
-    #[inline]
-    fn clone_box(&self) -> Box<dyn OhlcvReader> {
-        self.clone().into_box()
-    }
-
-    #[inline]
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-impl ArcOhlcv {
-    pub fn fmt(&self) -> String {
-        format!("Ohlcv(len={})", self.len())
-    }
-}
-
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "Ohlcv", unsendable))]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = Ohlcv))]
-#[derive(Clone, Debug)]
-#[doc = "Single-threaded mutable OHLCV data."]
-pub struct OhlcvLoader {
-    inner: Rc<RefCell<Ohlcv>>,
-}
-
-impl OhlcvReader for OhlcvLoader {
-    #[inline]
-    fn len(&self) -> usize {
-        self.inner.borrow().len()
-    }
-
-    #[inline]
-    fn bar(&self, index: usize) -> &OhlcvBar {
-        let borrowed = self.inner.borrow();
-        let ptr: *const OhlcvBar = &borrowed.bars[index];
-        unsafe { &*ptr }
-    }
-
-    #[inline]
-    fn bars(&self, range: Range<usize>) -> &[OhlcvBar] {
-        let borrowed = self.inner.borrow();
-        let bars = &borrowed.bars[range];
-        unsafe { std::slice::from_raw_parts(bars.as_ptr(), bars.len()) }
-    }
-
-    #[inline]
-    fn into_box(self) -> Box<dyn OhlcvReader> {
-        Box::new(self)
-    }
-
-    #[inline]
-    fn clone_box(&self) -> Box<dyn OhlcvReader> {
-        self.clone().into_box()
-    }
-
-    #[inline]
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-impl OhlcvWriter for OhlcvLoader {
-    #[inline]
-    fn push(&mut self, bar: OhlcvBar) {
-        self.inner.borrow_mut().push(bar);
-    }
-}
-
-impl OhlcvLoader {
-    pub fn from_bars(bars: Vec<OhlcvBar>) -> Self {
-        Self {
-            inner: Rc::new(RefCell::new(Ohlcv::from_bars(bars))),
-        }
-    }
-
-    pub fn fmt(&self) -> String {
-        format!("OhlcvLoader(len={})", self.len())
-    }
-}
-
-impl Into<Option<ArcOhlcv>> for &dyn OhlcvReader {
-    fn into(self) -> Option<ArcOhlcv> {
-        self.as_any().downcast_ref::<ArcOhlcv>().cloned()
-    }
-}
-
-impl Into<Option<OhlcvLoader>> for &dyn OhlcvReader {
-    fn into(self) -> Option<OhlcvLoader> {
-        self.as_any().downcast_ref::<OhlcvLoader>().cloned()
-    }
-}
-
-impl Into<ArcOhlcv> for Ohlcv {
-    fn into(self) -> ArcOhlcv {
-        ArcOhlcv {
-            inner: Arc::new(self),
-        }
-    }
-}
-
-impl Into<OhlcvLoader> for Ohlcv {
-    fn into(self) -> OhlcvLoader {
-        OhlcvLoader {
-            inner: Rc::new(RefCell::new(self)),
-        }
     }
 }
 

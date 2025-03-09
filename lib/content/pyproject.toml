@@ -3,11 +3,11 @@ requires = ["maturin>=1,<2"]
 build-backend = "maturin"
 
 [project]
-name = "qpace_core"
+name = "qpace_content"
 version = "1.0.0"
 classifiers = []
 
 [project.optional-dependencies]
 
 [tool.maturin]
-module-name = "qpace_core"
+module-name = "qpace_content"

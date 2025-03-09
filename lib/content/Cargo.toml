@@ -16,7 +16,7 @@ pyo3 = { version = "0.23", features = ["extension-module", "macros", "chrono"] }
 pyo3-ffi = { version = "0.23" }
 pyo3-stub-gen = { version = "0.7" }
 pyo3-stub-gen-derive = { version = "0.7" }
-qpace_core = { path = "../core", features = ["bindings_py", "polars"] }
+qpace_core = { path = "../../core", features = ["bindings_py", "polars"] }
 
 [build-dependencies]
 pyo3-build-config = { version = "0.23" }

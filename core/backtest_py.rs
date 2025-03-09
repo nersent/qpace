@@ -19,11 +19,11 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 use crate::{
     backtest::{Backtest, BacktestConfig},
     ctx::Ctx,
-    ohlcv::{ArcOhlcv, Ohlcv, OhlcvBar, OhlcvLoader, OhlcvReader, OhlcvWriter},
+    ohlcv::{Ohlcv, OhlcvBar, OhlcvReader, OhlcvWriter},
     orderbook::{OrderBookError, OrderConfig},
     rs_utils::{get_oldest_possible_datetime, with_suffix},
     signal::Signal,
-    sym::SymInfo,
+    sym::Sym,
     trade::Trade,
     utils::{sharpe_ratio_from_equity, sortino_ratio_from_equity},
 };
@@ -559,7 +559,10 @@ impl PyBacktest {
 
         self.text_plot_equity();
     }
+}
 
+#[cfg(feature = "bindings_py")]
+impl PyBacktest {
     fn text_plot_equity(&self) {
         let bt = self.bt.borrow();
         let net_equity_series: Vec<f64> = bt.net_equity_series().to_vec();

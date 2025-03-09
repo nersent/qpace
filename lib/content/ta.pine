@@ -2,6 +2,8 @@
 // Wrapper around stdlib ta functions
 library("ta")
 
+// https://github.com/TA-Lib/ta-lib-python
+
 export accdist(): float =>
     ta.accdist
 

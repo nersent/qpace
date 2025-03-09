@@ -27,9 +27,9 @@ function deserialize_compiler_BuildResponseEvent(buffer_arg) {
 }
 
 
-var CompilerService = exports.CompilerService = {
+var CompilerApiService = exports.CompilerApiService = {
   build: {
-    path: '/compiler.Compiler/Build',
+    path: '/compiler.CompilerApi/Build',
     requestStream: false,
     responseStream: true,
     requestType: compiler_pb.BuildRequest,
@@ -41,4 +41,4 @@ var CompilerService = exports.CompilerService = {
   },
 };
 
-exports.CompilerClient = grpc.makeGenericClientConstructor(CompilerService);
+exports.CompilerApiClient = grpc.makeGenericClientConstructor(CompilerApiService);

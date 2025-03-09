@@ -20,10 +20,12 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
 }}
 use backtest::{Backtest, BacktestConfig};
 use ctx::Ctx;
-use ohlcv::{ArcOhlcv, OhlcvBar, OhlcvLoader};
+use ohlcv::OhlcvBar;
+use ohlcv_py::PyOhlcv;
 use orderbook::OrderConfig;
 use signal::{Signal, SignalKind};
-use sym::{SymInfo, Timeframe};
+use sym::Sym;
+use timeframe::Timeframe;
 use trade::{Trade, TradeDirection, TradeEvent};
 
 pub mod backtest;
@@ -45,6 +47,8 @@ pub mod sym;
 pub mod sym_js;
 pub mod sym_py;
 pub mod test_utils;
+pub mod timeframe;
+pub mod timeframe_js;
 pub mod trade;
 pub mod trade_js;
 pub mod trade_py;
@@ -61,10 +65,9 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 #[pymodule(name = "qpace_core")]
 fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<OhlcvBar>()?;
-    m.add_class::<ArcOhlcv>()?;
-    m.add_class::<OhlcvLoader>()?;
+    m.add_class::<PyOhlcv>()?;
     m.add_class::<Timeframe>()?;
-    m.add_class::<SymInfo>()?;
+    m.add_class::<Sym>()?;
     m.add_class::<PyCtx>()?;
     m.add_class::<SignalKind>()?;
     m.add_class::<Signal>()?;

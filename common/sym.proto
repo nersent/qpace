@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+service SymApi {
+  rpc Get(GetSymRequest) returns (GetSymResponse) {}
+}
+
+message GetSymRequest {
+  string id = 1;
+}
+
+message GetSymResponse {
+  Sym sym = 1;
+}
+
+message Sym {
+  string id = 1;
+  // CME_EOD:TICKER -> CME_EOD
+  optional string prefix = 2;
+  // NASDAQ:AAPL -> USD
+  // EURJPY -> JPY
+  optional string currency = 3;
+  // EURJPY -> EUR
+  // BTCUSDT -> BTC
+  // CME:6C1! -> CAD
+  // NASDAQ:AAPL -> ""
+  optional string base_currency = 4;
+  // symbol name without exchange prefix, "MSFT"
+  optional string ticker = 5;
+  // NASDAQ:AAPL
+  // ticker.standard 
+  optional string ticker_id = 6;
+  optional string country = 7;
+  double min_tick = 8;
+  double min_qty = 9;
+  double price_scale = 10;
+  double point_value = 11;
+  repeated Icon icons = 12;
+}
+
+message Icon {
+  string url = 1;
+  string mime_type = 2;
+}
