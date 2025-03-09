@@ -5,6 +5,8 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
     exceptions::{PyTypeError, PyValueError},
     types::{PySequence, PySlice, PySliceIndices},
   };
+  use pyo3_stub_gen::PyStubType;
+  use pyo3_stub_gen::TypeInfo;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
@@ -14,6 +16,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   use polars::frame::DataFrame;
 }}
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use pyo3::conversion::FromPyObjectBound;
 use std::time::Duration;
 use std::{ffi::OsStr, ops::Range, path::Path};
 
@@ -27,6 +30,26 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
     assert!(step >= 0, "Negative step is not supported");
     // @TODO: .step_by(step as usize);
     return start as usize..stop as usize;
+  }
+
+  pub struct PandasDataFrame(pub PyObject);
+
+  impl PyStubType for PandasDataFrame {
+      fn type_output() -> TypeInfo {
+          TypeInfo::with_module("pandas.DataFrame", "pandas".into())
+      }
+  }
+
+  impl Into<PandasDataFrame> for PyObject {
+      fn into(self) -> PandasDataFrame {
+          PandasDataFrame(self)
+      }
+  }
+
+  impl IntoPy<PyObject> for PandasDataFrame {
+      fn into_py(self, py: Python<'_>) -> PyObject {
+          self.0
+      }
   }
 }}
 
@@ -46,10 +69,12 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
       fn to_f64(&self) -> Vec<f64>;
       fn to_i32(&self) -> Vec<Option<i32>>;
       fn to_i64(&self) -> Vec<Option<i64>>;
+      fn to_i128(&self) -> Vec<Option<i128>>;
       fn to_usize(&self) -> Vec<Option<usize>>;
       fn to_duration(&self) -> Vec<Option<Duration>>;
       fn to_str(&self) -> Vec<Option<String>>;
-      fn to_datetime(&self) -> Vec<Option<DateTime<Utc>>>;
+      fn to_datetime_from_s(&self) -> Vec<Option<DateTime<Utc>>>;
+      fn to_datetime_from_ms(&self) -> Vec<Option<DateTime<Utc>>>;
   }
 
   impl SeriesCastUtils for Series {
@@ -101,6 +126,18 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
               .collect::<Vec<_>>();
       }
 
+      fn to_i32(&self) -> Vec<Option<i32>> {
+        return self
+            .cast(&DataType::Int32)
+            .unwrap()
+            .i32()
+            .unwrap()
+            .into_iter()
+            .map(|val| if val.is_none() { None } else { val })
+            .collect::<Vec<_>>();
+    }
+
+
       fn to_i64(&self) -> Vec<Option<i64>> {
           return self
               .cast(&DataType::Int64)
@@ -112,16 +149,17 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
               .collect::<Vec<_>>();
       }
 
-      fn to_i32(&self) -> Vec<Option<i32>> {
-          return self
-              .cast(&DataType::Int32)
-              .unwrap()
-              .i32()
-              .unwrap()
-              .into_iter()
-              .map(|val| if val.is_none() { None } else { val })
-              .collect::<Vec<_>>();
-      }
+
+        fn to_i128(&self) -> Vec<Option<i128>> {
+            return self
+                .cast(&DataType::Int64)
+                .unwrap()
+                .i64()
+                .unwrap()
+                .into_iter()
+                .map(|val| if val.is_none() { None } else { Some(val.unwrap() as i128) })
+                .collect::<Vec<_>>();
+        }
 
       fn to_usize(&self) -> Vec<Option<usize>> {
           return self
@@ -157,7 +195,21 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
               .collect::<Vec<_>>();
       }
 
-      fn to_datetime(&self) -> Vec<Option<DateTime<Utc>>> {
+      fn to_datetime_from_s(&self) -> Vec<Option<DateTime<Utc>>> {
+        return self
+            .to_i64()
+            .into_iter()
+            .map(|val| {
+                if val.is_none() {
+                    None
+                } else {
+                    Some(DateTime::from_timestamp(val.unwrap(), 0).unwrap())
+                }
+            })
+            .collect::<Vec<_>>();
+    }
+
+      fn to_datetime_from_ms(&self) -> Vec<Option<DateTime<Utc>>> {
           return self
               .to_i64()
               .into_iter()

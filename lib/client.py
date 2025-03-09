@@ -1,4 +1,4 @@
-from qpace_core import Sym, Ohlcv, Ctx
+from qpace_core import Sym, Ohlcv, Ctx, Timeframe
 from typing import Optional
 
 
@@ -6,11 +6,19 @@ class Client:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key
 
-    def sym(self, id: str) -> Optional[Sym]:
-        return None
-
-    def ohlcv(self, sym: Sym) -> Optional[Ohlcv]:
+    def ping(self):
         pass
 
-    def ctx(self, ticker: str) -> Ctx:
+    def sym(self, id: str) -> Sym:
+        return None
+
+    def ohlcv(self, sym: Sym) -> Ohlcv:
+        pass
+
+    def ctx(
+        self,
+        sym_id: Optional[str] = None,
+        ticker: Optional[str] = None,
+        timeframe: Optional[Timeframe] = None,
+    ) -> Ctx:
         pass

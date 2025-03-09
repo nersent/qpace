@@ -5,12 +5,14 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
     exceptions::{PyTypeError, PyValueError},
     types::{PySequence, PySlice, PySliceIndices},
   };
+  use pyo3::types::PyDict;
   use crate::rs_utils::{pyslice_to_range};
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
     use crate::rs_utils::{read_df};
     use crate::ohlcv::{ohlcv_bars_from_polars};
+    use crate::rs_utils::PandasDataFrame;
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
 use crate::{
@@ -177,19 +179,44 @@ impl Ohlcv {
             open_time, close_time, open, high, low, close, volume,
         )))
     }
+
+    #[inline]
+    pub fn py_to_pandas(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let open = self.open();
+        let high = self.high();
+        let low = self.low();
+        let close = self.close();
+        let volume = self.volume();
+        let open_time = self.open_time();
+        let close_time = self.close_time();
+
+        let dict = PyDict::new(py);
+        dict.set_item("open", open)?;
+        dict.set_item("high", high)?;
+        dict.set_item("low", low)?;
+        dict.set_item("close", close)?;
+        dict.set_item("volume", volume)?;
+        dict.set_item("open_time", open_time)?;
+        dict.set_item("close_time", close_time)?;
+
+        let pd = py.import("pandas")?;
+        let df = pd.getattr("DataFrame")?.call1((dict,))?;
+
+        Ok(df.into())
+    }
 }
 
 #[cfg(feature = "polars")]
 impl Ohlcv {
     #[inline]
-    pub fn from_polars(df: &DataFrame) -> Ohlcv {
-        Self::from_bars(ohlcv_bars_from_polars(&df))
+    pub fn from_polars(df: &DataFrame, time_unit: &str) -> Ohlcv {
+        Self::from_bars(ohlcv_bars_from_polars(&df, time_unit))
     }
 
     #[inline]
-    pub fn read_path(path: &Path) -> Ohlcv {
+    pub fn read_path(path: &Path, time_unit: &str) -> Ohlcv {
         let df = read_df(path);
-        Self::from_polars(&df)
+        Self::from_polars(&df, time_unit)
     }
 }
 
@@ -285,10 +312,11 @@ impl PyOhlcv {
 
     #[cfg(feature = "polars")]
     #[staticmethod]
-    #[pyo3(name = "read_path")]
+    #[pyo3(name = "read_path", signature = (path, time_unit="s".to_string()))]
     #[inline]
-    pub fn py_read_path(path: String) -> Self {
-        Ohlcv::read_path(&Path::new(&path)).into()
+    #[doc = "`time_unit: 's' | 'ms'`"]
+    pub fn py_read_path(path: String, time_unit: String) -> Self {
+        Ohlcv::read_path(&Path::new(&path), &time_unit).into()
     }
 
     #[getter(bars)]
@@ -386,5 +414,11 @@ impl PyOhlcv {
     #[inline]
     pub fn py_format(&self, format_spec: Option<String>) -> String {
         format!("Ohlcv(len={})", self.len())
+    }
+
+    #[pyo3(name = "to_pandas")]
+    pub fn py_to_pandas(&self, py: Python<'_>) -> PandasDataFrame {
+        let inner = self.inner.read().unwrap();
+        PandasDataFrame(inner.py_to_pandas(py).unwrap())
     }
 }

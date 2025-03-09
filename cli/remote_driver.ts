@@ -122,12 +122,12 @@ export class RemoteDriver {
     const endTime = Date.now();
     this.logEnd({ status, startTime, endTime });
 
-    if (this.config.python?.bindings) {
-      console.log(chalk.blueBright(`Import from python using:`));
-      console.log(
-        chalk.blackBright(`import ${this.config.python.package} as pine`),
-      );
-    }
+    // if (this.config.python?.bindings) {
+    //   console.log(chalk.blueBright(`Import from python using:`));
+    //   console.log(
+    //     chalk.blackBright(`import ${this.config.python.package} as pine`),
+    //   );
+    // }
   }
 
   public async check(): Promise<void> {
@@ -165,7 +165,7 @@ export class RemoteDriver {
 
   private async createBuildRequest(): Promise<BuildRequest> {
     const paths = await this.collectSrcFiles();
-    console.log(chalk.blackBright(paths.map((r) => `→ ${r}`).join("\n")));
+    console.log(chalk.blackBright(paths.map((r) => `← ${r}`).join("\n")));
     const req = new BuildRequest();
     req.setQpcConfig(JSON.stringify(this.config));
     const reqFiles: compilerApi.File[] = [];
@@ -195,7 +195,7 @@ export class RemoteDriver {
   }
 
   private async onReceivedFile(file: compilerApi.File): Promise<void> {
-    console.log(chalk.blackBright(`← ${normalize(file.getPath())}`));
+    console.log(chalk.blackBright(`→ ${normalize(file.getPath())}`));
 
     const path = resolve(this.rootDir, file.getPath());
     const data = Buffer.from(file.getData_asU8());

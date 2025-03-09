@@ -3,6 +3,7 @@
 
 import builtins
 import datetime
+import pandas
 import typing
 from enum import Enum, auto
 
@@ -144,7 +145,10 @@ class Ohlcv:
         ...
 
     @staticmethod
-    def read_path(path:builtins.str) -> Ohlcv:
+    def read_path(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
+        r"""
+        `time_unit: 's' | 'ms'`
+        """
         ...
 
     def bars_from_slice(self, slice:slice) -> builtins.list[OhlcvBar]:
@@ -163,6 +167,9 @@ class Ohlcv:
         ...
 
     def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
+        ...
+
+    def to_pandas(self) -> pandas.DataFrame:
         ...
 
 

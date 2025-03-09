@@ -18,19 +18,19 @@ pub struct JsCtx {
 
 #[cfg(feature = "bindings_wasm")]
 impl JsCtx {
-    #[inline]
-    pub fn new(ohlcv: Box<dyn OhlcvReader>, sym: SymInfo) -> Self {
-        Self {
-            ctx: Rc::new(RefCell::new(Ctx::new(ohlcv, sym))),
-        }
-    }
+    // #[inline]
+    // pub fn new(ohlcv: Box<dyn OhlcvReader>, sym: SymInfo) -> Self {
+    //     Self {
+    //         ctx: Rc::new(RefCell::new(Ctx::new(ohlcv, sym))),
+    //     }
+    // }
 
-    #[inline]
-    pub fn fork(&self) -> Self {
-        Self {
-            ctx: Rc::new(RefCell::new(self.ctx.borrow().fork())),
-        }
-    }
+    // #[inline]
+    // pub fn fork(&self) -> Self {
+    //     Self {
+    //         ctx: Rc::new(RefCell::new(self.ctx.borrow().fork())),
+    //     }
+    // }
 }
 
 #[cfg(feature = "bindings_wasm")]
@@ -93,11 +93,11 @@ impl JsCtx {
     //     self.ctx.borrow().ohlcv().into()
     // }
 
-    #[wasm_bindgen(js_name = fork)]
-    #[inline]
-    pub fn js_fork(&self) -> Self {
-        self.fork()
-    }
+    // #[wasm_bindgen(js_name = fork)]
+    // #[inline]
+    // pub fn js_fork(&self) -> Self {
+    //     self.fork()
+    // }
 
     #[wasm_bindgen(js_name = next)]
     #[inline]

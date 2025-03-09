@@ -2,7 +2,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
 use crate::{
-    ohlcv::{OhlcvReader, OhlcvWriter},
+    ohlcv::{OhlcvBar, OhlcvReader, OhlcvWriter},
     rs_utils::get_oldest_possible_datetime,
 };
 use chrono::{DateTime, Utc};

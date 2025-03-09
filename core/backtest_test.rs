@@ -126,7 +126,7 @@ mod test {
         if let Some(fixture_path) = &backtest_fixture.config.fixture {
             let _df = read_df(&format_path(fixture_path));
 
-            let dp: Ohlcv = Ohlcv::from_polars(&_df).into();
+            let dp: Ohlcv = Ohlcv::from_polars(&_df, "ms").into();
 
             println!("{:?}", backtest_fixture.config.sym_info);
 

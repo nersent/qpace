@@ -418,7 +418,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
 
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     #[inline]
-    pub fn ohlcv_bars_from_polars(df: &DataFrame) -> Vec<OhlcvBar> {
+    pub fn ohlcv_bars_from_polars(df: &DataFrame, time_unit: &str) -> Vec<OhlcvBar> {
         let cols = df.get_column_names();
 
         let open = Some(df.column("open").unwrap().to_f64());
@@ -432,18 +432,41 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
             None
         };
 
-        let open_time = if cols.contains(&"open_time") {
-            Some(df.column("open_time").unwrap().to_datetime())
+        let open_time_col = if cols.contains(&"open_time") {
+            Some("open_time")
         } else if cols.contains(&"time") {
-            Some(df.column("time").unwrap().to_datetime())
+            Some("time")
+        } else {
+            None
+        };
+        let close_time_col = if cols.contains(&"close_time") {
+            Some("close_time")
+        } else if cols.contains(&"time") {
+            Some("time")
         } else {
             None
         };
 
-        let close_time = if cols.contains(&"close_time") {
-            Some(df.column("close_time").unwrap().to_datetime())
-        } else if cols.contains(&"time") {
-            Some(df.column("time").unwrap().to_datetime())
+        let open_time = if let Some(col) = open_time_col {
+            if time_unit == "s" {
+                Some(df.column(col).unwrap().to_datetime_from_s())
+            } else if time_unit == "ms" {
+                Some(df.column(col).unwrap().to_datetime_from_ms())
+            } else {
+                panic!("Invalid open time unit: {}", time_unit);
+            }
+        } else {
+            None
+        };
+
+        let close_time = if let Some(col) = close_time_col {
+            if time_unit == "s" {
+                Some(df.column(col).unwrap().to_datetime_from_s())
+            } else if time_unit == "ms" {
+                Some(df.column(col).unwrap().to_datetime_from_ms())
+            } else {
+                panic!("Invalid close time unit: {}", time_unit);
+            }
         } else {
             None
         };
