@@ -1,6 +1,6 @@
 tsLibrary("ts_src", {
   srcs: glob("**/*.ts"),
-  deps: ["//base/node", "//common", "//lib:wasm"],
+  deps: ["//base/node", "//common:ts", "//lib:wasm"],
 });
 
 nodeEntry("cli", {

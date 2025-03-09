@@ -1,3 +1,7 @@
-tsLibrary("common", {
+tsLibrary("ts", {
   srcs: [glob("**/*.ts"), glob("**/*.js")],
+});
+
+tsLibrary("py", {
+  srcs: [glob("**/*.py")],
 });

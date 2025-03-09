@@ -3,7 +3,7 @@ syntax = "proto3";
 package compiler;
 
 service CompilerApi {
-  rpc Build(BuildRequest) returns (stream BuildResponseEvent) {}
+  rpc Build(BuildRequest) returns (stream BuildResponseEvent);
 }
 
 message File {

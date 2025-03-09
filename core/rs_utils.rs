@@ -7,6 +7,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   };
   use pyo3_stub_gen::PyStubType;
   use pyo3_stub_gen::TypeInfo;
+  use pyo3::conversion::FromPyObjectBound;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
@@ -16,7 +17,6 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   use polars::frame::DataFrame;
 }}
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use pyo3::conversion::FromPyObjectBound;
 use std::time::Duration;
 use std::{ffi::OsStr, ops::Range, path::Path};
 

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 service SymApi {
-  rpc Get(GetSymRequest) returns (GetSymResponse) {}
+  rpc Get(GetSymRequest) returns (GetSymResponse);
 }
 
 message GetSymRequest {

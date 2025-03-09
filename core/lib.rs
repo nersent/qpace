@@ -49,6 +49,7 @@ pub mod sym_py;
 pub mod test_utils;
 pub mod timeframe;
 pub mod timeframe_js;
+pub mod timeframe_py;
 pub mod trade;
 pub mod trade_js;
 pub mod trade_py;

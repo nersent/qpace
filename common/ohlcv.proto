@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 package ohlcv;
 
 service OhlcvApi {
-  rpc Get(GetSymRequest) returns (GetSymResponse) {}
+  rpc Get(GetOhlcvRequest) returns (GetOhlcvResponse);
 }
 
 message GetOhlcvRequest {

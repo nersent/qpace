@@ -48,3 +48,32 @@ impl Into<String> for Timeframe {
         };
     }
 }
+
+impl From<String> for Timeframe {
+    #[inline]
+    fn from(value: String) -> Self {
+        let mut chars = value.chars();
+        let mut num = String::new();
+        let mut unit = String::new();
+        while let Some(c) = chars.next() {
+            if c.is_numeric() {
+                num.push(c);
+            } else {
+                unit.push(c);
+            }
+        }
+        let num = num.parse::<usize>().unwrap();
+        return match unit.as_str() {
+            "Y" => Timeframe::Years(num),
+            "M" => Timeframe::Months(num),
+            "W" => Timeframe::Weeks(num),
+            "D" => Timeframe::Days(num),
+            "h" => Timeframe::Hours(num),
+            "m" => Timeframe::Minutes(num),
+            "s" => Timeframe::Seconds(num),
+            "T" => Timeframe::Ticks(num),
+            "R" => Timeframe::Ranges(num),
+            _ => Timeframe::Unknown(),
+        };
+    }
+}
