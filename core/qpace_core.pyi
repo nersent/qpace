@@ -234,6 +234,7 @@ class Signal:
 class Sym:
     min_tick: builtins.float
     min_qty: builtins.float
+    def __new__(cls,min_qty:typing.Optional[builtins.float]=None, min_tick:typing.Optional[builtins.float]=None): ...
     @staticmethod
     def btc_usd() -> Sym:
         ...
@@ -244,6 +245,65 @@ class Sym:
 
     @staticmethod
     def sol_usd() -> Sym:
+        ...
+
+
+class Timeframe:
+    years: typing.Optional[builtins.int]
+    months: typing.Optional[builtins.int]
+    weeks: typing.Optional[builtins.int]
+    days: typing.Optional[builtins.int]
+    hours: typing.Optional[builtins.int]
+    minutes: typing.Optional[builtins.int]
+    seconds: typing.Optional[builtins.int]
+    ticks: typing.Optional[builtins.int]
+    ranges: typing.Optional[builtins.int]
+    unknown: builtins.bool
+    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
+        ...
+
+    @staticmethod
+    def from_str(timeframe:builtins.str) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Years(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Months(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Weeks(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Days(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Hours(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Minutes(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Seconds(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Ticks(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Ranges(value:builtins.int) -> Timeframe:
+        ...
+
+    @staticmethod
+    def Unknown() -> Timeframe:
         ...
 
 
@@ -274,18 +334,6 @@ class SignalKind(Enum):
     EquityPct = auto()
     Hold = auto()
     CloseAll = auto()
-
-class Timeframe(Enum):
-    Years = auto()
-    Months = auto()
-    Weeks = auto()
-    Days = auto()
-    Hours = auto()
-    Minutes = auto()
-    Seconds = auto()
-    Ticks = auto()
-    Ranges = auto()
-    Unknown = auto()
 
 class TradeDirection(Enum):
     Long = auto()

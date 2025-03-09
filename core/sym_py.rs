@@ -8,6 +8,17 @@ use crate::sym::Sym;
 #[gen_stub_pymethods]
 #[pymethods]
 impl Sym {
+    #[pyo3(signature = (min_qty=None, min_tick=None))]
+    #[new]
+    pub fn py_new(min_qty: Option<f64>, min_tick: Option<f64>) -> Self {
+        let min_qty = min_qty.unwrap_or(f64::NAN);
+        let min_tick = min_tick.unwrap_or(f64::NAN);
+        let mut sym = Sym::default();
+        sym.set_min_qty(min_qty);
+        sym.set_min_tick(min_tick);
+        return sym;
+    }
+
     #[getter(min_tick)]
     #[inline]
     #[doc = "

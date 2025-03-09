@@ -26,6 +26,7 @@ use orderbook::OrderConfig;
 use signal::{Signal, SignalKind};
 use sym::Sym;
 use timeframe::Timeframe;
+use timeframe_py::PyTimeframe;
 use trade::{Trade, TradeDirection, TradeEvent};
 
 pub mod backtest;
@@ -67,7 +68,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<OhlcvBar>()?;
     m.add_class::<PyOhlcv>()?;
-    m.add_class::<Timeframe>()?;
+    m.add_class::<PyTimeframe>()?;
     m.add_class::<Sym>()?;
     m.add_class::<PyCtx>()?;
     m.add_class::<SignalKind>()?;

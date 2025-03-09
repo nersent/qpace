@@ -7,12 +7,12 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   };
   use pyo3::types::PyDict;
   use crate::rs_utils::{pyslice_to_range};
+  use crate::rs_utils::PandasDataFrame;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
     use crate::rs_utils::{read_df};
     use crate::ohlcv::{ohlcv_bars_from_polars};
-    use crate::rs_utils::PandasDataFrame;
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
 use crate::{
@@ -182,22 +182,22 @@ impl Ohlcv {
 
     #[inline]
     pub fn py_to_pandas(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let open_time = self.open_time();
+        let close_time = self.close_time();
         let open = self.open();
         let high = self.high();
         let low = self.low();
         let close = self.close();
         let volume = self.volume();
-        let open_time = self.open_time();
-        let close_time = self.close_time();
 
         let dict = PyDict::new(py);
+        dict.set_item("open_time", open_time)?;
+        dict.set_item("close_time", close_time)?;
         dict.set_item("open", open)?;
         dict.set_item("high", high)?;
         dict.set_item("low", low)?;
         dict.set_item("close", close)?;
         dict.set_item("volume", volume)?;
-        dict.set_item("open_time", open_time)?;
-        dict.set_item("close_time", close_time)?;
 
         let pd = py.import("pandas")?;
         let df = pd.getattr("DataFrame")?.call1((dict,))?;

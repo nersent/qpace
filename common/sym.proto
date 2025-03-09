@@ -30,10 +30,10 @@ message Sym {
   // ticker.standard 
   optional string ticker_id = 6;
   optional string country = 7;
-  double min_tick = 8;
-  double min_qty = 9;
-  double price_scale = 10;
-  double point_value = 11;
+  optional double min_tick = 8;
+  optional double min_qty = 9;
+  optional double price_scale = 10;
+  optional double point_value = 11;
   repeated Icon icons = 12;
 }
 

@@ -8,8 +8,6 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass_enum)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "Timeframe"))]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Timeframe {
     Years(usize),
@@ -52,6 +50,9 @@ impl Into<String> for Timeframe {
 impl From<String> for Timeframe {
     #[inline]
     fn from(value: String) -> Self {
+        if value == "" || value == "unknown" {
+            return Timeframe::Unknown();
+        }
         let mut chars = value.chars();
         let mut num = String::new();
         let mut unit = String::new();

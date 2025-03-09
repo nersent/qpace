@@ -82,13 +82,25 @@ export class Sym extends jspb.Message {
     clearCountry(): void;
     getCountry(): string | undefined;
     setCountry(value: string): Sym;
-    getMinTick(): number;
+
+    hasMinTick(): boolean;
+    clearMinTick(): void;
+    getMinTick(): number | undefined;
     setMinTick(value: number): Sym;
-    getMinQty(): number;
+
+    hasMinQty(): boolean;
+    clearMinQty(): void;
+    getMinQty(): number | undefined;
     setMinQty(value: number): Sym;
-    getPriceScale(): number;
+
+    hasPriceScale(): boolean;
+    clearPriceScale(): void;
+    getPriceScale(): number | undefined;
     setPriceScale(value: number): Sym;
-    getPointValue(): number;
+
+    hasPointValue(): boolean;
+    clearPointValue(): void;
+    getPointValue(): number | undefined;
     setPointValue(value: number): Sym;
     clearIconsList(): void;
     getIconsList(): Array<Icon>;
@@ -114,10 +126,10 @@ export namespace Sym {
         ticker?: string,
         tickerId?: string,
         country?: string,
-        minTick: number,
-        minQty: number,
-        priceScale: number,
-        pointValue: number,
+        minTick?: number,
+        minQty?: number,
+        priceScale?: number,
+        pointValue?: number,
         iconsList: Array<Icon.AsObject>,
     }
 }

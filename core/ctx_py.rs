@@ -17,6 +17,7 @@ use crate::{
     rs_utils::get_oldest_possible_datetime,
     sym::Sym,
     timeframe::Timeframe,
+    timeframe_py::PyTimeframe,
 };
 use chrono::{DateTime, Utc};
 
@@ -63,13 +64,13 @@ impl Into<Rc<RefCell<Ctx>>> for PyCtx {
 impl PyCtx {
     #[new]
     #[pyo3(signature = (ohlcv, sym=None, timeframe=None))]
-    pub fn py_new(ohlcv: PyOhlcv, sym: Option<Sym>, timeframe: Option<Timeframe>) -> Self {
+    pub fn py_new(ohlcv: PyOhlcv, sym: Option<Sym>, timeframe: Option<PyTimeframe>) -> Self {
         let sym = sym.unwrap_or_else(|| Sym::default());
-        let timeframe = timeframe.unwrap_or_else(|| Timeframe::default());
+        let timeframe = timeframe.unwrap_or_else(|| PyTimeframe::default());
         let mut ctx = Ctx::new();
         ctx.set_ohlcv(ohlcv.clone_box());
         ctx.set_sym(sym);
-        ctx.set_timeframe(timeframe);
+        ctx.set_timeframe(timeframe.into());
         Self {
             ctx: Rc::new(RefCell::new(ctx)),
             ohlcv,
@@ -102,8 +103,8 @@ impl PyCtx {
 
     #[getter(timeframe)]
     #[inline]
-    pub fn py_timeframe(&self) -> Timeframe {
-        *self.ctx.borrow().timeframe()
+    pub fn py_timeframe(&self) -> PyTimeframe {
+        (*self.ctx.borrow().timeframe()).into()
     }
 
     #[getter(ohlcv)]

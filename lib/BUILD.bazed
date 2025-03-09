@@ -1,11 +1,15 @@
 fileSet("py_src", {
   srcs: [glob("**/*.py")],
-  deps: ["//core", "//lib/content:src_py_content"],
+  deps: ["//common:py", "//core", "//lib/content"],
 });
 
 tsLibrary("ts_src", {
   srcs: [glob("**/*.ts")],
   deps: ["//common:ts"],
+});
+
+fileSet("py", {
+  deps: [":py_src"],
 });
 
 fileSet("wasm", {

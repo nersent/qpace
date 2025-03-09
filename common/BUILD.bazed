@@ -2,6 +2,6 @@ tsLibrary("ts", {
   srcs: [glob("**/*.ts"), glob("**/*.js")],
 });
 
-tsLibrary("py", {
+fileSet("py", {
   srcs: [glob("**/*.py")],
 });
