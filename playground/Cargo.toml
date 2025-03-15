@@ -16,7 +16,12 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-pyo3 = { version = "0.23", features = ["extension-module", "macros"] }
+pyo3 = { version = "0.23", features = [
+  "extension-module",
+  "macros",
+  "abi3-py310",
+  "generate-import-lib",
+] }
 pyo3-ffi = "0.23"
 pyo3-stub-gen = "0.6"
 pyo3-stub-gen-derive = "0.6"

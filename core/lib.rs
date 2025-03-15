@@ -10,7 +10,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
     types::{PyModule, PyModuleMethods},
     wrap_pyfunction, Bound, PyResult,
   };
-  use pyo3::{types::PyDateTime, wrap_pymodule};
+  use pyo3::{wrap_pymodule};
   use pyo3_stub_gen::{define_stub_info_gatherer, derive::gen_stub_pyfunction};
   use backtest_py::PyBacktest;
   use ctx_py::PyCtx;

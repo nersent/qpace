@@ -53,10 +53,13 @@ textplots = { version = "0.8", optional = true }
 js-sys = { version = "0.3.77", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
+# https://github.com/PyO3/pyo3/blob/main/guide/src/features.md
 pyo3 = { version = "0.23", optional = true, features = [
   "extension-module",
   "macros",
   "chrono",
+  "abi3-py310",
+  "generate-import-lib",
 ] }
 pyo3-ffi = { version = "0.23", optional = true }
 pyo3-stub-gen = { version = "0.7", optional = true }
