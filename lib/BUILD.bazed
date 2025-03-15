@@ -1,11 +1,16 @@
 fileSet("py_src", {
   srcs: [glob("**/*.py")],
-  deps: ["//common:py", "//core", "//lib/content"],
+  deps: ["//core", "//lib/content"],
+});
+
+fileSet("ts_proto", {
+  srcs: [glob("proto/*.{ts,js}")],
 });
 
 tsLibrary("wasm", {
-  srcs: [glob("**/*.ts"), "package.json"],
-  deps: ["//common:ts", "//core:wasm"],
+  srcs: ["client.ts", "compiler.ts", "index.ts", "internal.ts"],
+  deps: [":ts_proto", "//core:wasm"],
+  compiler: "tsc",
 });
 
 fileSet("py", {
@@ -79,3 +84,59 @@ execute("wheel", (ctx) => ({
   ],
   run: true,
 }));
+
+const prodPackageJson = {
+  name: "qpace",
+  version: "0.0.1",
+  main: "lib/index.js",
+  types: "lib/index.d.ts",
+  typesVersions: {
+    "*": {
+      ".": ["lib/index.d.ts"],
+      "lib/proto": [
+        "lib/proto/compiler_grpc_pb.d.ts",
+        "lib/proto/compiler_pb.d.ts",
+        "lib/proto/ohlcv_grpc_pb.d.ts",
+        "lib/proto/ohlcv_pb.d.ts",
+        "lib/proto/sym_grpc_pb.d.ts",
+        "lib/proto/sym_pb.d.ts",
+      ],
+    },
+  },
+  files: ["core/**/*.*", "lib/**/*.*"],
+  peerDependencies: {},
+};
+
+const packageJson = template((tmpl) => {
+  writeFile(tmpl.label.name, (ctx) => ({
+    content: JSON.stringify(tmpl.options.json, null, 2),
+    // TODO: rules should support absolute paths, remove |sandboxRelativePath|
+    output: `${ctx.sandboxRelativePath}/package.json`,
+  }));
+});
+
+packageJson("package_json_prod", { json: prodPackageJson });
+
+execute("npm_link", (ctx) => ({
+  command: `cd ${ctx.sandboxPath} && pnpm link --global`,
+  copyDeps: true,
+  deps: [":wasm", ":package_json_prod"],
+  run: true,
+}));
+
+execute("publish_npm", (ctx) => ({
+  command: `cd ${ctx.sandboxPath} && npm publish --access public --force --dry-run`,
+  copyDeps: true,
+  deps: [":wasm", ":package_json_prod"],
+  run: true,
+}));
+
+tsLibrary("cli_src", {
+  srcs: ["remote_driver.ts", "cli.ts"],
+  deps: ["//base/node", ":wasm"],
+});
+
+nodeEntry("cli", {
+  main: "cli.js",
+  deps: [":cli_src"],
+});

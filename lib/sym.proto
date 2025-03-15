@@ -5,13 +5,13 @@ service SymApi {
   rpc GetList(GetListRequest) returns (GetListResponse);
 }
 
-message FindQuery {
+message GetQuery {
   optional string id = 1;
   optional string ticker_id = 2;
 }
 
 message GetRequest {
-  FindQuery query = 1;
+  GetQuery query = 1;
 }
 
 message GetResponse {
@@ -19,7 +19,7 @@ message GetResponse {
 }
 
 message GetListRequest {
-  FindQuery query = 1;
+  GetQuery query = 1;
 }
 
 message GetListResponse {
@@ -28,21 +28,21 @@ message GetListResponse {
 
 message Sym {
   string id = 1;
+  // NASDAQ:AAPL
+  // ticker.standard 
+  optional string ticker_id = 2;
   // CME_EOD:TICKER -> CME_EOD
-  optional string prefix = 2;
+  optional string prefix = 3;
   // NASDAQ:AAPL -> USD
   // EURJPY -> JPY
-  optional string currency = 3;
+  optional string currency = 4;
   // EURJPY -> EUR
   // BTCUSDT -> BTC
   // CME:6C1! -> CAD
   // NASDAQ:AAPL -> ""
-  optional string base_currency = 4;
+  optional string base_currency = 5;
   // symbol name without exchange prefix, "MSFT"
-  optional string ticker = 5;
-  // NASDAQ:AAPL
-  // ticker.standard 
-  optional string ticker_id = 6;
+  optional string ticker = 6;
   optional string country = 7;
   optional double min_tick = 8;
   optional double min_qty = 9;

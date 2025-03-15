@@ -8,50 +8,88 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 
-export class GetOhlcvRequest extends jspb.Message { 
+export class GetQuery extends jspb.Message { 
     getSymId(): string;
-    setSymId(value: string): GetOhlcvRequest;
+    setSymId(value: string): GetQuery;
 
     hasTimeframe(): boolean;
     clearTimeframe(): void;
     getTimeframe(): Timeframe | undefined;
-    setTimeframe(value?: Timeframe): GetOhlcvRequest;
+    setTimeframe(value?: Timeframe): GetQuery;
+
+    hasLimit(): boolean;
+    clearLimit(): void;
+    getLimit(): number | undefined;
+    setLimit(value: number): GetQuery;
+
+    hasOffset(): boolean;
+    clearOffset(): void;
+    getOffset(): number | undefined;
+    setOffset(value: number): GetQuery;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetOhlcvRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: GetOhlcvRequest): GetOhlcvRequest.AsObject;
+    toObject(includeInstance?: boolean): GetQuery.AsObject;
+    static toObject(includeInstance: boolean, msg: GetQuery): GetQuery.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetOhlcvRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetOhlcvRequest;
-    static deserializeBinaryFromReader(message: GetOhlcvRequest, reader: jspb.BinaryReader): GetOhlcvRequest;
+    static serializeBinaryToWriter(message: GetQuery, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetQuery;
+    static deserializeBinaryFromReader(message: GetQuery, reader: jspb.BinaryReader): GetQuery;
 }
 
-export namespace GetOhlcvRequest {
+export namespace GetQuery {
     export type AsObject = {
         symId: string,
         timeframe?: Timeframe.AsObject,
+        limit?: number,
+        offset?: number,
     }
 }
 
-export class GetOhlcvResponse extends jspb.Message { 
+export class GetRequest extends jspb.Message { 
+
+    hasQuery(): boolean;
+    clearQuery(): void;
+    getQuery(): GetQuery | undefined;
+    setQuery(value?: GetQuery): GetRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetRequest): GetRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetRequest;
+    static deserializeBinaryFromReader(message: GetRequest, reader: jspb.BinaryReader): GetRequest;
+}
+
+export namespace GetRequest {
+    export type AsObject = {
+        query?: GetQuery.AsObject,
+    }
+}
+
+export class GetResponse extends jspb.Message { 
+    getTotal(): number;
+    setTotal(value: number): GetResponse;
     clearBarsList(): void;
     getBarsList(): Array<OhlcvBar>;
-    setBarsList(value: Array<OhlcvBar>): GetOhlcvResponse;
+    setBarsList(value: Array<OhlcvBar>): GetResponse;
     addBars(value?: OhlcvBar, index?: number): OhlcvBar;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetOhlcvResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: GetOhlcvResponse): GetOhlcvResponse.AsObject;
+    toObject(includeInstance?: boolean): GetResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetResponse): GetResponse.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetOhlcvResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetOhlcvResponse;
-    static deserializeBinaryFromReader(message: GetOhlcvResponse, reader: jspb.BinaryReader): GetOhlcvResponse;
+    static serializeBinaryToWriter(message: GetResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetResponse;
+    static deserializeBinaryFromReader(message: GetResponse, reader: jspb.BinaryReader): GetResponse;
 }
 
-export namespace GetOhlcvResponse {
+export namespace GetResponse {
     export type AsObject = {
+        total: number,
         barsList: Array<OhlcvBar.AsObject>,
     }
 }

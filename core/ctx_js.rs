@@ -1,5 +1,6 @@
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
+  use crate::ohlcv_js::{JsOhlcv};
 }}
 use crate::{
     ctx::Ctx,
@@ -14,23 +15,18 @@ use std::{cell::RefCell, rc::Rc};
 #[derive(Clone)]
 pub struct JsCtx {
     ctx: Rc<RefCell<Ctx>>,
+    ohlcv: JsOhlcv,
 }
 
 #[cfg(feature = "bindings_wasm")]
 impl JsCtx {
-    // #[inline]
-    // pub fn new(ohlcv: Box<dyn OhlcvReader>, sym: SymInfo) -> Self {
-    //     Self {
-    //         ctx: Rc::new(RefCell::new(Ctx::new(ohlcv, sym))),
-    //     }
-    // }
-
-    // #[inline]
-    // pub fn fork(&self) -> Self {
-    //     Self {
-    //         ctx: Rc::new(RefCell::new(self.ctx.borrow().fork())),
-    //     }
-    // }
+    #[inline]
+    pub fn fork(&self) -> Self {
+        Self {
+            ctx: Rc::new(RefCell::new(self.ctx.borrow().fork())),
+            ohlcv: self.ohlcv.clone(),
+        }
+    }
 }
 
 #[cfg(feature = "bindings_wasm")]
@@ -43,19 +39,19 @@ impl Into<Rc<RefCell<Ctx>>> for JsCtx {
 #[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class=Ctx)]
 impl JsCtx {
-    // #[wasm_bindgen(js_name = fromArcOhlcv)]
-    // #[inline]
-    // pub fn js_from_arc_ohlcv(ohlcv: ArcOhlcv, sym_info: Option<SymInfo>) -> Self {
-    //     let sym_info = sym_info.unwrap_or_else(|| SymInfo::default());
-    //     Self::new(ohlcv.clone_box(), sym_info)
-    // }
-
-    // #[wasm_bindgen(js_name = fromOhlcv)]
-    // #[inline]
-    // pub fn js_from_ohlcv(ohlcv: OhlcvLoader, sym_info: Option<SymInfo>) -> Self {
-    //     let sym_info = sym_info.unwrap_or_else(|| SymInfo::default());
-    //     Self::new(ohlcv.clone_box(), sym_info)
-    // }
+    #[wasm_bindgen(constructor)]
+    pub fn js_new(ohlcv: JsOhlcv, sym: Option<Sym>) -> Self {
+        let sym = sym.unwrap_or_else(|| Sym::default());
+        let timeframe = ohlcv.js_timeframe();
+        let mut ctx = Ctx::new();
+        ctx.set_ohlcv(ohlcv.clone_box());
+        ctx.set_sym(sym);
+        ctx.set_timeframe(timeframe.into());
+        Self {
+            ctx: Rc::new(RefCell::new(ctx)),
+            ohlcv,
+        }
+    }
 
     #[wasm_bindgen(getter = barIndex)]
     #[inline]
@@ -78,26 +74,20 @@ impl JsCtx {
     #[wasm_bindgen(getter = sym)]
     #[inline]
     pub fn js_sym(&self) -> Sym {
-        *self.ctx.borrow().sym()
+        self.ctx.borrow().sym().clone()
     }
 
-    // #[wasm_bindgen(getter = ohlcv)]
-    // #[inline]
-    // pub fn js_ohlcv(&self) -> Option<OhlcvLoader> {
-    //     self.ctx.borrow().ohlcv().into()
-    // }
+    #[wasm_bindgen(getter = ohlcv)]
+    #[inline]
+    pub fn js_ohlcv(&self) -> JsOhlcv {
+        self.ohlcv.clone()
+    }
 
-    // #[wasm_bindgen(getter = arcOhlcv)]
-    // #[inline]
-    // pub fn js_arc_ohlcv(&self) -> Option<ArcOhlcv> {
-    //     self.ctx.borrow().ohlcv().into()
-    // }
-
-    // #[wasm_bindgen(js_name = fork)]
-    // #[inline]
-    // pub fn js_fork(&self) -> Self {
-    //     self.fork()
-    // }
+    #[wasm_bindgen(js_name = fork)]
+    #[inline]
+    pub fn js_fork(&self) -> Self {
+        self.fork()
+    }
 
     #[wasm_bindgen(js_name = next)]
     #[inline]

@@ -6,29 +6,29 @@
 
 import * as jspb from "google-protobuf";
 
-export class FindQuery extends jspb.Message { 
+export class GetQuery extends jspb.Message { 
 
     hasId(): boolean;
     clearId(): void;
     getId(): string | undefined;
-    setId(value: string): FindQuery;
+    setId(value: string): GetQuery;
 
     hasTickerId(): boolean;
     clearTickerId(): void;
     getTickerId(): string | undefined;
-    setTickerId(value: string): FindQuery;
+    setTickerId(value: string): GetQuery;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): FindQuery.AsObject;
-    static toObject(includeInstance: boolean, msg: FindQuery): FindQuery.AsObject;
+    toObject(includeInstance?: boolean): GetQuery.AsObject;
+    static toObject(includeInstance: boolean, msg: GetQuery): GetQuery.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: FindQuery, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): FindQuery;
-    static deserializeBinaryFromReader(message: FindQuery, reader: jspb.BinaryReader): FindQuery;
+    static serializeBinaryToWriter(message: GetQuery, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetQuery;
+    static deserializeBinaryFromReader(message: GetQuery, reader: jspb.BinaryReader): GetQuery;
 }
 
-export namespace FindQuery {
+export namespace GetQuery {
     export type AsObject = {
         id?: string,
         tickerId?: string,
@@ -39,8 +39,8 @@ export class GetRequest extends jspb.Message {
 
     hasQuery(): boolean;
     clearQuery(): void;
-    getQuery(): FindQuery | undefined;
-    setQuery(value?: FindQuery): GetRequest;
+    getQuery(): GetQuery | undefined;
+    setQuery(value?: GetQuery): GetRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetRequest.AsObject;
@@ -54,7 +54,7 @@ export class GetRequest extends jspb.Message {
 
 export namespace GetRequest {
     export type AsObject = {
-        query?: FindQuery.AsObject,
+        query?: GetQuery.AsObject,
     }
 }
 
@@ -85,8 +85,8 @@ export class GetListRequest extends jspb.Message {
 
     hasQuery(): boolean;
     clearQuery(): void;
-    getQuery(): FindQuery | undefined;
-    setQuery(value?: FindQuery): GetListRequest;
+    getQuery(): GetQuery | undefined;
+    setQuery(value?: GetQuery): GetListRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetListRequest.AsObject;
@@ -100,7 +100,7 @@ export class GetListRequest extends jspb.Message {
 
 export namespace GetListRequest {
     export type AsObject = {
-        query?: FindQuery.AsObject,
+        query?: GetQuery.AsObject,
     }
 }
 
@@ -130,6 +130,11 @@ export class Sym extends jspb.Message {
     getId(): string;
     setId(value: string): Sym;
 
+    hasTickerId(): boolean;
+    clearTickerId(): void;
+    getTickerId(): string | undefined;
+    setTickerId(value: string): Sym;
+
     hasPrefix(): boolean;
     clearPrefix(): void;
     getPrefix(): string | undefined;
@@ -149,11 +154,6 @@ export class Sym extends jspb.Message {
     clearTicker(): void;
     getTicker(): string | undefined;
     setTicker(value: string): Sym;
-
-    hasTickerId(): boolean;
-    clearTickerId(): void;
-    getTickerId(): string | undefined;
-    setTickerId(value: string): Sym;
 
     hasCountry(): boolean;
     clearCountry(): void;
@@ -197,11 +197,11 @@ export class Sym extends jspb.Message {
 export namespace Sym {
     export type AsObject = {
         id: string,
+        tickerId?: string,
         prefix?: string,
         currency?: string,
         baseCurrency?: string,
         ticker?: string,
-        tickerId?: string,
         country?: string,
         minTick?: number,
         minQty?: number,

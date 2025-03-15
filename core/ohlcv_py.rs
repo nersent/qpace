@@ -296,6 +296,12 @@ impl OhlcvWriter for PyOhlcv {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyOhlcv {
+    #[new]
+    #[inline]
+    pub fn py_new() -> Self {
+        Ohlcv::empty().into()
+    }
+
     #[staticmethod]
     #[pyo3(name = "from_bars")]
     #[inline]

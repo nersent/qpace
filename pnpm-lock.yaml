@@ -12,8 +12,8 @@ dependencies:
     specifier: ^0.7.13
     version: 0.7.13
   '@nersent/bazed':
-    specifier: ^0.0.36
-    version: 0.0.36
+    specifier: ^0.0.37
+    version: 0.0.37
   axios:
     specifier: ^0.27.2
     version: 0.27.2
@@ -29,8 +29,11 @@ dependencies:
   google-protobuf:
     specifier: ^3.21.4
     version: 3.21.4
+  minimatch:
+    specifier: ^10.0.1
+    version: 10.0.1
   nodejs-polars:
-    specifier: ^0.8.3
+    specifier: ^0.8.4
     version: 0.8.4
   object-hash:
     specifier: ^3.0.0
@@ -52,6 +55,9 @@ devDependencies:
   '@types/cli-progress':
     specifier: ^1.8.1
     version: 1.8.1
+  '@types/google-protobuf':
+    specifier: ^3.15.12
+    version: 3.15.12
   '@types/node':
     specifier: ^20.8.10
     version: 20.17.19
@@ -970,8 +976,8 @@ packages:
     dev: true
     optional: true
 
-  /@nersent/bazed@0.0.36:
-    resolution: {integrity: sha512-mePJG6nwsRDTQIxlqckmOrBb+ARQmXp7u7XdT6hYO9BpyIJUwnPxC0lOZeeoQ5uR0/v9S9iayXrhvxY9s24T4g==}
+  /@nersent/bazed@0.0.37:
+    resolution: {integrity: sha512-UnwnvFGwv5+KA4Qc8l6YusC0toDyhSEagqdejbHFQ5lx/1axnSzkEELmiBhj2Dyny3dV+lqj+f4KY1dPoef1Hg==}
     hasBin: true
     dependencies:
       chokidar: 3.6.0
@@ -1321,6 +1327,10 @@ packages:
 
   /@types/estree@1.0.6:
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
+    dev: true
+
+  /@types/google-protobuf@3.15.12:
+    resolution: {integrity: sha512-40um9QqwHjRS92qnOaDpL7RmDK15NuZYo9HihiJRbYkMQZlWnuH8AdvbMy8/o6lgLmKbDUKa+OALCltHdbOTpQ==}
     dev: true
 
   /@types/graceful-fs@4.1.9:
@@ -4561,6 +4571,13 @@ packages:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==}
     engines: {node: '>=10'}
     dev: true
+
+  /minimatch@10.0.1:
+    resolution: {integrity: sha512-ethXTt3SGGR+95gudmqJ1eNhRO7eGEGIgYA9vnPatK4/etz2MEVDno5GMCibdMTuBMyElzIlgxMna3K94XDIDQ==}
+    engines: {node: 20 || >=22}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: false
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}

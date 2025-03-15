@@ -6,14 +6,14 @@ import chalk from "chalk";
 import { glob } from "glob";
 import ora, { Ora } from "ora";
 
-import { exec } from "../base/node/exec";
-import { prettifyTime } from "../base/node/time";
+import { Config, FileTag, Target } from "./compiler";
+import { CompilerApiClient } from "./proto/compiler_grpc_pb";
+import { BuildRequest } from "./proto/compiler_pb";
+import * as compilerApi from "./proto/compiler_pb";
 
+import { exec } from "~/base/node/exec";
 import { createDir } from "~/base/node/fs";
-import { Config, FileTag, Target } from "~/common/compiler";
-import { CompilerApiClient } from "~/common/proto/compiler_grpc_pb";
-import { BuildRequest } from "~/common/proto/compiler_pb";
-import * as compilerApi from "~/common/proto/compiler_pb";
+import { prettifyTime } from "~/base/node/time";
 
 export interface RemoteDriverOpts {
   config: Config;

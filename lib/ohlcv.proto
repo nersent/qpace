@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package ohlcv;
+
+service OhlcvApi {
+  rpc Get(GetRequest) returns (GetResponse);
+}
+
+message GetQuery {
+  string sym_id = 1;
+  optional Timeframe timeframe = 2;
+  optional uint32 limit = 3;
+  optional uint32 offset = 4;
+}
+
+message GetRequest {
+  GetQuery query = 1;
+}
+
+message GetResponse {
+  uint32 total = 1;
+  repeated OhlcvBar bars = 2;
+}
+
+message OhlcvBar {
+  google.protobuf.Timestamp open_time = 1;
+  google.protobuf.Timestamp close_time = 2;
+  double open = 3;
+  double high = 4;
+  double low = 5;
+  double close = 6;
+  double volume = 7;
+}
+
+message Timeframe {
+  oneof value {
+    uint32 years = 1;
+    uint32 months = 2;
+    uint32 weeks = 3;
+    uint32 days = 4;
+    uint32 hours = 5;
+    uint32 minutes = 6;
+    uint32 seconds = 7;
+    uint32 ticks = 8;
+    uint32 ranges = 9;
+    google.protobuf.Empty unknown = 10;
+  }
+}

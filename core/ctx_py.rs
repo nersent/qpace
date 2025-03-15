@@ -98,7 +98,7 @@ impl PyCtx {
     #[getter(sym)]
     #[inline]
     pub fn py_sym(&self) -> Sym {
-        *self.ctx.borrow().sym()
+        self.ctx.borrow().sym().clone()
     }
 
     #[getter(timeframe)]
@@ -144,7 +144,7 @@ impl PyCtx {
 
     #[pyo3(name = "__iter__")]
     #[inline]
-    pub fn py_itr(s: PyRefMut<Self>) -> PyRefMut<Self> {
+    pub fn py_iter(s: PyRefMut<Self>) -> PyRefMut<Self> {
         s
     }
 }
