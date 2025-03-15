@@ -24,8 +24,8 @@ def load_ohlcv_df(path: str) -> pd.DataFrame:
 
 if __name__ == "__main__":
     client = qp.Client(api_key="Xd")
-    ctx = client.ctx("test", "1D")
-    print(ctx.timeframe)
+    print(client.sym("BITSTAMP:BTCUSD"))
+    # ctx = client.ctx("test", "1D")
     # print(sym.min_tick)
     # ohlcv_path = os.path.join(WORKSPACE_PATH, "playground/btc.csv")
     # ohlcv_df = load_ohlcv_df(ohlcv_path)

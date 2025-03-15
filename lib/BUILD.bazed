@@ -3,18 +3,13 @@ fileSet("py_src", {
   deps: ["//common:py", "//core", "//lib/content"],
 });
 
-tsLibrary("ts_src", {
-  srcs: [glob("**/*.ts")],
-  deps: ["//common:ts"],
+tsLibrary("wasm", {
+  srcs: [glob("**/*.ts"), "package.json"],
+  deps: ["//common:ts", "//core:wasm"],
 });
 
 fileSet("py", {
   deps: [":py_src"],
-});
-
-fileSet("wasm", {
-  srcs: ["package.json"],
-  deps: ["//base/node", "//core:wasm", ":ts_src"],
 });
 
 const MANIFEST_IN = `

@@ -6,46 +6,123 @@
 
 import * as jspb from "google-protobuf";
 
-export class GetSymRequest extends jspb.Message { 
-    getId(): string;
-    setId(value: string): GetSymRequest;
+export class FindQuery extends jspb.Message { 
+
+    hasId(): boolean;
+    clearId(): void;
+    getId(): string | undefined;
+    setId(value: string): FindQuery;
+
+    hasTickerId(): boolean;
+    clearTickerId(): void;
+    getTickerId(): string | undefined;
+    setTickerId(value: string): FindQuery;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetSymRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: GetSymRequest): GetSymRequest.AsObject;
+    toObject(includeInstance?: boolean): FindQuery.AsObject;
+    static toObject(includeInstance: boolean, msg: FindQuery): FindQuery.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetSymRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetSymRequest;
-    static deserializeBinaryFromReader(message: GetSymRequest, reader: jspb.BinaryReader): GetSymRequest;
+    static serializeBinaryToWriter(message: FindQuery, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): FindQuery;
+    static deserializeBinaryFromReader(message: FindQuery, reader: jspb.BinaryReader): FindQuery;
 }
 
-export namespace GetSymRequest {
+export namespace FindQuery {
     export type AsObject = {
-        id: string,
+        id?: string,
+        tickerId?: string,
     }
 }
 
-export class GetSymResponse extends jspb.Message { 
+export class GetRequest extends jspb.Message { 
+
+    hasQuery(): boolean;
+    clearQuery(): void;
+    getQuery(): FindQuery | undefined;
+    setQuery(value?: FindQuery): GetRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetRequest): GetRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetRequest;
+    static deserializeBinaryFromReader(message: GetRequest, reader: jspb.BinaryReader): GetRequest;
+}
+
+export namespace GetRequest {
+    export type AsObject = {
+        query?: FindQuery.AsObject,
+    }
+}
+
+export class GetResponse extends jspb.Message { 
 
     hasSym(): boolean;
     clearSym(): void;
     getSym(): Sym | undefined;
-    setSym(value?: Sym): GetSymResponse;
+    setSym(value?: Sym): GetResponse;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetSymResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: GetSymResponse): GetSymResponse.AsObject;
+    toObject(includeInstance?: boolean): GetResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetResponse): GetResponse.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetSymResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetSymResponse;
-    static deserializeBinaryFromReader(message: GetSymResponse, reader: jspb.BinaryReader): GetSymResponse;
+    static serializeBinaryToWriter(message: GetResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetResponse;
+    static deserializeBinaryFromReader(message: GetResponse, reader: jspb.BinaryReader): GetResponse;
 }
 
-export namespace GetSymResponse {
+export namespace GetResponse {
     export type AsObject = {
         sym?: Sym.AsObject,
+    }
+}
+
+export class GetListRequest extends jspb.Message { 
+
+    hasQuery(): boolean;
+    clearQuery(): void;
+    getQuery(): FindQuery | undefined;
+    setQuery(value?: FindQuery): GetListRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetListRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetListRequest): GetListRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetListRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetListRequest;
+    static deserializeBinaryFromReader(message: GetListRequest, reader: jspb.BinaryReader): GetListRequest;
+}
+
+export namespace GetListRequest {
+    export type AsObject = {
+        query?: FindQuery.AsObject,
+    }
+}
+
+export class GetListResponse extends jspb.Message { 
+    clearSymsList(): void;
+    getSymsList(): Array<Sym>;
+    setSymsList(value: Array<Sym>): GetListResponse;
+    addSyms(value?: Sym, index?: number): Sym;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetListResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetListResponse): GetListResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetListResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetListResponse;
+    static deserializeBinaryFromReader(message: GetListResponse, reader: jspb.BinaryReader): GetListResponse;
+}
+
+export namespace GetListResponse {
+    export type AsObject = {
+        symsList: Array<Sym.AsObject>,
     }
 }
 

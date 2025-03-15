@@ -1,15 +1,29 @@
 syntax = "proto3";
 
 service SymApi {
-  rpc Get(GetSymRequest) returns (GetSymResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc GetList(GetListRequest) returns (GetListResponse);
 }
 
-message GetSymRequest {
-  string id = 1;
+message FindQuery {
+  optional string id = 1;
+  optional string ticker_id = 2;
 }
 
-message GetSymResponse {
+message GetRequest {
+  FindQuery query = 1;
+}
+
+message GetResponse {
   Sym sym = 1;
+}
+
+message GetListRequest {
+  FindQuery query = 1;
+}
+
+message GetListResponse {
+  repeated Sym syms = 1;
 }
 
 message Sym {

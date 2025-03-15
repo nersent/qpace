@@ -16,6 +16,7 @@ import {
   Target,
   TARGETS,
 } from "~/common/compiler";
+import { getLib } from "~/lib";
 import { Client } from "~/lib/client";
 
 const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
@@ -73,7 +74,7 @@ const tryMapBuildTarget = (
 
 const main = async (): Promise<void> => {
   const program = new Command();
-  const qp = await import("../core/pkg/qpace_core.js");
+  const qp = await getLib();
   program.version(`qpace_core = ${qp.getVersion()}`);
   program
     .command("auth")
@@ -136,6 +137,14 @@ const main = async (): Promise<void> => {
         rootDir,
       });
       await driver.check();
+    });
+  program
+    .command("symbol")
+    .alias("sym")
+    .option("--list", `List symbols`)
+    .action(async (options) => {
+      const client = new Client({ apiKey: "xd" });
+      await client.sym({ id: "BISTAMP:BTCUSD" });
     });
   program.parse();
 };

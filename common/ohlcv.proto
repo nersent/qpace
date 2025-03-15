@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 package ohlcv;
 
 service OhlcvApi {
-  rpc Get(GetOhlcvRequest) returns (GetOhlcvResponse);
+  rpc Get(GetOhlcvRequest) returns (GetOhlcvResponse); // should be chunked
 }
 
 message GetOhlcvRequest {
