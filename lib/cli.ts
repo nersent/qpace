@@ -17,7 +17,12 @@ import {
   Target,
   TARGETS,
 } from "~/lib/compiler";
-import { validateSymQuery } from "~/lib/internal";
+import {
+  ENV_API_KEY,
+  ENV_GRPC_ENDPOINT,
+  ENV_REST_ENDPOINT,
+  validateSymQuery,
+} from "~/lib/internal";
 
 const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 
@@ -49,10 +54,9 @@ const loadOrCreateConfig = async (dir: string): Promise<Config> => {
 };
 
 const BUILD_TARGETS = [...TARGETS, "python"] as const;
+type BuildTarget = typeof BUILD_TARGETS[number];
 
-const tryMapBuildTarget = (
-  buildTarget: typeof BUILD_TARGETS[number],
-): Target | undefined => {
+const tryMapBuildTarget = (buildTarget: BuildTarget): Target | undefined => {
   if (TARGETS.includes(buildTarget as any)) {
     return buildTarget as Target;
   }
@@ -76,8 +80,16 @@ const DATA_FORMAT_CHOICES = ["json", "csv", "table"] as const;
 type DataFormat = typeof DATA_FORMAT_CHOICES[number];
 
 const getClient = async (): Promise<qp.Client> => {
+  const apiKey = process.env[ENV_API_KEY];
+  if (apiKey == null) {
+    throw new Error(`API key not found in environment variable ${ENV_API_KEY}`);
+  }
+  const restEndpoint = process.env[ENV_REST_ENDPOINT];
+  const grpcEndpoint = process.env[ENV_GRPC_ENDPOINT];
   return new qp.Client({
-    apiKey: "sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f",
+    apiKey,
+    restEndpoint,
+    grpcEndpoint,
   });
 };
 
@@ -93,48 +105,57 @@ const main = async (): Promise<void> => {
   program.command("init").action(() => console.log("init"));
   program
     .command("build")
-    .option("--emit", `Emits compiled files`)
     .addOption(
       new Option("--target <target>", `Target platform`).choices(BUILD_TARGETS),
     )
-    .option("--emit-dir <path>", `Output directory`)
-    .option("--dir <path>", `Output directory`)
-    .option("--config", `Config file`)
-    .option("--install-wheel", `Installs generated python wheel artifact`)
+    .option("--config <path>", `Config file`)
+    .option("--emit", `Emits compiled files. Default: "config.emit"`)
+    .option("--emit-dir <path>", `Output directory. Default: "config.emitDir"`)
+    .option("--dir <path>", `Output directory. Default: "config.buildDir"`)
+    .option(
+      "--install-wheel",
+      `Installs generated python wheel artifact. Default: "config.python.installWheel"`,
+    )
     .option("--cwd <path>", `Project root directory`)
-    .action(async (options) => {
-      const client = await getClient();
+    .option("--verbose, -v", `Verbose output`)
+    .action(
+      async (opts: {
+        cwd?: string;
+        emit?: boolean;
+        target?: BuildTarget;
+        emitDir?: string;
+        dir?: string;
+        installWheel?: boolean;
+        verbose?: boolean;
+      }) => {
+        const client = await getClient();
 
-      const rootDir =
-        options.cwd != null ? resolve(CWD_PATH, options.cwd) : CWD_PATH;
-      const config = await loadOrCreateConfig(rootDir);
-      config.emitDir = options.emitDir ?? config.emitDir;
-      config.emit = options.emit ?? config.emit;
-      config.python ??= {};
-      config.python.installWheel =
-        options.installWheel ?? config.python.installWheel;
-      config.buildDir = options.dir ?? config.buildDir;
+        const rootDir =
+          opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
+        const config = await loadOrCreateConfig(rootDir);
+        config.emitDir = opts.emitDir ?? config.emitDir;
+        config.emit = opts.emit ?? config.emit;
+        config.python ??= {};
+        config.python.installWheel =
+          opts.installWheel ?? config.python.installWheel;
+        config.buildDir = opts.dir ?? config.buildDir;
 
-      const target = tryMapBuildTarget(options.target);
-      if (options.target != null && target == null) {
-        throw new Error(`Unsupported target: ${options.target}`);
-      }
-
-      if (target == null && !config.emit) {
-        throw new Error(`--target must be specified or --emit enabled`);
-      }
-
-      if (target != null) {
-        console.log(chalk.black(`Building ${target}`));
-      }
-
-      const driver = new RemoteDriver({
-        client: client.compilerClient,
-        config,
-        rootDir,
-      });
-      await driver.build({ target });
-    });
+        const target = tryMapBuildTarget(opts.target as any);
+        if (opts.target != null && target == null) {
+          throw new Error(`Unsupported target: ${opts.target}`);
+        }
+        if (target == null && !config.emit) {
+          throw new Error(`--target must be specified or --emit enabled`);
+        }
+        const driver = new RemoteDriver({
+          client: client.compilerClient,
+          config,
+          rootDir,
+          verbose: opts.verbose,
+        });
+        await driver.build({ target });
+      },
+    );
   program
     .command("check")
     .option("--config", `Config file`)

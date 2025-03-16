@@ -8,6 +8,19 @@ import * as symApi from "./proto/sym_pb";
 
 import * as qp from "./";
 
+export const ENV_REST_ENDPOINT = "QPACE_REST_ENDPOINT";
+export const ENV_GRPC_ENDPOINT = "QPACE_GRPC_ENDPOINT";
+export const ENV_API_KEY = "QPACE_API_KEY";
+
+export const LOCALHOST_REST_ENDPOINT = "http://0.0.0.0:3000/v1";
+export const LOCALHOST_GRPC_ENDPOINT = "0.0.0.0:3001";
+
+export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
+export const DEFAULT_GRPC_ENDPOINT = `https://grpc.qpace.dev`;
+
+// cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- sym --list
+// cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- build --target python --cwd C:\projects\nersent\qpace-pine-example
+
 export interface SymQuery {
   id?: string;
   tickerId?: string;

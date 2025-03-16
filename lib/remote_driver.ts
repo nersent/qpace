@@ -64,17 +64,16 @@ export class RemoteDriver {
     let spinner: Ora | undefined;
     let receivedPythonWheel = false;
 
+    spinner = ora(`Building ${target ?? ""}`).start();
+
     const res = await new Promise<compilerApi.BuildResponse>((_resolve) => {
       stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
         if (e.hasMessage()) {
           const message = e.getMessage();
-          if (message.length) {
-            console.log(message);
-          }
+          if (message.length) console.log(message);
           return;
         }
         if (e.hasStart()) {
-          spinner = ora(`Building`).start();
           return;
         }
         if (e.hasEnd()) {
@@ -89,9 +88,9 @@ export class RemoteDriver {
             r.getTagsList().includes(FileTag.QPC_PYTHON_WHEEL),
           );
           if (pythonWheelFile != null) {
-            spinner = ora(`Installing python wheel`).start();
-            receivedPythonWheel = true;
             const wheelPath = resolve(this.rootDir, pythonWheelFile.getPath());
+            spinner = ora(`Installing ${basename(wheelPath)}`).start();
+            receivedPythonWheel = true;
             const execRes = await exec({
               command: `pip install "${wheelPath}" --force-reinstall`,
               io: this.verbose,
@@ -114,7 +113,11 @@ export class RemoteDriver {
     });
 
     let status = res.getStatus();
-    if (shouldReceivePythonWheel && !receivedPythonWheel) {
+    if (
+      shouldReceivePythonWheel &&
+      !receivedPythonWheel &&
+      status === compilerApi.BuildStatus.OK
+    ) {
       status = compilerApi.BuildStatus.ERROR;
       console.log(chalk.redBright(`Failed to receive python wheel`));
     }
@@ -135,11 +138,36 @@ export class RemoteDriver {
     req.setCheckOnly(true);
     const stream = this.client.build(req);
 
-    const startTime = Date.now();
-    const res = await this.resolveBuild(stream);
-    const endTime = Date.now();
+    let spinner: Ora | undefined;
+    spinner = ora(`Checking`).start();
 
-    this.logEnd({ status: res.getStatus(), startTime, endTime });
+    let messages: string[] = [];
+
+    const startTime = Date.now();
+    const res = await new Promise<compilerApi.BuildResponse>((_resolve) => {
+      stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
+        if (e.hasMessage()) {
+          const message = e.getMessage();
+          if (message.length) messages.push(message);
+          return;
+        }
+        if (e.hasResponse()) {
+          _resolve(e.getResponse()!);
+          return;
+        }
+      });
+    });
+    const endTime = Date.now();
+    const status = res.getStatus();
+    if (status === compilerApi.BuildStatus.OK) {
+      spinner = spinner?.stop().clear();
+    } else {
+      spinner = spinner?.stop().clear();
+    }
+    if (messages.length > 0) {
+      console.log(messages.join("\n"));
+    }
+    this.logEnd({ status, startTime, endTime });
   }
 
   private logEnd({
@@ -165,7 +193,9 @@ export class RemoteDriver {
 
   private async createBuildRequest(): Promise<BuildRequest> {
     const paths = await this.collectSrcFiles();
-    console.log(chalk.blackBright(paths.map((r) => `← ${r}`).join("\n")));
+    if (this.verbose) {
+      console.log(chalk.blackBright(paths.map((r) => `← ${r}`).join("\n")));
+    }
     const req = new BuildRequest();
     req.setQpcConfig(JSON.stringify(this.config));
     const reqFiles: compilerApi.File[] = [];
@@ -181,22 +211,10 @@ export class RemoteDriver {
     return req;
   }
 
-  private resolveBuild(
-    stream: ClientReadableStream<compilerApi.BuildResponseEvent>,
-  ): Promise<compilerApi.BuildResponse> {
-    return new Promise<compilerApi.BuildResponse>((_resolve) => {
-      stream.on("data", async (e: compilerApi.BuildResponseEvent) => {
-        if (e.hasResponse()) {
-          _resolve(e.getResponse()!);
-          return;
-        }
-      });
-    });
-  }
-
   private async onReceivedFile(file: compilerApi.File): Promise<void> {
-    console.log(chalk.blackBright(`→ ${normalize(file.getPath())}`));
-
+    if (this.verbose) {
+      console.log(chalk.blackBright(`→ ${normalize(file.getPath())}`));
+    }
     const path = resolve(this.rootDir, file.getPath());
     const data = Buffer.from(file.getData_asU8());
 

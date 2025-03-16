@@ -87,7 +87,11 @@ execute("wheel", (ctx) => ({
 
 const prodPackageJson = {
   name: "qpace",
-  version: "0.0.1",
+  version: "0.0.1-dev.1",
+  bin: {
+    qpace: "lib/cli.bazed.js",
+    qpc: "lib/cli.bazed.js",
+  },
   main: "lib/index.js",
   types: "lib/index.d.ts",
   typesVersions: {
@@ -103,7 +107,7 @@ const prodPackageJson = {
       ],
     },
   },
-  files: ["core/**/*.*", "lib/**/*.*"],
+  files: ["base", "core", "lib"],
   peerDependencies: {},
 };
 
@@ -120,14 +124,14 @@ packageJson("package_json_prod", { json: prodPackageJson });
 execute("npm_link", (ctx) => ({
   command: `cd ${ctx.sandboxPath} && pnpm link --global`,
   copyDeps: true,
-  deps: [":wasm", ":package_json_prod"],
+  deps: [":wasm", ":package_json_prod", ":cli_main", ":cli_src"],
   run: true,
 }));
 
 execute("publish_npm", (ctx) => ({
-  command: `cd ${ctx.sandboxPath} && npm publish --access public --force --dry-run`,
+  command: `cd ${ctx.sandboxPath} && npm publish --access public --force`, //  --dry-run
   copyDeps: true,
-  deps: [":wasm", ":package_json_prod"],
+  deps: [":wasm", ":package_json_prod", ":cli_main", ":cli_src"],
   run: true,
 }));
 
@@ -139,4 +143,9 @@ tsLibrary("cli_src", {
 nodeEntry("cli", {
   main: "cli.js",
   deps: [":cli_src"],
+});
+
+nodeMainWrapper(`cli_main`, {
+  main: "cli.js",
+  output: "cli.bazed.js",
 });

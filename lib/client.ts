@@ -2,6 +2,8 @@ import * as grpc from "@grpc/grpc-js";
 import axios, { AxiosInstance } from "axios";
 
 import {
+  DEFAULT_GRPC_ENDPOINT,
+  DEFAULT_REST_ENDPOINT,
   OhlcvQuery,
   ohlcvQueryToProto,
   protoToQpOhlcvBar,
@@ -16,11 +18,6 @@ import { SymApiClient } from "./proto/sym_grpc_pb";
 import * as symApi from "./proto/sym_pb";
 
 import * as qp from "./";
-
-export const DEFAULT_REST_ENDPOINT = "http://0.0.0.0:3000/v1";
-export const DEFAULT_GRPC_ENDPOINT = "0.0.0.0:3001";
-
-export { SymQuery };
 
 export interface ClientConfig {
   restEndpoint?: string;
