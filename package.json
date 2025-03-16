@@ -35,6 +35,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.12.0",
     "@grpc/proto-loader": "^0.7.13",
+    "@inquirer/prompts": "^7.4.0",
     "@nersent/bazed": "^0.0.37",
     "axios": "^0.27.2",
     "chalk": "^4.1.2",

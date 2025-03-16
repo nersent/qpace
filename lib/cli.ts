@@ -1,6 +1,12 @@
+import { existsSync, FSWatcher, Stats } from "fs";
+import { mkdir } from "fs/promises";
+import { homedir } from "os";
 import { resolve } from "path";
 
+import { input } from "@inquirer/prompts";
+import axios from "axios";
 import chalk from "chalk";
+import { watch } from "chokidar";
 import { Command, Option } from "commander";
 
 import { RemoteDriver } from "./remote_driver";
@@ -21,8 +27,14 @@ import {
   ENV_API_KEY,
   ENV_GRPC_ENDPOINT,
   ENV_REST_ENDPOINT,
-  validateSymQuery,
 } from "~/lib/internal";
+
+class CliError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CliError";
+  }
+}
 
 const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 
@@ -79,28 +91,164 @@ const tryMapBuildTarget = (buildTarget: BuildTarget): Target | undefined => {
 const DATA_FORMAT_CHOICES = ["json", "csv", "table"] as const;
 type DataFormat = typeof DATA_FORMAT_CHOICES[number];
 
-const getClient = async (): Promise<qp.Client> => {
-  const apiKey = process.env[ENV_API_KEY];
-  if (apiKey == null) {
-    throw new Error(`API key not found in environment variable ${ENV_API_KEY}`);
+const ORDER_CHOICES = ["asc", "desc"] as const;
+type Order = typeof ORDER_CHOICES[number];
+
+interface UserConfig {
+  apiKey?: string;
+}
+
+class Cli {
+  private _client?: qp.Client;
+  public userConfig: UserConfig = {};
+  private apiKey: string | undefined;
+
+  public async init(): Promise<void> {
+    this.userConfig = await this.loadConfig();
+    this.apiKey = process.env[ENV_API_KEY];
+    this.apiKey ??= this.userConfig.apiKey;
   }
-  const restEndpoint = process.env[ENV_REST_ENDPOINT];
-  const grpcEndpoint = process.env[ENV_GRPC_ENDPOINT];
-  return new qp.Client({
-    apiKey,
-    restEndpoint,
-    grpcEndpoint,
+
+  public setApiKey(apiKey: string, userConfig?: boolean): void {
+    this.apiKey = apiKey;
+    if (userConfig) {
+      this.userConfig.apiKey = apiKey;
+    }
+  }
+
+  public async loadConfig(): Promise<UserConfig> {
+    const dir = resolve(homedir(), ".qpace");
+    const configPath = resolve(dir, "config.json");
+    this.userConfig = {};
+    if (!(await exists(configPath))) {
+      await this.saveConfig();
+    } else {
+      this.userConfig = await readJson(configPath);
+    }
+    return this.userConfig;
+  }
+
+  public async saveConfig(): Promise<void> {
+    const dir = resolve(homedir(), ".qpace");
+    if (!existsSync(dir)) await mkdir(dir, { recursive: true });
+    const configPath = resolve(dir, "config.json");
+    await writeJson(configPath, this.userConfig, true);
+  }
+
+  public tryGetClient(): qp.Client | undefined {
+    if (this._client != null) return this._client;
+    const apiKey = this.apiKey;
+    if (apiKey != null) {
+      const apiBase = process.env[ENV_REST_ENDPOINT];
+      const grpcApiBase = process.env[ENV_GRPC_ENDPOINT];
+      this._client = new qp.Client({
+        apiKey,
+        apiBase,
+        grpcApiBase,
+      });
+    }
+    return this._client;
+  }
+
+  public getClient(): qp.Client {
+    const client = this.tryGetClient();
+    if (client == null) {
+      throw new CliError("No API key");
+    }
+    return client;
+  }
+}
+
+const handleException = (e: Error): void => {
+  if (e instanceof CliError) {
+    console.log(chalk.redBright.bold(e.message));
+    process.exit(1);
+  }
+  throw e;
+};
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const watchPaths = async (
+  {
+    included,
+    excluded = [],
+    delay = 500,
+  }: { included: string[]; excluded?: string[]; delay?: number },
+  onChange: (filename: string) => Promise<void>,
+) => {
+  let watcher: FSWatcher | undefined;
+  let runTimeout: NodeJS.Timeout | undefined;
+
+  watcher?.close();
+  watcher = watch(included, {
+    ignored: excluded,
+    followSymlinks: true,
+    ignoreInitial: true,
   });
+  watcher.on("change", (filename: string, stats: Stats) => {
+    clearTimeout(runTimeout);
+    runTimeout = setTimeout(() => {
+      onChange(filename);
+    }, delay);
+  });
+
+  return { cancel: (): void => watcher?.close() };
 };
 
 const main = async (): Promise<void> => {
+  process.on("unhandledRejection", (reason, promise) => {
+    handleException(reason as Error);
+  });
+
+  const cli = new Cli();
+  await cli.init();
   const program = new Command();
   program.version(`qpace_core = ${qp.getVersion()}`);
   program
-    .command("auth")
-    .argument("<token>")
-    .action((token) => {
-      console.log("auth", token);
+    .command("login")
+    .argument("[api key]")
+    .option("--force, -f", `Force relogin`, false)
+    .action(async (apiKey: string | undefined, opts: { force?: boolean }) => {
+      apiKey ??= cli.userConfig.apiKey;
+      const prefix = `${chalk.bgGreen.black.bold("qpace")}: `;
+      let inputApiKey: string | undefined;
+      if (apiKey == null || opts.force) {
+        console.log(`${prefix}Logging into qpace.dev`);
+        console.log(
+          `${prefix}You can find your API key in your browser here: https://qpace.dev/auth`,
+        );
+        console.log(
+          `${prefix}Paste an API key here and press enter, or press ctrl+c to quit`,
+        );
+        inputApiKey = await input({
+          message: "Enter your API key",
+          validate: (x) => (x.trim().length > 0 ? true : "API key is required"),
+        });
+        cli.setApiKey(inputApiKey);
+      } else {
+        cli.setApiKey(apiKey);
+      }
+
+      try {
+        const client = cli.getClient();
+        const team = await client.getMe();
+        console.log(
+          `${prefix}Logged in as team ${chalk.yellowBright(
+            team.team.name,
+          )}. Use ${chalk.white.bold(
+            `\`qpace login --force\``,
+          )} to force relogin.`,
+        );
+        if (inputApiKey != null) {
+          cli.setApiKey(inputApiKey, true);
+          await cli.saveConfig();
+        }
+      } catch (e) {
+        if (axios.isAxiosError(e) && e.response?.status === 401) {
+          throw new CliError("Invalid API key. Try authenticating again.");
+        }
+        throw e;
+      }
     });
   program.command("init").action(() => console.log("init"));
   program
@@ -118,6 +266,7 @@ const main = async (): Promise<void> => {
     )
     .option("--cwd <path>", `Project root directory`)
     .option("--verbose, -v", `Verbose output`)
+    .option("--watch, -w", `Rebuild on file changes`, false)
     .action(
       async (opts: {
         cwd?: string;
@@ -127,79 +276,97 @@ const main = async (): Promise<void> => {
         dir?: string;
         installWheel?: boolean;
         verbose?: boolean;
+        watch?: boolean;
       }) => {
-        const client = await getClient();
-
+        const client = cli.getClient();
         const rootDir =
           opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
-        const config = await loadOrCreateConfig(rootDir);
-        config.emitDir = opts.emitDir ?? config.emitDir;
-        config.emit = opts.emit ?? config.emit;
-        config.python ??= {};
-        config.python.installWheel =
-          opts.installWheel ?? config.python.installWheel;
-        config.buildDir = opts.dir ?? config.buildDir;
+        const qpcConfig = await loadOrCreateConfig(rootDir);
+        qpcConfig.emitDir = opts.emitDir ?? qpcConfig.emitDir;
+        qpcConfig.emit = opts.emit ?? qpcConfig.emit;
+        qpcConfig.python ??= {};
+        qpcConfig.python.installWheel =
+          opts.installWheel ?? qpcConfig.python.installWheel;
+        qpcConfig.buildDir = opts.dir ?? qpcConfig.buildDir;
 
         const target = tryMapBuildTarget(opts.target as any);
         if (opts.target != null && target == null) {
-          throw new Error(`Unsupported target: ${opts.target}`);
+          throw new CliError(`Unsupported target: ${opts.target}`);
         }
-        if (target == null && !config.emit) {
-          throw new Error(`--target must be specified or --emit enabled`);
+        if (target == null && !qpcConfig.emit) {
+          throw new CliError(`--target must be specified or --emit enabled`);
         }
+
         const driver = new RemoteDriver({
           client: client.compilerClient,
-          config,
+          qpcConfig,
           rootDir,
           verbose: opts.verbose,
         });
         await driver.build({ target });
+        if (opts.watch) {
+          watchPaths(
+            { included: await driver.collectSrcFiles() },
+            async (path) => {
+              console.log(chalk.blackBright(`${path}`));
+              await driver.build({ target });
+            },
+          );
+        }
       },
     );
   program
     .command("check")
     .option("--config", `Config file`)
     .option("--cwd <path>", `Project root directory`)
-    .action(async (options) => {
-      const client = await getClient();
-
-      const rootDir =
-        options.cwd != null ? resolve(CWD_PATH, options.cwd) : CWD_PATH;
-      const config = await loadOrCreateConfig(rootDir);
+    .option("--watch, -w", `Recheck on file changes`, false)
+    .action(async (opts: { cwd?: string; watch?: boolean }) => {
+      const client = cli.getClient();
+      const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
+      const qpcConfig = await loadOrCreateConfig(rootDir);
       const driver = new RemoteDriver({
         client: client.compilerClient,
-        config,
+        qpcConfig,
         rootDir,
       });
       await driver.check();
+      if (opts.watch) {
+        watchPaths(
+          { included: await driver.collectSrcFiles() },
+          async (path) => {
+            console.log(chalk.blackBright(`${path}`));
+            await driver.check();
+          },
+        );
+      }
     });
   program
     .command("symbol")
     .alias("sym")
-    .option("--list")
-    .option("--full", `Show full symbol info`)
-    .option("--id <id>", `Symbol id pattern`)
-    .option("--ticker <ticker>", `Symbol ticker id pattern`)
+    .option("--full", `Full info`)
+    .argument("[patterns...]")
     .action(
-      async (opts: {
-        format: DataFormat;
-        full?: boolean;
-        id?: string;
-        ticker?: string;
-        list?: boolean;
-      }) => {
-        const client = await getClient();
+      async (
+        patterns: string[],
+        opts: {
+          format: DataFormat;
+          full?: boolean;
+        },
+      ) => {
+        const client = cli.getClient();
         const syms: qp.Sym[] = [];
-        const symQuery: qp.SymQuery = { id: opts.id, tickerId: opts.ticker };
-        if (opts.list) {
-          syms.push(...(await client.syms(symQuery)));
+        if (patterns.length === 0) {
+          syms.push(...(await client.syms()));
         } else {
-          validateSymQuery(symQuery);
-          syms.push(await client.sym(symQuery));
+          const _syms = await Promise.all(
+            patterns.map(async (r) => [
+              ...(await client.syms({ tickerId: r })),
+            ]),
+          ).then((r) => r.flat());
+          syms.push(..._syms);
         }
         if (syms.length === 0) {
-          console.log(chalk.yellowBright("No symbol found"));
-          return;
+          throw new CliError("No symbol found");
         }
         const items = syms.map((sym) => ({
           ...sym.toJSON(),
@@ -208,56 +375,55 @@ const main = async (): Promise<void> => {
           items,
           opts.full
             ? undefined
-            : ["tickerId", "baseCurrency", "currency", "minTick", "minQty"],
+            : ["tickerId", "baseCurrency", "currency", "prefix"],
         );
       },
     );
   program
     .command("ohlcv")
     .alias("price")
-    .option("--id <id>", `Symbol id pattern`)
-    .option("--ticker <ticker>", `Symbol ticker id pattern`)
-    .option("--timeframe <timeframe>", `Timeframe`, "1D")
-    .option("--time", `Show time`, true)
-    .option("--limit <limit>", `Limit`)
-    .option("--asc", `Ascending time order`, true)
-    .option("--desc", `Descending order order`, false)
+    .option("--timeframe, -t <timeframe>", `Timeframe`, "1D")
+    .option("--limit <limit>", `Bars limit`, "30")
+    .addOption(
+      new Option("--order, -o <order>", `Order`)
+        .choices(ORDER_CHOICES)
+        .default("desc"),
+    )
+    .argument("<patterns...>")
     .action(
-      async (opts: {
-        id?: string;
-        ticker?: string;
-        timeframe?: string;
-        time?: boolean;
-        limit?: string;
-        asc?: boolean;
-        desc?: boolean;
-      }) => {
+      async (
+        patterns: string[],
+        opts: { timeframe?: string; limit?: string; order?: Order },
+      ) => {
         const timeframe =
           opts.timeframe != null
             ? qp.Timeframe.fromString(opts.timeframe)
             : undefined;
-        let order: "asc" | "desc" = "asc";
-        if (opts.asc === opts.desc) {
-          throw new Error("Either --asc or --desc must be specified");
+        const client = cli.getClient();
+        const syms: qp.Sym[] = [];
+        let items: any[] = [];
+        for (const pattern of patterns) {
+          const sym = await client.sym({ tickerId: pattern });
+          if (syms.find((r) => r.id === sym.id)) continue;
+          const bars = await client.bars({ sym, timeframe });
+          const _items = bars.map((r) => ({
+            tickerId: sym.tickerId,
+            ...r.toJSON(),
+          }));
+          items.push(..._items);
         }
-        if (opts.desc) order = "desc";
-        if (opts.asc) order = "asc";
-        const client = await getClient();
-        const symQuery: qp.SymQuery = { id: opts.id, tickerId: opts.ticker };
-        validateSymQuery(symQuery);
-        const sym = await client.sym(symQuery);
-        let bars = await client.bars({ sym, timeframe });
-        if (bars.length === 0) {
-          console.log(chalk.yellowBright("No bars found"));
-          return;
+        if (items.length === 0) {
+          throw new CliError("No bars found");
         }
-        if (order === "desc") {
-          bars.reverse();
+        if (opts.order === "asc") {
+          items.sort((a, b) => a.openTime - b.openTime);
+        } else {
+          items.sort((a, b) => b.openTime - a.openTime);
         }
         if (opts.limit != null) {
-          bars = bars.slice(0, parseInt(opts.limit));
+          items = items.slice(0, parseInt(opts.limit));
         }
-        console.table(bars.map((r) => r.toJSON()));
+        console.table(items);
       },
     );
   program.parse();

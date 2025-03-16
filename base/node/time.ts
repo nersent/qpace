@@ -1,4 +1,5 @@
-export const prettifyTime = (ms: number): string => {
+export const prettifyTime = (ms?: number): string => {
+  if (ms == null) return "?";
   const hours = Math.floor(ms / 1000 / 60 / 60);
   const minutes = Math.floor((ms / 1000 / 60 / 60 - hours) * 60);
   const seconds = Math.floor(

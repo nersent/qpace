@@ -1,9 +1,11 @@
 import * as grpc from "@grpc/grpc-js";
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 import {
   DEFAULT_GRPC_ENDPOINT,
   DEFAULT_REST_ENDPOINT,
+  GetTeamMeRequest,
+  GetTeamMeResponse,
   OhlcvQuery,
   ohlcvQueryToProto,
   protoToQpOhlcvBar,
@@ -20,9 +22,10 @@ import * as symApi from "./proto/sym_pb";
 import * as qp from "./";
 
 export interface ClientConfig {
-  restEndpoint?: string;
-  grpcEndpoint?: string;
+  apiBase?: string;
+  grpcApiBase?: string;
   apiKey: string;
+  timeout?: number;
 }
 
 export class Client {
@@ -30,48 +33,49 @@ export class Client {
   public readonly compilerClient: CompilerApiClient;
   public readonly symClient: SymApiClient;
   public readonly ohlcvClient: OhlcvApiClient;
-  public readonly grpcCredentials: grpc.ChannelCredentials;
-  public readonly grpcOptions: Partial<grpc.ClientOptions>;
-  private readonly apiKey: string;
 
-  constructor(config: ClientConfig) {
-    this.apiKey = config.apiKey;
-    const restEndpoint = config.restEndpoint ?? DEFAULT_REST_ENDPOINT;
-    const grpcEndpoint = config.grpcEndpoint ?? DEFAULT_GRPC_ENDPOINT;
-    this.grpcCredentials = grpc.ChannelCredentials.createInsecure();
-    this.grpcOptions = {
+  constructor(private readonly config: ClientConfig) {
+    const apiBase = config.apiBase ?? DEFAULT_REST_ENDPOINT;
+    const grpApiBase = config.grpcApiBase ?? DEFAULT_GRPC_ENDPOINT;
+    const grpcCredentials = grpc.ChannelCredentials.createInsecure();
+    const grpcOptions = {
       "grpc.max_receive_message_length": -1,
     };
 
     this.http = axios.create({
-      baseURL: restEndpoint,
+      baseURL: apiBase,
       withCredentials: true,
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": this.config.apiKey,
       },
     });
 
     this.compilerClient = new CompilerApiClient(
-      grpcEndpoint,
-      this.grpcCredentials,
-      this.grpcOptions,
+      grpApiBase,
+      grpcCredentials,
+      grpcOptions,
     );
-    this.symClient = new SymApiClient(
-      grpcEndpoint,
-      this.grpcCredentials,
-      this.grpcOptions,
-    );
+    this.symClient = new SymApiClient(grpApiBase, grpcCredentials, grpcOptions);
     this.ohlcvClient = new OhlcvApiClient(
-      grpcEndpoint,
-      this.grpcCredentials,
-      this.grpcOptions,
+      grpApiBase,
+      grpcCredentials,
+      grpcOptions,
     );
   }
 
   private createGrpcMetadata(): grpc.Metadata {
     const metadata = new grpc.Metadata();
-    metadata.set("x-api-key", this.apiKey);
+    metadata.set("x-api-key", this.config.apiKey);
     return metadata;
+  }
+
+  public async getMe(): Promise<{ team: { id: string; name: string } }> {
+    const res = await this.http.get<
+      GetTeamMeRequest,
+      AxiosResponse<GetTeamMeResponse>
+    >("/team/me");
+    return res.data;
   }
 
   public async sym(query: SymQuery): Promise<qp.Sym> {
@@ -85,7 +89,7 @@ export class Client {
     return protoToQpSym(res.getSym()!);
   }
 
-  public async syms(query: SymQuery): Promise<qp.Sym[]> {
+  public async syms(query: SymQuery = {}): Promise<qp.Sym[]> {
     const req = new symApi.GetListRequest().setQuery(symQueryToProto(query));
     const res = await new Promise<symApi.GetListResponse>(
       (_resolve, _reject) => {

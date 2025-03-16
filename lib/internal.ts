@@ -8,18 +8,26 @@ import * as symApi from "./proto/sym_pb";
 
 import * as qp from "./";
 
-export const ENV_REST_ENDPOINT = "QPACE_REST_ENDPOINT";
-export const ENV_GRPC_ENDPOINT = "QPACE_GRPC_ENDPOINT";
+export const ENV_REST_ENDPOINT = "QPACE_API_BASE";
+export const ENV_GRPC_ENDPOINT = "QPACE_GRPC_API_BASE";
 export const ENV_API_KEY = "QPACE_API_KEY";
 
-export const LOCALHOST_REST_ENDPOINT = "http://0.0.0.0:3000/v1";
-export const LOCALHOST_GRPC_ENDPOINT = "0.0.0.0:3001";
-
-export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
-export const DEFAULT_GRPC_ENDPOINT = `https://grpc.qpace.dev`;
+// export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
+// export const DEFAULT_GRPC_ENDPOINT = `https://api.qpace.dev/grpc`;
+export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
+export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
 
 // cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- sym --list
 // cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- build --target python --cwd C:\projects\nersent\qpace-pine-example
+
+export interface GetTeamMeRequest {}
+
+export interface GetTeamMeResponse {
+  team: {
+    id: string;
+    name: string;
+  };
+}
 
 export interface SymQuery {
   id?: string;
@@ -100,16 +108,16 @@ export const matchSym = (
   query: SymQuery,
   allowGlob = false,
 ): boolean => {
-  const { id, tickerId } = query;
+  const { id, tickerId } = sym;
   if (query.id != null) {
     if (id == null) return false;
     if (!allowGlob && sym.id !== id) return false;
-    if (allowGlob && !minimatch(id, id)) return false;
+    if (allowGlob && !minimatch(id, query.id)) return false;
   }
   if (query.tickerId != null) {
     if (tickerId == null) return false;
     if (!allowGlob && sym.tickerId !== tickerId) return false;
-    if (allowGlob && !minimatch(tickerId, tickerId)) return false;
+    if (allowGlob && !minimatch(tickerId, query.tickerId)) return false;
   }
   return true;
 };
@@ -272,17 +280,6 @@ export const writeOhlcvBarsToPath = async (
   });
   await writeDf(path, df);
 };
-
-// res.setBarsList([
-//   new ohlcvApi.OhlcvBar()
-//     .setOpen(1)
-//     .setClose(2)
-//     .setHigh(3)
-//     .setLow(4)
-//     .setVolume(5)
-//     .setOpenTime(Timestamp.fromDate(new Date()))
-//     .setCloseTime(Timestamp.fromDate(new Date())),
-// ]);
 
 export const qpOhlcvBarToProto = (bar: qp.OhlcvBar): ohlcvApi.OhlcvBar => {
   const proto = new ohlcvApi.OhlcvBar();
