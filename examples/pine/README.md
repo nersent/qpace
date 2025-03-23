@@ -52,16 +52,6 @@ To use it from python, you need to import module, which name is located in your 
 
 For examle:
 
-`.qpace.json`
-
-```json
-{
-  "python": {
-    "package": "python_pine_example"
-  }
-}
-```
-
 `my_library.pine`
 
 ```pine
@@ -69,8 +59,21 @@ export add(float x, float y) =>
     x + y
 ```
 
+`.qpace.json`
+
+```json
+{
+  "python": {
+    "package": "<PACKAGE_NAME>"
+  }
+}
+```
+
+`main.py`
+
 ```python
-import python_pine_example as pine
+# Make sure you use correct name!
+import <PACKAGE_NAME> as pine
 
 pine.my_library.add(5.0, 25.0)
 ```

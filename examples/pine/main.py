@@ -7,7 +7,7 @@ ctx = client.ctx("BITSTAMP:BTCUSD", timeframe=qp.Timeframe.Days(1))
 ohlcv = ctx.ohlcv
 
 rsi = qp.ta.rsi(ctx.fork(), ohlcv.close)
-ma = pine.library.ma(ctx.fork(), src=ohlcv.close, length=90)
+ma = pine.my_library.ma(ctx.fork(), src=ohlcv.close, length=90)
 fig, (ax1, ax2) = plt.subplots(2, 1)
 ax1.plot(ohlcv.open_time, ohlcv.close, label="Close", color="black")
 ax1.plot(ohlcv.open_time, ma, label="Pine MA", color="red")
