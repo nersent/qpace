@@ -37,12 +37,12 @@ impl Into<String> for Timeframe {
             Timeframe::Months(value) => format!("{}M", value),
             Timeframe::Weeks(value) => format!("{}W", value),
             Timeframe::Days(value) => format!("{}D", value),
-            Timeframe::Hours(value) => format!("{}h", value),
+            Timeframe::Hours(value) => format!("{}H", value),
             Timeframe::Minutes(value) => format!("{}m", value),
             Timeframe::Seconds(value) => format!("{}s", value),
             Timeframe::Ticks(value) => format!("{}T", value),
             Timeframe::Ranges(value) => format!("{}R", value),
-            Timeframe::Unknown() => String::from("UNKNOWN"),
+            Timeframe::Unknown() => String::from("?"),
         };
     }
 }
@@ -69,7 +69,7 @@ impl From<String> for Timeframe {
             "M" => Timeframe::Months(num),
             "W" => Timeframe::Weeks(num),
             "D" => Timeframe::Days(num),
-            "h" => Timeframe::Hours(num),
+            "H" => Timeframe::Hours(num),
             "m" => Timeframe::Minutes(num),
             "s" => Timeframe::Seconds(num),
             "T" => Timeframe::Ticks(num),

@@ -85,8 +85,8 @@ impl Into<Rc<RefCell<Backtest>>> for PyBacktest {
 impl PyBacktest {
     #[new]
     #[inline]
-    pub fn py_new(py_ctx: PyCtx, config: BacktestConfig) -> Self {
-        Self::new(py_ctx, config)
+    pub fn py_new(ctx: PyCtx, config: BacktestConfig) -> Self {
+        Self::new(ctx, config)
     }
 
     #[getter(config)]
@@ -115,15 +115,15 @@ impl PyBacktest {
         self.bt.borrow().net_equity()
     }
 
-    #[getter(equity_series)]
+    #[getter(equity_list)]
     #[inline]
-    pub fn py_equity_series(&self) -> Vec<f64> {
+    pub fn py_equity_list(&self) -> Vec<f64> {
         self.bt.borrow().equity_series().to_vec()
     }
 
-    #[getter(net_equity_series)]
+    #[getter(net_equity_list)]
     #[inline]
-    pub fn py_net_equity_series(&self) -> Vec<f64> {
+    pub fn py_net_equity_list(&self) -> Vec<f64> {
         self.bt.borrow().net_equity_series().to_vec()
     }
 
@@ -139,9 +139,9 @@ impl PyBacktest {
         self.bt.borrow().net_equity_returns()
     }
 
-    #[getter(pnl_series)]
+    #[getter(pnl_list)]
     #[inline]
-    pub fn py_pnl_series(&self) -> Vec<f64> {
+    pub fn py_pnl_list(&self) -> Vec<f64> {
         self.bt.borrow().pnl_series()
     }
 
@@ -309,22 +309,16 @@ impl PyBacktest {
         self.bt.borrow_mut().signal_batch_dict(signals)
     }
 
-    #[pyo3(name = "skip_remaining_bars")]
+    #[pyo3(name = "skip", signature = (bars=None, bar_index=None))]
     #[inline]
-    pub fn py_skip_remaining_bars(&mut self) {
-        self.bt.borrow_mut().skip_remaining_bars()
-    }
-
-    #[pyo3(name = "skip_to_bar")]
-    #[inline]
-    pub fn py_skip_to_bar(&mut self, bar_index: usize) {
-        self.bt.borrow_mut().skip_to_bar(bar_index)
-    }
-
-    #[pyo3(name = "skip_bars")]
-    #[inline]
-    pub fn py_skip_bars(&mut self, bars: usize) {
-        self.bt.borrow_mut().skip_bars(bars)
+    pub fn py_skip(&mut self, bars: Option<usize>, bar_index: Option<usize>) {
+        if bars.is_none() && bar_index.is_none() {
+            self.bt.borrow_mut().skip_remaining_bars()
+        } else if bars.is_some() {
+            self.bt.borrow_mut().skip_bars(bars.unwrap())
+        } else if bar_index.is_some() {
+            self.bt.borrow_mut().skip_to_bar(bar_index.unwrap())
+        }
     }
 
     #[pyo3(name = "to_pine")]
@@ -340,7 +334,7 @@ impl PyBacktest {
     }
 
     #[inline]
-    #[pyo3(name = "metrics")]
+    #[getter(metrics)]
     pub fn py_metrics(&self, py: Python<'_>) -> PyResult<PyObject> {
         let bt = self.bt.borrow();
         let dict = PyDict::new_bound(py);

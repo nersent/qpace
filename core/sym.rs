@@ -66,6 +66,9 @@ pub struct Sym {
     ticker: Option<String>,
     country: Option<String>,
     icons: Vec<SymIcon>,
+    kind: Option<String>,
+    price_scale: f64,
+    point_value: f64,
 }
 
 impl Default for Sym {
@@ -82,6 +85,9 @@ impl Default for Sym {
             ticker: None,
             country: None,
             icons: vec![],
+            kind: None,
+            price_scale: f64::NAN,
+            point_value: f64::NAN,
         }
     }
 }
@@ -194,6 +200,39 @@ impl Sym {
     #[inline]
     pub fn set_icons(&mut self, icons: Vec<SymIcon>) -> &mut Self {
         self.icons = icons;
+        self
+    }
+
+    #[inline]
+    pub fn kind(&self) -> Option<&str> {
+        self.kind.as_deref()
+    }
+
+    #[inline]
+    pub fn set_kind(&mut self, kind: Option<String>) -> &mut Self {
+        self.kind = kind;
+        self
+    }
+
+    #[inline]
+    pub fn price_scale(&self) -> f64 {
+        self.price_scale
+    }
+
+    #[inline]
+    pub fn set_price_scale(&mut self, price_scale: f64) -> &mut Self {
+        self.price_scale = price_scale;
+        self
+    }
+
+    #[inline]
+    pub fn point_value(&self) -> f64 {
+        self.point_value
+    }
+
+    #[inline]
+    pub fn set_point_value(&mut self, point_value: f64) -> &mut Self {
+        self.point_value = point_value;
         self
     }
 

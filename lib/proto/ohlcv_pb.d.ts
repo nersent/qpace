@@ -7,40 +7,64 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
+import * as sym_pb from "./sym_pb";
 
-export class GetQuery extends jspb.Message { 
+export class Filter extends jspb.Message { 
     getSymId(): string;
-    setSymId(value: string): GetQuery;
+    setSymId(value: string): Filter;
 
     hasTimeframe(): boolean;
     clearTimeframe(): void;
-    getTimeframe(): Timeframe | undefined;
-    setTimeframe(value?: Timeframe): GetQuery;
+    getTimeframe(): string | undefined;
+    setTimeframe(value: string): Filter;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Filter.AsObject;
+    static toObject(includeInstance: boolean, msg: Filter): Filter.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Filter, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Filter;
+    static deserializeBinaryFromReader(message: Filter, reader: jspb.BinaryReader): Filter;
+}
+
+export namespace Filter {
+    export type AsObject = {
+        symId: string,
+        timeframe?: string,
+    }
+}
+
+export class Query extends jspb.Message { 
+
+    hasFilter(): boolean;
+    clearFilter(): void;
+    getFilter(): Filter | undefined;
+    setFilter(value?: Filter): Query;
 
     hasLimit(): boolean;
     clearLimit(): void;
     getLimit(): number | undefined;
-    setLimit(value: number): GetQuery;
+    setLimit(value: number): Query;
 
     hasOffset(): boolean;
     clearOffset(): void;
     getOffset(): number | undefined;
-    setOffset(value: number): GetQuery;
+    setOffset(value: number): Query;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetQuery.AsObject;
-    static toObject(includeInstance: boolean, msg: GetQuery): GetQuery.AsObject;
+    toObject(includeInstance?: boolean): Query.AsObject;
+    static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetQuery, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetQuery;
-    static deserializeBinaryFromReader(message: GetQuery, reader: jspb.BinaryReader): GetQuery;
+    static serializeBinaryToWriter(message: Query, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Query;
+    static deserializeBinaryFromReader(message: Query, reader: jspb.BinaryReader): Query;
 }
 
-export namespace GetQuery {
+export namespace Query {
     export type AsObject = {
-        symId: string,
-        timeframe?: Timeframe.AsObject,
+        filter?: Filter.AsObject,
         limit?: number,
         offset?: number,
     }
@@ -50,8 +74,8 @@ export class GetRequest extends jspb.Message {
 
     hasQuery(): boolean;
     clearQuery(): void;
-    getQuery(): GetQuery | undefined;
-    setQuery(value?: GetQuery): GetRequest;
+    getQuery(): Query | undefined;
+    setQuery(value?: Query): GetRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetRequest.AsObject;
@@ -65,17 +89,17 @@ export class GetRequest extends jspb.Message {
 
 export namespace GetRequest {
     export type AsObject = {
-        query?: GetQuery.AsObject,
+        query?: Query.AsObject,
     }
 }
 
 export class GetResponse extends jspb.Message { 
-    getTotal(): number;
-    setTotal(value: number): GetResponse;
     clearBarsList(): void;
     getBarsList(): Array<OhlcvBar>;
     setBarsList(value: Array<OhlcvBar>): GetResponse;
     addBars(value?: OhlcvBar, index?: number): OhlcvBar;
+    getTotalBars(): number;
+    setTotalBars(value: number): GetResponse;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetResponse.AsObject;
@@ -89,8 +113,8 @@ export class GetResponse extends jspb.Message {
 
 export namespace GetResponse {
     export type AsObject = {
-        total: number,
         barsList: Array<OhlcvBar.AsObject>,
+        totalBars: number,
     }
 }
 
@@ -136,98 +160,4 @@ export namespace OhlcvBar {
         close: number,
         volume: number,
     }
-}
-
-export class Timeframe extends jspb.Message { 
-
-    hasYears(): boolean;
-    clearYears(): void;
-    getYears(): number;
-    setYears(value: number): Timeframe;
-
-    hasMonths(): boolean;
-    clearMonths(): void;
-    getMonths(): number;
-    setMonths(value: number): Timeframe;
-
-    hasWeeks(): boolean;
-    clearWeeks(): void;
-    getWeeks(): number;
-    setWeeks(value: number): Timeframe;
-
-    hasDays(): boolean;
-    clearDays(): void;
-    getDays(): number;
-    setDays(value: number): Timeframe;
-
-    hasHours(): boolean;
-    clearHours(): void;
-    getHours(): number;
-    setHours(value: number): Timeframe;
-
-    hasMinutes(): boolean;
-    clearMinutes(): void;
-    getMinutes(): number;
-    setMinutes(value: number): Timeframe;
-
-    hasSeconds(): boolean;
-    clearSeconds(): void;
-    getSeconds(): number;
-    setSeconds(value: number): Timeframe;
-
-    hasTicks(): boolean;
-    clearTicks(): void;
-    getTicks(): number;
-    setTicks(value: number): Timeframe;
-
-    hasRanges(): boolean;
-    clearRanges(): void;
-    getRanges(): number;
-    setRanges(value: number): Timeframe;
-
-    hasUnknown(): boolean;
-    clearUnknown(): void;
-    getUnknown(): google_protobuf_empty_pb.Empty | undefined;
-    setUnknown(value?: google_protobuf_empty_pb.Empty): Timeframe;
-
-    getValueCase(): Timeframe.ValueCase;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): Timeframe.AsObject;
-    static toObject(includeInstance: boolean, msg: Timeframe): Timeframe.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: Timeframe, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): Timeframe;
-    static deserializeBinaryFromReader(message: Timeframe, reader: jspb.BinaryReader): Timeframe;
-}
-
-export namespace Timeframe {
-    export type AsObject = {
-        years: number,
-        months: number,
-        weeks: number,
-        days: number,
-        hours: number,
-        minutes: number,
-        seconds: number,
-        ticks: number,
-        ranges: number,
-        unknown?: google_protobuf_empty_pb.Empty.AsObject,
-    }
-
-    export enum ValueCase {
-        VALUE_NOT_SET = 0,
-        YEARS = 1,
-        MONTHS = 2,
-        WEEKS = 3,
-        DAYS = 4,
-        HOURS = 5,
-        MINUTES = 6,
-        SECONDS = 7,
-        TICKS = 8,
-        RANGES = 9,
-        UNKNOWN = 10,
-    }
-
 }

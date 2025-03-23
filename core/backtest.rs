@@ -62,6 +62,16 @@ impl BacktestConfig {
     pub fn process_orders_on_close(&self) -> bool {
         self.process_orders_on_close
     }
+
+    #[inline]
+    pub fn set_initial_capital(&mut self, initial_capital: f64) {
+        self.initial_capital = initial_capital;
+    }
+
+    #[inline]
+    pub fn set_process_orders_on_close(&mut self, process_orders_on_close: bool) {
+        self.process_orders_on_close = process_orders_on_close;
+    }
 }
 
 pub struct Backtest {

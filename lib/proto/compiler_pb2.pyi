@@ -1,68 +1,85 @@
+from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf.internal import containers as _containers
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class BuildStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    OK: _ClassVar[BuildStatus]
-    ERROR: _ClassVar[BuildStatus]
-OK: BuildStatus
-ERROR: BuildStatus
-
 class File(_message.Message):
-    __slots__ = ("path", "checksum", "tags", "data")
+    __slots__ = ("path", "data")
     PATH_FIELD_NUMBER: _ClassVar[int]
-    CHECKSUM_FIELD_NUMBER: _ClassVar[int]
-    TAGS_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
     path: str
-    checksum: str
-    tags: _containers.RepeatedScalarFieldContainer[str]
     data: bytes
-    def __init__(self, path: _Optional[str] = ..., checksum: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., data: _Optional[bytes] = ...) -> None: ...
+    def __init__(self, path: _Optional[str] = ..., data: _Optional[bytes] = ...) -> None: ...
 
 class BuildRequest(_message.Message):
-    __slots__ = ("qpc_config", "target", "files", "check_only")
+    __slots__ = ("qpc_config", "target", "check_only", "files")
     QPC_CONFIG_FIELD_NUMBER: _ClassVar[int]
     TARGET_FIELD_NUMBER: _ClassVar[int]
-    FILES_FIELD_NUMBER: _ClassVar[int]
     CHECK_ONLY_FIELD_NUMBER: _ClassVar[int]
+    FILES_FIELD_NUMBER: _ClassVar[int]
     qpc_config: str
     target: str
-    files: _containers.RepeatedCompositeFieldContainer[File]
     check_only: bool
-    def __init__(self, qpc_config: _Optional[str] = ..., target: _Optional[str] = ..., files: _Optional[_Iterable[_Union[File, _Mapping]]] = ..., check_only: bool = ...) -> None: ...
-
-class BuildResponse(_message.Message):
-    __slots__ = ("files", "status", "message")
-    FILES_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
     files: _containers.RepeatedCompositeFieldContainer[File]
-    status: BuildStatus
-    message: str
-    def __init__(self, files: _Optional[_Iterable[_Union[File, _Mapping]]] = ..., status: _Optional[_Union[BuildStatus, str]] = ..., message: _Optional[str] = ...) -> None: ...
+    def __init__(self, qpc_config: _Optional[str] = ..., target: _Optional[str] = ..., check_only: bool = ..., files: _Optional[_Iterable[_Union[File, _Mapping]]] = ...) -> None: ...
 
-class BuildStartEvent(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class BuildEndEvent(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
-class BuildResponseEvent(_message.Message):
-    __slots__ = ("message", "response", "start", "end")
+class StageEvent(_message.Message):
+    __slots__ = ("check_start", "check_end", "emit_start", "emit_end", "build_start", "build_end", "message")
+    CHECK_START_FIELD_NUMBER: _ClassVar[int]
+    CHECK_END_FIELD_NUMBER: _ClassVar[int]
+    EMIT_START_FIELD_NUMBER: _ClassVar[int]
+    EMIT_END_FIELD_NUMBER: _ClassVar[int]
+    BUILD_START_FIELD_NUMBER: _ClassVar[int]
+    BUILD_END_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    RESPONSE_FIELD_NUMBER: _ClassVar[int]
-    START_FIELD_NUMBER: _ClassVar[int]
-    END_FIELD_NUMBER: _ClassVar[int]
+    check_start: CheckStart
+    check_end: CheckEnd
+    emit_start: EmitStart
+    emit_end: EmitEnd
+    build_start: BuildStart
+    build_end: BuildEnd
     message: str
-    response: BuildResponse
-    start: BuildStartEvent
-    end: BuildEndEvent
-    def __init__(self, message: _Optional[str] = ..., response: _Optional[_Union[BuildResponse, _Mapping]] = ..., start: _Optional[_Union[BuildStartEvent, _Mapping]] = ..., end: _Optional[_Union[BuildEndEvent, _Mapping]] = ...) -> None: ...
+    def __init__(self, check_start: _Optional[_Union[CheckStart, _Mapping]] = ..., check_end: _Optional[_Union[CheckEnd, _Mapping]] = ..., emit_start: _Optional[_Union[EmitStart, _Mapping]] = ..., emit_end: _Optional[_Union[EmitEnd, _Mapping]] = ..., build_start: _Optional[_Union[BuildStart, _Mapping]] = ..., build_end: _Optional[_Union[BuildEnd, _Mapping]] = ..., message: _Optional[str] = ...) -> None: ...
+
+class CheckStart(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class CheckEnd(_message.Message):
+    __slots__ = ("ok", "message")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    ok: bool
+    message: str
+    def __init__(self, ok: bool = ..., message: _Optional[str] = ...) -> None: ...
+
+class EmitStart(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class EmitEnd(_message.Message):
+    __slots__ = ("ok", "message", "files")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    FILES_FIELD_NUMBER: _ClassVar[int]
+    ok: bool
+    message: str
+    files: _containers.RepeatedCompositeFieldContainer[File]
+    def __init__(self, ok: bool = ..., message: _Optional[str] = ..., files: _Optional[_Iterable[_Union[File, _Mapping]]] = ...) -> None: ...
+
+class BuildStart(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class BuildEnd(_message.Message):
+    __slots__ = ("ok", "message", "wheel")
+    OK_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    WHEEL_FIELD_NUMBER: _ClassVar[int]
+    ok: bool
+    message: str
+    wheel: File
+    def __init__(self, ok: bool = ..., message: _Optional[str] = ..., wheel: _Optional[_Union[File, _Mapping]] = ...) -> None: ...

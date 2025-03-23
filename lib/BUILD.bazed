@@ -30,23 +30,41 @@ include qpace_content/*
 const SETUP_PY = `
 from setuptools import setup, find_packages
 
-local_packages = find_packages("lib")
+local_packages = [
+  *find_packages("lib"),
+  "qpace",
+]
 print(local_packages)
 
 setup(
     name="qpace",
     version="0.0.4",
-    package_dir={"": "lib", "qpace": "lib", "qpace_core": "lib/qpace_core", "qpace_content": "lib/qpace_content"},
-    packages=[*local_packages, "qpace"],
+    package_dir={
+        "": "lib",
+        "qpace": "lib",
+        "qpace_core": "lib/qpace_core",
+        "qpace_content": "lib/qpace_content",
+    },
+    packages=[*local_packages],
     package_data={
-      "qpace_core": ["qpace_core.cp310-win_amd64.pyd"],
-      "qpace_content": ["qpace_content.cp310-win_amd64.pyd"],
+        "qpace_core": ["qpace_core.pyd"],
+        "qpace_content": ["qpace_content.pyd"],
     },
     include_package_data=True,
     python_requires=">=3.10",
-    install_requires=["numpy", "pandas", "matplotlib", "scikit-learn", "requests", "tqdm", "plotly"],
-    #platforms=["win_amd64"],
-)`
+    install_requires=[
+        "numpy",
+        "pandas",
+        "matplotlib",
+        "scikit-learn",
+        "requests",
+        "tqdm",
+        "plotly",
+    ],
+    # platforms=["win_amd64"],
+)
+
+`
   .replaceAll("\n", "\\n")
   .replaceAll(`"`, `""`);
 

@@ -35,9 +35,9 @@ class SymApiStub(object):
             channel: A grpc.Channel.
         """
         self.Get = channel.unary_unary(
-                '/SymApi/Get',
-                request_serializer=sym__pb2.GetSymRequest.SerializeToString,
-                response_deserializer=sym__pb2.GetSymResponse.FromString,
+                '/sym.SymApi/Get',
+                request_serializer=sym__pb2.GetRequest.SerializeToString,
+                response_deserializer=sym__pb2.GetResponse.FromString,
                 _registered_method=True)
 
 
@@ -55,14 +55,14 @@ def add_SymApiServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Get': grpc.unary_unary_rpc_method_handler(
                     servicer.Get,
-                    request_deserializer=sym__pb2.GetSymRequest.FromString,
-                    response_serializer=sym__pb2.GetSymResponse.SerializeToString,
+                    request_deserializer=sym__pb2.GetRequest.FromString,
+                    response_serializer=sym__pb2.GetResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'SymApi', rpc_method_handlers)
+            'sym.SymApi', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('SymApi', rpc_method_handlers)
+    server.add_registered_method_handlers('sym.SymApi', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -83,9 +83,9 @@ class SymApi(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/SymApi/Get',
-            sym__pb2.GetSymRequest.SerializeToString,
-            sym__pb2.GetSymResponse.FromString,
+            '/sym.SymApi/Get',
+            sym__pb2.GetRequest.SerializeToString,
+            sym__pb2.GetResponse.FromString,
             options,
             channel_credentials,
             insecure,

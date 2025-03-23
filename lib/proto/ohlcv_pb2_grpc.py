@@ -36,8 +36,8 @@ class OhlcvApiStub(object):
         """
         self.Get = channel.unary_unary(
                 '/ohlcv.OhlcvApi/Get',
-                request_serializer=ohlcv__pb2.GetOhlcvRequest.SerializeToString,
-                response_deserializer=ohlcv__pb2.GetOhlcvResponse.FromString,
+                request_serializer=ohlcv__pb2.GetRequest.SerializeToString,
+                response_deserializer=ohlcv__pb2.GetResponse.FromString,
                 _registered_method=True)
 
 
@@ -55,8 +55,8 @@ def add_OhlcvApiServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Get': grpc.unary_unary_rpc_method_handler(
                     servicer.Get,
-                    request_deserializer=ohlcv__pb2.GetOhlcvRequest.FromString,
-                    response_serializer=ohlcv__pb2.GetOhlcvResponse.SerializeToString,
+                    request_deserializer=ohlcv__pb2.GetRequest.FromString,
+                    response_serializer=ohlcv__pb2.GetResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -84,8 +84,8 @@ class OhlcvApi(object):
             request,
             target,
             '/ohlcv.OhlcvApi/Get',
-            ohlcv__pb2.GetOhlcvRequest.SerializeToString,
-            ohlcv__pb2.GetOhlcvResponse.FromString,
+            ohlcv__pb2.GetRequest.SerializeToString,
+            ohlcv__pb2.GetResponse.FromString,
             options,
             channel_credentials,
             insecure,

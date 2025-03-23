@@ -210,15 +210,16 @@ pub fn py_js_returns(equity: Vec<f64>, pad: bool) -> Vec<f64> {
 }
 
 #[inline]
-pub fn expectancy(pnl_series: &[f64]) -> f64 {
+pub fn expectancy(pnl: &[f64]) -> f64 {
     let mut losses: Vec<f64> = vec![];
     let mut wins: Vec<f64> = vec![];
 
-    for pnl in pnl_series {
-        if pnl > &0.0 {
-            wins.push(*pnl);
+    for _pnl in pnl {
+        let _pnl = *_pnl;
+        if _pnl > 0.0 {
+            wins.push(_pnl);
         } else {
-            losses.push(*pnl);
+            losses.push(_pnl);
         }
     }
 

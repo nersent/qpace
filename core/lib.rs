@@ -14,6 +14,8 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3_stub_gen::{define_stub_info_gatherer, derive::gen_stub_pyfunction};
   use backtest_py::PyBacktest;
   use ctx_py::PyCtx;
+  use ohlcv_py::PyOhlcv;
+  use timeframe_py::PyTimeframe;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
@@ -21,12 +23,10 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
 use backtest::{Backtest, BacktestConfig};
 use ctx::Ctx;
 use ohlcv::OhlcvBar;
-use ohlcv_py::PyOhlcv;
 use orderbook::OrderConfig;
 use signal::{Signal, SignalKind};
-use sym::Sym;
+use sym::{Sym, SymIcon};
 use timeframe::Timeframe;
-use timeframe_py::PyTimeframe;
 use trade::{Trade, TradeDirection, TradeEvent};
 
 pub mod backtest;
@@ -70,6 +70,7 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyOhlcv>()?;
     m.add_class::<PyTimeframe>()?;
     m.add_class::<Sym>()?;
+    m.add_class::<SymIcon>()?;
     m.add_class::<PyCtx>()?;
     m.add_class::<SignalKind>()?;
     m.add_class::<Signal>()?;

@@ -4,6 +4,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 }}
 use crate::timeframe::Timeframe;
 
+#[cfg(feature = "bindings_py")]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "Timeframe"))]
 #[derive(Debug, Clone, Copy)]
@@ -11,6 +12,7 @@ pub struct PyTimeframe {
     inner: Timeframe,
 }
 
+#[cfg(feature = "bindings_py")]
 impl Default for PyTimeframe {
     #[inline]
     fn default() -> Self {
@@ -18,6 +20,7 @@ impl Default for PyTimeframe {
     }
 }
 
+#[cfg(feature = "bindings_py")]
 impl Into<Timeframe> for PyTimeframe {
     #[inline]
     fn into(self) -> Timeframe {
@@ -25,6 +28,7 @@ impl Into<Timeframe> for PyTimeframe {
     }
 }
 
+#[cfg(feature = "bindings_py")]
 impl From<Timeframe> for PyTimeframe {
     #[inline]
     fn from(inner: Timeframe) -> Self {

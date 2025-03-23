@@ -254,9 +254,9 @@ impl JsOhlcv {
         self.all_bars().to_vec()
     }
 
-    #[wasm_bindgen(js_name = "bar")]
+    #[wasm_bindgen(js_name = "at")]
     #[inline]
-    pub fn js_bar(&self, index: usize) -> OhlcvBar {
+    pub fn js_at(&self, index: usize) -> OhlcvBar {
         *self.bar(index)
     }
 
@@ -272,37 +272,37 @@ impl JsOhlcv {
         format!("Ohlcv(len={})", self.len())
     }
 
-    #[wasm_bindgen(js_name = "open")]
+    #[wasm_bindgen(getter = "open")]
     #[inline]
     pub fn js_open(&self) -> Vec<f64> {
         self.open()
     }
 
-    #[wasm_bindgen(js_name = "high")]
+    #[wasm_bindgen(getter = "high")]
     #[inline]
     pub fn js_high(&self) -> Vec<f64> {
         self.high()
     }
 
-    #[wasm_bindgen(js_name = "low")]
+    #[wasm_bindgen(getter = "low")]
     #[inline]
     pub fn js_low(&self) -> Vec<f64> {
         self.low()
     }
 
-    #[wasm_bindgen(js_name = "close")]
+    #[wasm_bindgen(getter = "close")]
     #[inline]
     pub fn js_close(&self) -> Vec<f64> {
         self.close()
     }
 
-    #[wasm_bindgen(js_name = "volume")]
+    #[wasm_bindgen(getter = "volume")]
     #[inline]
     pub fn js_volume(&self) -> Vec<f64> {
         self.volume()
     }
 
-    #[wasm_bindgen(js_name = "openTime")]
+    #[wasm_bindgen(getter = "openTime")]
     #[inline]
     pub fn js_open_time(&self) -> Vec<js_sys::Date> {
         self.open_time()
@@ -311,7 +311,7 @@ impl JsOhlcv {
             .collect::<Vec<_>>()
     }
 
-    #[wasm_bindgen(js_name = "closeTime")]
+    #[wasm_bindgen(getter = "closeTime")]
     #[inline]
     pub fn js_close_time(&self) -> Vec<js_sys::Date> {
         self.close_time()
@@ -320,27 +320,27 @@ impl JsOhlcv {
             .collect::<Vec<_>>()
     }
 
-    #[wasm_bindgen(js_name = "openTimeMs")]
+    #[wasm_bindgen(getter = "openTimeMs")]
     #[inline]
     pub fn js_open_time_ms(&self) -> Vec<f64> {
         self.open_time_ms().iter().map(|x| *x as f64).collect()
     }
 
-    #[wasm_bindgen(js_name = "closeTimeMs")]
+    #[wasm_bindgen(getter = "closeTimeMs")]
     #[inline]
     pub fn js_close_time_ms(&self) -> Vec<f64> {
         self.close_time_ms().iter().map(|x| *x as f64).collect()
     }
 
-    #[wasm_bindgen(js_name = "push")]
+    #[wasm_bindgen(js_name = "add")]
     #[inline]
-    pub fn js_push(&mut self, bar: OhlcvBar) {
+    pub fn js_add(&mut self, bar: OhlcvBar) {
         self.push(bar);
     }
 
-    #[wasm_bindgen(js_name = "pushMany")]
+    #[wasm_bindgen(js_name = "addMany")]
     #[inline]
-    pub fn js_push_many(&mut self, bars: Vec<OhlcvBar>) {
+    pub fn js_add_many(&mut self, bars: Vec<OhlcvBar>) {
         self.push_many(&bars);
     }
 }

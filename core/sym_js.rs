@@ -169,6 +169,42 @@ impl Sym {
         self.set_country(country);
     }
 
+    #[wasm_bindgen(getter = kind)]
+    #[inline]
+    pub fn js_kind(&self) -> Option<String> {
+        self.kind().map(|s| s.to_string())
+    }
+
+    #[wasm_bindgen(setter = kind)]
+    #[inline]
+    pub fn js_set_kind(&mut self, kind: Option<String>) {
+        self.set_kind(kind);
+    }
+
+    #[wasm_bindgen(getter = priceScale)]
+    #[inline]
+    pub fn js_price_scale(&self) -> f64 {
+        self.price_scale()
+    }
+
+    #[wasm_bindgen(setter = priceScale)]
+    #[inline]
+    pub fn js_set_price_scale(&mut self, price_scale: f64) {
+        self.set_price_scale(price_scale);
+    }
+
+    #[wasm_bindgen(getter = pointValue)]
+    #[inline]
+    pub fn js_point_value(&self) -> f64 {
+        self.point_value()
+    }
+
+    #[wasm_bindgen(setter = pointValue)]
+    #[inline]
+    pub fn js_set_point_value(&mut self, point_value: f64) {
+        self.set_point_value(point_value);
+    }
+
     #[wasm_bindgen(getter = icons)]
     #[inline]
     pub fn js_icons(&self) -> Vec<SymIcon> {
@@ -231,6 +267,18 @@ impl Sym {
         set_opt_string(&obj, "baseCurrency", &self.js_base_currency());
         set_opt_string(&obj, "ticker", &self.js_ticker());
         set_opt_string(&obj, "country", &self.js_country());
+        set_opt_string(&obj, "kind", &self.js_kind());
+
+        let _ = Reflect::set(
+            &obj,
+            &"priceScale".into(),
+            &JsValue::from_f64(self.js_price_scale()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &"pointValue".into(),
+            &JsValue::from_f64(self.js_point_value()),
+        );
 
         let icons_js = js_sys::Array::new();
         for icon in self.js_icons() {

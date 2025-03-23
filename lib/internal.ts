@@ -1,6 +1,6 @@
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
-import { minimatch } from "minimatch";
+// import { minimatch } from "minimatch";
 import * as pl from "nodejs-polars";
 
 import * as ohlcvApi from "./proto/ohlcv_pb";
@@ -11,11 +11,12 @@ import * as qp from "./";
 export const ENV_REST_ENDPOINT = "QPACE_API_BASE";
 export const ENV_GRPC_ENDPOINT = "QPACE_GRPC_API_BASE";
 export const ENV_API_KEY = "QPACE_API_KEY";
+export const ENV_TELEMETRY = "QPACE_TELEMETRY";
 
-// export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
-// export const DEFAULT_GRPC_ENDPOINT = `https://api.qpace.dev/grpc`;
-export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
-export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
+export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
+export const DEFAULT_GRPC_ENDPOINT = `https://api.qpace.dev/grpc`;
+// export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
+// export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
 
 // cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- sym --list
 // cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- build --target python --cwd C:\projects\nersent\qpace-pine-example
@@ -29,32 +30,32 @@ export interface GetTeamMeResponse {
   };
 }
 
-export interface SymQuery {
+export interface SymFilter {
   id?: string;
   tickerId?: string;
+  timeframe?: qp.Timeframe;
 }
+export type SymQuery = SymFilter & { limit?: number; offset?: number };
 
-export const symQueryToProto = (query: SymQuery): symApi.GetQuery => {
-  const proto = new symApi.GetQuery();
-  if (query.id != null) proto.setId(query.id);
-  if (query.tickerId != null) proto.setTickerId(query.tickerId);
+export const symFilterToProto = (filter: SymFilter): symApi.Filter => {
+  const proto = new symApi.Filter();
+  if (filter.id != null) proto.setId(filter.id);
+  if (filter.tickerId != null) proto.setTickerIdPat(filter.tickerId);
+  if (filter.timeframe != null) {
+    proto.setTimeframe(filter.timeframe?.toString());
+  }
   return proto;
 };
 
-export const protoToSymQuery = (proto: symApi.GetQuery): SymQuery => {
-  const query: SymQuery = {};
-  if (proto.hasId()) query.id = proto.getId();
-  if (proto.hasTickerId()) query.tickerId = proto.getTickerId();
-  return query;
+export const symQueryToProto = (query: SymQuery): symApi.Query => {
+  const proto = new symApi.Query();
+  proto.setFilter(symFilterToProto(query));
+  if (query.limit != null) proto.setLimit(query.limit);
+  if (query.offset != null) proto.setOffset(query.offset);
+  return proto;
 };
 
-export const validateSymQuery = (query: SymQuery): void => {
-  if (query.id == null && query.tickerId == null) {
-    throw new Error("id or tickerId is required");
-  }
-};
-
-export const protoToQpSym = (proto: symApi.Sym): qp.Sym => {
+export const protoToSym = (proto: symApi.Sym): qp.Sym => {
   const sym = new qp.Sym();
   sym.id = proto.getId()!;
   if (proto.hasTickerId()) sym.tickerId = proto.getTickerId()!;
@@ -65,13 +66,13 @@ export const protoToQpSym = (proto: symApi.Sym): qp.Sym => {
   if (proto.hasCountry()) sym.country = proto.getCountry()!;
   if (proto.hasMinTick()) sym.minTick = proto.getMinTick()!;
   if (proto.hasMinQty()) sym.minQty = proto.getMinQty()!;
-  // if (proto.hasPriceScale()) sym.priceScale = proto.getPriceScale()!;
-  // if (proto.hasPointValue()) sym.pointValue = proto.getPointValue()!;
-  sym.icons.push(...proto.getIconsList().map(protoToQpSymIcon));
+  if (proto.hasPriceScale()) sym.priceScale = proto.getPriceScale()!;
+  if (proto.hasPointValue()) sym.pointValue = proto.getPointValue()!;
+  sym.icons.push(...proto.getIconsList().map(protoToSymIcon));
   return sym;
 };
 
-export const qpSymToProto = (sym: qp.Sym): symApi.Sym => {
+export const symToProto = (sym: qp.Sym): symApi.Sym => {
   const proto = new symApi.Sym();
   if (sym.id == null) throw new Error("symbol id is required");
   proto.setId(sym.id);
@@ -83,143 +84,128 @@ export const qpSymToProto = (sym: qp.Sym): symApi.Sym => {
   if (sym.country != null) proto.setCountry(sym.country);
   if (sym.minTick != null) proto.setMinTick(sym.minTick);
   if (sym.minQty != null) proto.setMinQty(sym.minQty);
-  // if (sym.priceScale != null) proto.setPriceScale(sym.priceScale);
-  // if (sym.pointValue != null) proto.setPointValue(sym.pointValue);
-  proto.setIconsList(sym.icons.map(qpSymIconToProto));
+  if (sym.priceScale != null) proto.setPriceScale(sym.priceScale);
+  if (sym.pointValue != null) proto.setPointValue(sym.pointValue);
+  proto.setIconsList(sym.icons.map(symIconToProto));
   return proto;
 };
 
-export const protoToQpSymIcon = (proto: symApi.Icon): qp.SymIcon => {
+export const protoToSymIcon = (proto: symApi.Icon): qp.SymIcon => {
   const icon = new qp.SymIcon();
   icon.url = proto.getUrl();
   icon.mimeType = proto.getMimeType();
   return icon;
 };
 
-export const qpSymIconToProto = (icon: qp.SymIcon): symApi.Icon => {
+export const symIconToProto = (icon: qp.SymIcon): symApi.Icon => {
   const proto = new symApi.Icon();
   proto.setUrl(icon.url);
   proto.setMimeType(icon.mimeType);
   return proto;
 };
 
-export const matchSym = (
-  sym: qp.Sym,
-  query: SymQuery,
-  allowGlob = false,
-): boolean => {
-  const { id, tickerId } = sym;
-  if (query.id != null) {
-    if (id == null) return false;
-    if (!allowGlob && sym.id !== id) return false;
-    if (allowGlob && !minimatch(id, query.id)) return false;
-  }
-  if (query.tickerId != null) {
-    if (tickerId == null) return false;
-    if (!allowGlob && sym.tickerId !== tickerId) return false;
-    if (allowGlob && !minimatch(tickerId, query.tickerId)) return false;
-  }
-  return true;
-};
+// export const matchSym = (
+//   sym: qp.Sym,
+//   query: SymQuery,
+//   allowGlob = false,
+// ): boolean => {
+//   const { id, tickerId } = sym;
+//   if (query.id != null) {
+//     if (id == null) return false;
+//     if (!allowGlob && sym.id !== id) return false;
+//     if (allowGlob && !minimatch(id, query.id)) return false;
+//   }
+//   if (query.tickerId != null) {
+//     if (tickerId == null) return false;
+//     if (!allowGlob && sym.tickerId !== tickerId) return false;
+//     if (allowGlob && !minimatch(tickerId, query.tickerId)) return false;
+//   }
+//   return true;
+// };
 
-export const qpTimeframeToProto = (
-  timeframe: qp.Timeframe,
-): ohlcvApi.Timeframe => {
-  if (timeframe.unknown) {
-    return new ohlcvApi.Timeframe().setUnknown(new Empty());
-  }
-  if (timeframe.years != null) {
-    return new ohlcvApi.Timeframe().setYears(timeframe.years);
-  }
-  if (timeframe.months != null) {
-    return new ohlcvApi.Timeframe().setMonths(timeframe.months);
-  }
-  if (timeframe.days != null) {
-    return new ohlcvApi.Timeframe().setDays(timeframe.days);
-  }
-  if (timeframe.hours != null) {
-    return new ohlcvApi.Timeframe().setHours(timeframe.hours);
-  }
-  if (timeframe.minutes != null) {
-    return new ohlcvApi.Timeframe().setMinutes(timeframe.minutes);
-  }
-  if (timeframe.seconds != null) {
-    return new ohlcvApi.Timeframe().setSeconds(timeframe.seconds);
-  }
-  if (timeframe.ranges != null) {
-    return new ohlcvApi.Timeframe().setRanges(timeframe.ranges);
-  }
-  if (timeframe.ticks != null) {
-    return new ohlcvApi.Timeframe().setTicks(timeframe.ticks);
-  }
-  throw new Error(`Cannot map qp timeframe to proto: ${timeframe}`);
-};
+// export const timeframeToProto = (timeframe: qp.Timeframe): symApi.Timeframe => {
+//   if (timeframe.unknown) {
+//     return new symApi.Timeframe().setUnknown(new Empty());
+//   }
+//   if (timeframe.years != null) {
+//     return new symApi.Timeframe().setYears(timeframe.years);
+//   }
+//   if (timeframe.months != null) {
+//     return new symApi.Timeframe().setMonths(timeframe.months);
+//   }
+//   if (timeframe.days != null) {
+//     return new symApi.Timeframe().setDays(timeframe.days);
+//   }
+//   if (timeframe.hours != null) {
+//     return new symApi.Timeframe().setHours(timeframe.hours);
+//   }
+//   if (timeframe.minutes != null) {
+//     return new symApi.Timeframe().setMinutes(timeframe.minutes);
+//   }
+//   if (timeframe.seconds != null) {
+//     return new symApi.Timeframe().setSeconds(timeframe.seconds);
+//   }
+//   if (timeframe.ranges != null) {
+//     return new symApi.Timeframe().setRanges(timeframe.ranges);
+//   }
+//   if (timeframe.ticks != null) {
+//     return new symApi.Timeframe().setTicks(timeframe.ticks);
+//   }
+//   throw new Error(`Cannot map qp.Timeframe to proto: ${timeframe}`);
+// };
 
-export const protoToQpTimeframe = (proto: ohlcvApi.Timeframe): qp.Timeframe => {
-  if (proto.hasUnknown()) {
-    return qp.Timeframe.unknown();
-  }
-  if (proto.hasYears()) {
-    return qp.Timeframe.years(proto.getYears());
-  }
-  if (proto.hasMonths()) {
-    return qp.Timeframe.months(proto.getMonths());
-  }
-  if (proto.hasDays()) {
-    return qp.Timeframe.days(proto.getDays());
-  }
-  if (proto.hasHours()) {
-    return qp.Timeframe.hours(proto.getHours());
-  }
-  if (proto.hasMinutes()) {
-    return qp.Timeframe.minutes(proto.getMinutes());
-  }
-  if (proto.hasSeconds()) {
-    return qp.Timeframe.seconds(proto.getSeconds());
-  }
-  if (proto.hasRanges()) {
-    return qp.Timeframe.ranges(proto.getRanges());
-  }
-  if (proto.hasTicks()) {
-    return qp.Timeframe.ticks(proto.getTicks());
-  }
-  throw new Error(`Cannot map proto timeframe to qp: ${proto}`);
-};
-
-export interface OhlcvQuery {
-  sym: string | qp.Sym;
-  timeframe?: qp.Timeframe;
-  limit?: number;
-  offset?: number;
-}
+// export const protoToTimeframe = (proto: symApi.Timeframe): qp.Timeframe => {
+//   if (proto.hasUnknown()) {
+//     return qp.Timeframe.unknown();
+//   }
+//   if (proto.hasYears()) {
+//     return qp.Timeframe.years(proto.getYears());
+//   }
+//   if (proto.hasMonths()) {
+//     return qp.Timeframe.months(proto.getMonths());
+//   }
+//   if (proto.hasDays()) {
+//     return qp.Timeframe.days(proto.getDays());
+//   }
+//   if (proto.hasHours()) {
+//     return qp.Timeframe.hours(proto.getHours());
+//   }
+//   if (proto.hasMinutes()) {
+//     return qp.Timeframe.minutes(proto.getMinutes());
+//   }
+//   if (proto.hasSeconds()) {
+//     return qp.Timeframe.seconds(proto.getSeconds());
+//   }
+//   if (proto.hasRanges()) {
+//     return qp.Timeframe.ranges(proto.getRanges());
+//   }
+//   if (proto.hasTicks()) {
+//     return qp.Timeframe.ticks(proto.getTicks());
+//   }
+//   throw new Error(`Cannot map proto to qp.Timeframe: ${proto}`);
+// };
 
 export const getSymId = (x: string | qp.Sym): string => {
   if (typeof x === "string") return x;
-  const id = x.id;
-  if (id == null) throw new Error("symbol id is required");
-  return id;
+  if (x.id != null) {
+    return x.id;
+  }
+  throw new Error(`Cannot get symbol id from ${x}`);
 };
 
-export const ohlcvQueryToProto = (query: OhlcvQuery): ohlcvApi.GetQuery => {
-  const proto = new ohlcvApi.GetQuery();
-  proto.setSymId(getSymId(query.sym));
-  if (query.limit != null) proto.setLimit(query.limit);
-  if (query.offset != null) proto.setOffset(query.offset);
-  if (query.timeframe != null) {
-    proto.setTimeframe(qpTimeframeToProto(query.timeframe));
+export interface OhlcvFilter {
+  sym: string | qp.Sym;
+  timeframe?: qp.Timeframe;
+}
+export type OhlcvQuery = OhlcvFilter & { limit?: number; offset?: number };
+
+export const ohlcvFilterToProto = (filter: OhlcvFilter): ohlcvApi.Filter => {
+  const proto = new ohlcvApi.Filter();
+  proto.setSymId(getSymId(filter.sym));
+  if (filter.timeframe != null) {
+    proto.setTimeframe(filter.timeframe.toString());
   }
   return proto;
-};
-
-export const protoToOhlcvQuery = (proto: ohlcvApi.GetQuery): OhlcvQuery => {
-  return {
-    sym: proto.getSymId(),
-    limit: proto.hasLimit() ? proto.getLimit() : undefined,
-    offset: proto.hasOffset() ? proto.getOffset() : undefined,
-    timeframe: proto.hasTimeframe()
-      ? protoToQpTimeframe(proto.getTimeframe()!)
-      : undefined,
-  };
 };
 
 const readDf = async (path: string): Promise<pl.DataFrame> => {
@@ -281,7 +267,7 @@ export const writeOhlcvBarsToPath = async (
   await writeDf(path, df);
 };
 
-export const qpOhlcvBarToProto = (bar: qp.OhlcvBar): ohlcvApi.OhlcvBar => {
+export const ohlcvBarToProto = (bar: qp.OhlcvBar): ohlcvApi.OhlcvBar => {
   const proto = new ohlcvApi.OhlcvBar();
   proto.setOpenTime(Timestamp.fromDate(bar.openTime));
   proto.setCloseTime(Timestamp.fromDate(bar.closeTime));
@@ -293,7 +279,7 @@ export const qpOhlcvBarToProto = (bar: qp.OhlcvBar): ohlcvApi.OhlcvBar => {
   return proto;
 };
 
-export const protoToQpOhlcvBar = (proto: ohlcvApi.OhlcvBar): qp.OhlcvBar => {
+export const protoToOhlcvBar = (proto: ohlcvApi.OhlcvBar): qp.OhlcvBar => {
   return new qp.OhlcvBar(
     proto.getOpenTime()!.toDate(),
     proto.getCloseTime()!.toDate(),
@@ -304,3 +290,32 @@ export const protoToQpOhlcvBar = (proto: ohlcvApi.OhlcvBar): qp.OhlcvBar => {
     proto.getVolume(),
   );
 };
+
+/*
+  We use telemetry to collect information about the client usage and performance.
+  This information is used to improve the client and the qpace platform.
+  We don't collect any personal information or sensitive data.
+
+  You can opt-out of telemetry by setting the QPACE_TELEMETRY environment variable to false or by using `qpc telemetry disable` command.
+*/
+export interface ClientTelemetry {
+  qpaceVersion?: string;
+  qpaceCoreVersion?: string;
+  deviceId?: string;
+  nodeVersion?: string;
+  npmVersion?: string;
+  yarnVersion?: string;
+  pnpmVersion?: string;
+  goVersion?: string;
+  pythonVersion?: string;
+  python3Version?: string;
+  pip3Version?: string;
+  pipVersion?: string;
+  rustVersion?: string;
+  cargoVersion?: string;
+  os?: string;
+  arch?: string;
+  platform?: string;
+  cpu?: string;
+  memory?: string;
+}

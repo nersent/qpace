@@ -1656,6 +1656,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "qpace_content"
+version = "0.0.1"
+dependencies = [
+ "polars",
+ "pyo3",
+ "pyo3-build-config",
+ "pyo3-ffi",
+ "pyo3-stub-gen",
+ "pyo3-stub-gen-derive",
+ "qpace_core",
+]
+
+[[package]]
 name = "qpace_core"
 version = "1.0.0"
 dependencies = [

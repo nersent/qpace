@@ -12,11 +12,11 @@ class Backtest:
     ctx: Ctx
     equity: builtins.float
     net_equity: builtins.float
-    equity_series: builtins.list[builtins.float]
-    net_equity_series: builtins.list[builtins.float]
+    equity_list: builtins.list[builtins.float]
+    net_equity_list: builtins.list[builtins.float]
     equity_returns: builtins.list[builtins.float]
     net_equity_returns: builtins.list[builtins.float]
-    pnl_series: builtins.list[builtins.float]
+    pnl_list: builtins.list[builtins.float]
     open_profit: builtins.float
     net_profit: builtins.float
     gross_profit: builtins.float
@@ -37,7 +37,8 @@ class Backtest:
     instrument_price: builtins.float
     win_rate: builtins.float
     profit_factor: builtins.float
-    def __new__(cls,py_ctx:Ctx, config:BacktestConfig): ...
+    metrics: typing.Any
+    def __new__(cls,ctx:Ctx, config:BacktestConfig): ...
     def on_bar_open(self) -> None:
         ...
 
@@ -59,22 +60,13 @@ class Backtest:
         """
         ...
 
-    def skip_remaining_bars(self) -> None:
-        ...
-
-    def skip_to_bar(self, bar_index:builtins.int) -> None:
-        ...
-
-    def skip_bars(self, bars:builtins.int) -> None:
+    def skip(self, bars:typing.Optional[builtins.int]=None, bar_index:typing.Optional[builtins.int]=None) -> None:
         ...
 
     def to_pine(self) -> builtins.str:
         ...
 
     def __len__(self) -> builtins.int:
-        ...
-
-    def metrics(self) -> typing.Any:
         ...
 
     def __next__(self) -> builtins.int:
@@ -102,10 +94,16 @@ class Ctx:
     sym: Sym
     timeframe: Timeframe
     ohlcv: Ohlcv
-    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None, timeframe:typing.Optional[Timeframe]=None): ...
+    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None): ...
     def fork(self) -> Ctx:
         r"""
         Creates a new instance starting from first bar. Reuses same OHLCV and symbol.
+        """
+        ...
+
+    def reset(self) -> None:
+        r"""
+        Resets the context to the first bar and marks it as uninitialized.
         """
         ...
 
@@ -126,6 +124,7 @@ class Ohlcv:
     r"""
     Multi-thread mutable OHLCV dataframe. Uses `Arc<RwLock<Ohlcv>>` internally.
     """
+    timeframe: Timeframe
     bars: builtins.list[OhlcvBar]
     open: builtins.list[builtins.float]
     high: builtins.list[builtins.float]
@@ -136,6 +135,7 @@ class Ohlcv:
     close_time: builtins.list[datetime.datetime]
     open_time_ms: builtins.list[builtins.int]
     close_time_ms: builtins.list[builtins.int]
+    def __new__(cls,): ...
     @staticmethod
     def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
         ...
@@ -151,6 +151,9 @@ class Ohlcv:
         """
         ...
 
+    def py_set_timeframe(self, timeframe:Timeframe) -> None:
+        ...
+
     def bars_from_slice(self, slice:slice) -> builtins.list[OhlcvBar]:
         ...
 
@@ -160,10 +163,10 @@ class Ohlcv:
     def __len__(self) -> builtins.int:
         ...
 
-    def push(self, bar:OhlcvBar) -> None:
+    def add(self, bar:OhlcvBar) -> None:
         ...
 
-    def push_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
+    def add_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
         ...
 
     def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
@@ -187,7 +190,10 @@ class OhlcvBar:
     hlc3: builtins.float
     hlcc4: builtins.float
     def __new__(cls,open_time:typing.Optional[datetime.datetime]=None, close_time:typing.Optional[datetime.datetime]=None, open:typing.Optional[builtins.float]=None, high:typing.Optional[builtins.float]=None, low:typing.Optional[builtins.float]=None, close:typing.Optional[builtins.float]=None, volume:typing.Optional[builtins.float]=None): ...
-    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
+    def __str__(self) -> builtins.str:
+        ...
+
+    def to_dict(self) -> typing.Any:
         ...
 
 
@@ -232,9 +238,59 @@ class Signal:
 
 
 class Sym:
+    id: typing.Optional[builtins.str]
+    ticker_id: typing.Optional[builtins.str]
     min_tick: builtins.float
     min_qty: builtins.float
-    def __new__(cls,min_qty:typing.Optional[builtins.float]=None, min_tick:typing.Optional[builtins.float]=None): ...
+    prefix: typing.Optional[builtins.str]
+    currency: typing.Optional[builtins.str]
+    base_currency: typing.Optional[builtins.str]
+    ticker: typing.Optional[builtins.str]
+    country: typing.Optional[builtins.str]
+    kind: typing.Optional[builtins.str]
+    price_scale: builtins.float
+    point_value: builtins.float
+    icons: builtins.list[SymIcon]
+    def __new__(cls,): ...
+    def py_set_id(self, id:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_ticker_id(self, ticker_id:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_min_tick(self, min_tick:builtins.float) -> None:
+        ...
+
+    def py_set_min_qty(self, min_qty:builtins.float) -> None:
+        ...
+
+    def py_set_prefix(self, prefix:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_currency(self, currency:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_base_currency(self, base_currency:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_ticker(self, ticker:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_country(self, country:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_kind(self, kind:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_price_scale(self, price_scale:builtins.float) -> None:
+        ...
+
+    def py_set_point_value(self, point_value:builtins.float) -> None:
+        ...
+
+    def py_set_icons(self, icons:typing.Sequence[SymIcon]) -> None:
+        ...
+
     @staticmethod
     def btc_usd() -> Sym:
         ...
@@ -245,6 +301,17 @@ class Sym:
 
     @staticmethod
     def sol_usd() -> Sym:
+        ...
+
+
+class SymIcon:
+    url: builtins.str
+    mime_type: builtins.str
+    def __new__(cls,): ...
+    def py_set_url(self, url:builtins.str) -> None:
+        ...
+
+    def py_set_mime_type(self, mime_type:builtins.str) -> None:
         ...
 
 
@@ -259,7 +326,7 @@ class Timeframe:
     ticks: typing.Optional[builtins.int]
     ranges: typing.Optional[builtins.int]
     unknown: builtins.bool
-    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
+    def __str__(self) -> builtins.str:
         ...
 
     @staticmethod

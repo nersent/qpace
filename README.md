@@ -9,41 +9,37 @@
 
 </div>
 
-**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast.
+**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place.
 
 ![backtest summary](/static/backtest_summary.png)
 
 ## Table of Contents
 
-- [Features](#features)
+- [Features and Examples](#features-and-examples)
+
+- [Pine from Python/JavaScript](#pine-from-python-javascript)
 
 - [Installation](#installation)
 
-- [Examples](#examples)
-
-- [Pine from Python](#pine-from-python)
-
 - [Motivation](#motivation)
 
-- [Contributing](#contributing)
+- [Community](#community)
 
-## Features
+## Features and Examples
 
-- Simple, yet powerful API
+- Simple, yet powerful and fully-typed API
 
-- Comparable results to TradingView Pine
+- QPC - Pine compiler. Run Pine indicators/strategies from Python/JavaScript with accurate results.
 
 - Extremely fast backtesting with vectorization support
 
-- OHLCV - loading, resampling, and more
+- Yahoo Finance API integration
 
-- Performance metrics - sharpe, sortino, omega, and more
-
-- Utility functions - position sizing, risk management, and more
-
-- Parameter optimization
-  - Grid Search
-  - Genetic Evolution
+- CLI
+  - View/Export symbols
+  - View/Export OHLCV
+  - Compile Pine to Python/JavaScript
+  - Backtest Pine strategies
 
 - TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)
   - Accumulation/Distribution (ACCDIST)
@@ -81,6 +77,25 @@
   - Vortex Indicator
   - Williams %R
 
+- OHLCV ops
+  - Integration with our own API and Yahoo Finance API
+  - Loading
+  - Resampling
+    - Lower timeframe to higher timeframe
+    - Tick Bars
+    - Dollar Bars
+  - And More
+  
+- Performance metrics
+  - Sharpe Ratio
+  - Sortino Ratio
+  - Omega Ratio
+  - And More
+
+- Parameter optimization
+  - Grid Search
+  - Genetic Evolution
+
 ## Installation
 
 ### Python
@@ -95,12 +110,8 @@ pip install qpace
 npm install qpace
 ```
 
-## Examples
-
-## Pine from Python
+## Pine from Python/JavaScript
 
 QPC is specially designed compiler to translate any Pine code into efficient Rust code that is then exposed to Python and JavaScript, allowing you to run your favorite Pine scripts in the most efficient way possible.
 
-## Motivation
-
-## Contributing
+## Community

@@ -85,8 +85,16 @@ impl JsCtx {
 
     #[wasm_bindgen(js_name = fork)]
     #[inline]
+    #[doc = "Creates a new instance starting from first bar. Reuses same OHLCV and symbol."]
     pub fn js_fork(&self) -> Self {
         self.fork()
+    }
+
+    #[wasm_bindgen(js_name = reset)]
+    #[inline]
+    #[doc = "Resets the context to the first bar and marks it as uninitialized."]
+    pub fn js_reset(&self) {
+        self.ctx.borrow_mut().reset();
     }
 
     #[wasm_bindgen(js_name = next)]

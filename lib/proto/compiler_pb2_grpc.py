@@ -37,7 +37,7 @@ class CompilerApiStub(object):
         self.Build = channel.unary_stream(
                 '/compiler.CompilerApi/Build',
                 request_serializer=compiler__pb2.BuildRequest.SerializeToString,
-                response_deserializer=compiler__pb2.BuildResponseEvent.FromString,
+                response_deserializer=compiler__pb2.StageEvent.FromString,
                 _registered_method=True)
 
 
@@ -56,7 +56,7 @@ def add_CompilerApiServicer_to_server(servicer, server):
             'Build': grpc.unary_stream_rpc_method_handler(
                     servicer.Build,
                     request_deserializer=compiler__pb2.BuildRequest.FromString,
-                    response_serializer=compiler__pb2.BuildResponseEvent.SerializeToString,
+                    response_serializer=compiler__pb2.StageEvent.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -85,7 +85,7 @@ class CompilerApi(object):
             target,
             '/compiler.CompilerApi/Build',
             compiler__pb2.BuildRequest.SerializeToString,
-            compiler__pb2.BuildResponseEvent.FromString,
+            compiler__pb2.StageEvent.FromString,
             options,
             channel_credentials,
             insecure,

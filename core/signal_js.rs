@@ -55,37 +55,37 @@ impl Signal {
 
     #[wasm_bindgen(js_name = hold)]
     #[inline]
-    pub fn js_hold(&self) -> Self {
+    pub fn js_hold() -> Self {
         Self::hold()
     }
 
     #[wasm_bindgen(js_name = size)]
     #[inline]
-    pub fn js_size(&self, size: f64) -> Self {
+    pub fn js_size(size: f64) -> Self {
         Self::size(size)
     }
 
     #[wasm_bindgen(js_name = equityPct)]
     #[inline]
-    pub fn js_equity_pct(&self, equity_pct: f64) -> Self {
+    pub fn js_equity_pct(equity_pct: f64) -> Self {
         Self::equity_pct(equity_pct)
     }
 
     #[wasm_bindgen(js_name = closeAll)]
     #[inline]
-    pub fn js_close_all(&self) -> Self {
+    pub fn js_close_all() -> Self {
         Self::close_all()
     }
 
     #[wasm_bindgen(js_name = long)]
     #[inline]
-    pub fn js_long(&self) -> Self {
+    pub fn js_long() -> Self {
         Self::long()
     }
 
     #[wasm_bindgen(js_name = short)]
     #[inline]
-    pub fn js_short(&self) -> Self {
+    pub fn js_short() -> Self {
         Self::short()
     }
 }

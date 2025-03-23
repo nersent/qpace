@@ -33,7 +33,12 @@
       "~/*": ["./*"]
     }
   },
-  "include": ["./**/*.ts", "./**/*.tsx"],
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "./examples/**/*.js",
+    "./examples/**/*.ts"
+  ],
   "exclude": [
     "bazel-stratis3",
     "bazel-out",

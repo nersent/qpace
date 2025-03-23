@@ -29,6 +29,29 @@ import {
   ENV_REST_ENDPOINT,
 } from "~/lib/internal";
 
+export interface UserConfig {
+  apiKey?: string;
+  telemetry?: boolean;
+}
+
+export const tryLoadUserConfig = async (): Promise<UserConfig | undefined> => {
+  const dir = resolve(homedir(), ".qpace");
+  const configPath = resolve(dir, "config.json");
+  if (await exists(configPath)) {
+    return await readJson(configPath);
+  }
+  return;
+};
+
+export const saveConfig = async (config: UserConfig): Promise<void> => {
+  const dir = resolve(homedir(), ".qpace");
+  if (!existsSync(dir)) await mkdir(dir, { recursive: true });
+  const configPath = resolve(dir, "config.json");
+  await writeJson(configPath, config, true);
+};
+
+const QPACE_BG_PREFIX = `${chalk.bgGreen.black.bold("qpace")}: `;
+
 class CliError extends Error {
   constructor(message: string) {
     super(message);
@@ -94,10 +117,6 @@ type DataFormat = typeof DATA_FORMAT_CHOICES[number];
 const ORDER_CHOICES = ["asc", "desc"] as const;
 type Order = typeof ORDER_CHOICES[number];
 
-interface UserConfig {
-  apiKey?: string;
-}
-
 class Cli {
   private _client?: qp.Client;
   public userConfig: UserConfig = {};
@@ -109,6 +128,10 @@ class Cli {
     this.apiKey ??= this.userConfig.apiKey;
   }
 
+  public get telemetry(): boolean {
+    return this.userConfig.telemetry ?? true;
+  }
+
   public setApiKey(apiKey: string, userConfig?: boolean): void {
     this.apiKey = apiKey;
     if (userConfig) {
@@ -117,22 +140,18 @@ class Cli {
   }
 
   public async loadConfig(): Promise<UserConfig> {
-    const dir = resolve(homedir(), ".qpace");
-    const configPath = resolve(dir, "config.json");
-    this.userConfig = {};
-    if (!(await exists(configPath))) {
+    const userConfig = await tryLoadUserConfig();
+    if (userConfig == null) {
+      this.userConfig = {};
       await this.saveConfig();
     } else {
-      this.userConfig = await readJson(configPath);
+      this.userConfig = userConfig;
     }
     return this.userConfig;
   }
 
   public async saveConfig(): Promise<void> {
-    const dir = resolve(homedir(), ".qpace");
-    if (!existsSync(dir)) await mkdir(dir, { recursive: true });
-    const configPath = resolve(dir, "config.json");
-    await writeJson(configPath, this.userConfig, true);
+    await saveConfig(this.userConfig);
   }
 
   public tryGetClient(): qp.Client | undefined {
@@ -156,6 +175,83 @@ class Cli {
       throw new CliError("No API key");
     }
     return client;
+  }
+
+  public async maybePromptApiKey(
+    apiKey?: string,
+    force?: boolean,
+  ): Promise<void> {
+    apiKey ??= this.userConfig.apiKey;
+    if (apiKey == null) {
+      force = true;
+    }
+
+    let inputApiKey: string | undefined;
+    if (apiKey == null || force) {
+      console.log(`${QPACE_BG_PREFIX}Logging into qpace.dev`);
+      console.log(
+        `${QPACE_BG_PREFIX}You can find your API key in your browser here: ${chalk.cyanBright(
+          `https://qpace.dev/auth`,
+        )}`,
+      );
+      console.log(
+        `${QPACE_BG_PREFIX}Paste an API key here and press enter, or press ctrl+c to quit`,
+      );
+      inputApiKey = await input({
+        message: "Enter your API key",
+        validate: (x) => (x.trim().length > 0 ? true : "API key is required"),
+      });
+      this.setApiKey(inputApiKey, true);
+    } else {
+      this.setApiKey(apiKey);
+    }
+    this._client = undefined;
+
+    try {
+      const client = this.getClient();
+      const team = await client.getMe();
+      if (inputApiKey != null) {
+        console.log(
+          `${QPACE_BG_PREFIX}Logged in as team ${chalk.yellowBright(
+            team.team.name,
+          )}. Use ${chalk.white.bold(
+            `\`qpace login --force\``,
+          )} to force relogin.`,
+        );
+      }
+      if (inputApiKey != null) {
+        await this.saveConfig();
+      }
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.status === 401) {
+        throw new CliError("Invalid API key. Try authenticating again.");
+      }
+      throw e;
+    }
+  }
+
+  public async handleTelemetry(enabled?: boolean): Promise<void> {
+    if (enabled != null) {
+      this.userConfig.telemetry = enabled;
+      await this.saveConfig();
+    }
+    console.log(
+      `${QPACE_BG_PREFIX}Telemetry is ${chalk.white.bold(
+        this.telemetry ? "enabled" : "disabled",
+      )}\n`,
+    );
+    if (this.telemetry) {
+      console.log(
+        `qpace telemetry is completely anonymous and optional.\nThank you for for participating!`,
+      );
+    } else {
+      console.log(
+        `You have disabled anonymous telemetry.\nNo data will be collected from your machine.`,
+      );
+    }
+    console.log(
+      `\nLearn more at: ${chalk.cyan(`https://qpace.dev/telemetry`)}`,
+    );
   }
 }
 
@@ -207,48 +303,8 @@ const main = async (): Promise<void> => {
   program
     .command("login")
     .argument("[api key]")
-    .option("--force, -f", `Force relogin`, false)
-    .action(async (apiKey: string | undefined, opts: { force?: boolean }) => {
-      apiKey ??= cli.userConfig.apiKey;
-      const prefix = `${chalk.bgGreen.black.bold("qpace")}: `;
-      let inputApiKey: string | undefined;
-      if (apiKey == null || opts.force) {
-        console.log(`${prefix}Logging into qpace.dev`);
-        console.log(
-          `${prefix}You can find your API key in your browser here: https://qpace.dev/auth`,
-        );
-        console.log(
-          `${prefix}Paste an API key here and press enter, or press ctrl+c to quit`,
-        );
-        inputApiKey = await input({
-          message: "Enter your API key",
-          validate: (x) => (x.trim().length > 0 ? true : "API key is required"),
-        });
-        cli.setApiKey(inputApiKey);
-      } else {
-        cli.setApiKey(apiKey);
-      }
-
-      try {
-        const client = cli.getClient();
-        const team = await client.getMe();
-        console.log(
-          `${prefix}Logged in as team ${chalk.yellowBright(
-            team.team.name,
-          )}. Use ${chalk.white.bold(
-            `\`qpace login --force\``,
-          )} to force relogin.`,
-        );
-        if (inputApiKey != null) {
-          cli.setApiKey(inputApiKey, true);
-          await cli.saveConfig();
-        }
-      } catch (e) {
-        if (axios.isAxiosError(e) && e.response?.status === 401) {
-          throw new CliError("Invalid API key. Try authenticating again.");
-        }
-        throw e;
-      }
+    .action(async (apiKey: string | undefined) => {
+      await cli.maybePromptApiKey(apiKey, true);
     });
   program.command("init").action(() => console.log("init"));
   program
@@ -278,6 +334,7 @@ const main = async (): Promise<void> => {
         verbose?: boolean;
         watch?: boolean;
       }) => {
+        await cli.maybePromptApiKey();
         const client = cli.getClient();
         const rootDir =
           opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
@@ -321,6 +378,7 @@ const main = async (): Promise<void> => {
     .option("--cwd <path>", `Project root directory`)
     .option("--watch, -w", `Recheck on file changes`, false)
     .action(async (opts: { cwd?: string; watch?: boolean }) => {
+      await cli.maybePromptApiKey();
       const client = cli.getClient();
       const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
       const qpcConfig = await loadOrCreateConfig(rootDir);
@@ -344,23 +402,35 @@ const main = async (): Promise<void> => {
     .command("symbol")
     .alias("sym")
     .option("--full", `Full info`)
+    .option("--limit <limit>", `Limit`, "10")
+    .option(
+      "--timeframe, -t <timeframe>",
+      `Returned symbols have OHLCV available with provided timeframe`,
+    )
     .argument("[patterns...]")
     .action(
       async (
         patterns: string[],
         opts: {
           format: DataFormat;
+          limit: string;
           full?: boolean;
+          timeframe?: string;
         },
       ) => {
+        const limit = parseInt(opts.limit);
+        await cli.maybePromptApiKey();
         const client = cli.getClient();
         const syms: qp.Sym[] = [];
+        const timeframe: qp.Timeframe | undefined = opts.timeframe
+          ? qp.Timeframe.fromString(opts.timeframe)
+          : undefined;
         if (patterns.length === 0) {
-          syms.push(...(await client.syms()));
+          syms.push(...(await client.syms({ limit, timeframe })));
         } else {
           const _syms = await Promise.all(
             patterns.map(async (r) => [
-              ...(await client.syms({ tickerId: r })),
+              ...(await client.syms({ id: r, tickerId: r, limit, timeframe })),
             ]),
           ).then((r) => r.flat());
           syms.push(..._syms);
@@ -395,6 +465,7 @@ const main = async (): Promise<void> => {
         patterns: string[],
         opts: { timeframe?: string; limit?: string; order?: Order },
       ) => {
+        await cli.maybePromptApiKey();
         const timeframe =
           opts.timeframe != null
             ? qp.Timeframe.fromString(opts.timeframe)
@@ -426,6 +497,22 @@ const main = async (): Promise<void> => {
         console.table(items);
       },
     );
+  program.addCommand(
+    new Command("telemetry")
+      .action(() => {
+        cli.handleTelemetry();
+      })
+      .addCommand(
+        new Command("enable").action(async () => {
+          await cli.handleTelemetry(true);
+        }),
+      )
+      .addCommand(
+        new Command("disable").action(async () => {
+          await cli.handleTelemetry(false);
+        }),
+      ),
+  );
   program.parse();
 };
 

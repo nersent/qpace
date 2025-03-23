@@ -1,28 +1,30 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
+package sym;
+
 service SymApi {
   rpc Get(GetRequest) returns (GetResponse);
-  rpc GetList(GetListRequest) returns (GetListResponse);
 }
 
-message GetQuery {
+message Filter {
   optional string id = 1;
-  optional string ticker_id = 2;
+  optional string ticker_id_pat = 2;
+  optional string timeframe = 3;
+}
+
+message Query {
+  Filter filter = 1;
+  optional uint32 limit = 2;
+  optional uint32 offset = 3;
 }
 
 message GetRequest {
-  GetQuery query = 1;
+  Query query = 1;
 }
 
 message GetResponse {
-  Sym sym = 1;
-}
-
-message GetListRequest {
-  GetQuery query = 1;
-}
-
-message GetListResponse {
   repeated Sym syms = 1;
 }
 
@@ -49,9 +51,27 @@ message Sym {
   optional double price_scale = 10;
   optional double point_value = 11;
   repeated Icon icons = 12;
+  optional string kind = 13;
+  optional string json_metadata = 14;
 }
 
 message Icon {
   string url = 1;
   string mime_type = 2;
 }
+
+// message Timeframe {
+//   oneof value {
+//     uint32 years = 1;
+//     uint32 months = 2;
+//     uint32 weeks = 3;
+//     uint32 days = 4;
+//     uint32 hours = 5;
+//     uint32 minutes = 6;
+//     uint32 seconds = 7;
+//     uint32 ticks = 8;
+//     uint32 ranges = 9;
+//     google.protobuf.Empty unknown = 10;
+//   }
+// }
+

@@ -8,6 +8,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::types::PyDict;
   use crate::rs_utils::{pyslice_to_range};
   use crate::rs_utils::PandasDataFrame;
+  use crate::timeframe_py::PyTimeframe;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
@@ -15,6 +16,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use crate::ohlcv::{ohlcv_bars_from_polars};
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
+use crate::timeframe::Timeframe;
 use crate::{
     ohlcv::{OhlcvBar, OhlcvReader, OhlcvWriter},
     rs_utils::get_oldest_possible_datetime,
@@ -124,10 +126,24 @@ impl OhlcvBar {
         self.hlcc4()
     }
 
-    #[pyo3(name = "__format__", signature = (format_spec=None))]
+    #[pyo3(name = "__str__")]
     #[inline]
-    pub fn py_format(&self, format_spec: Option<String>) -> String {
+    pub fn py_str(&self) -> String {
         self.fmt()
+    }
+
+    #[pyo3(name = "to_dict")]
+    #[inline]
+    pub fn py_to_dict(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let dict = PyDict::new_bound(py);
+        dict.set_item("open_time", self.open_time())?;
+        dict.set_item("close_time", self.close_time())?;
+        dict.set_item("open", self.open())?;
+        dict.set_item("high", self.high())?;
+        dict.set_item("low", self.low())?;
+        dict.set_item("close", self.close())?;
+        dict.set_item("volume", self.volume())?;
+        return Ok(dict.to_object(py));
     }
 }
 
@@ -220,23 +236,28 @@ impl Ohlcv {
     }
 }
 
+#[cfg(feature = "bindings_py")]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "Ohlcv"))]
 #[derive(Clone, Debug)]
 #[doc = "Multi-thread mutable OHLCV dataframe. Uses `Arc<RwLock<Ohlcv>>` internally."]
 pub struct PyOhlcv {
     inner: Arc<RwLock<Ohlcv>>,
+    timeframe: PyTimeframe,
 }
 
+#[cfg(feature = "bindings_py")]
 impl Into<PyOhlcv> for Ohlcv {
     #[inline]
     fn into(self) -> PyOhlcv {
         PyOhlcv {
             inner: Arc::new(RwLock::new(self)),
+            timeframe: Timeframe::Unknown().into(),
         }
     }
 }
 
+#[cfg(feature = "bindings_py")]
 impl Into<Ohlcv> for PyOhlcv {
     #[inline]
     fn into(self) -> Ohlcv {
@@ -244,6 +265,7 @@ impl Into<Ohlcv> for PyOhlcv {
     }
 }
 
+#[cfg(feature = "bindings_py")]
 impl OhlcvReader for PyOhlcv {
     #[inline]
     fn len(&self) -> usize {
@@ -280,6 +302,7 @@ impl OhlcvReader for PyOhlcv {
     }
 }
 
+#[cfg(feature = "bindings_py")]
 impl OhlcvWriter for PyOhlcv {
     #[inline]
     fn push(&mut self, bar: OhlcvBar) {
@@ -323,6 +346,18 @@ impl PyOhlcv {
     #[doc = "`time_unit: 's' | 'ms'`"]
     pub fn py_read_path(path: String, time_unit: String) -> Self {
         Ohlcv::read_path(&Path::new(&path), &time_unit).into()
+    }
+
+    #[getter(timeframe)]
+    #[inline]
+    pub fn py_timeframe(&self) -> PyTimeframe {
+        self.timeframe.clone()
+    }
+
+    #[setter(timeframe)]
+    #[inline]
+    pub fn py_set_timeframe(&mut self, timeframe: PyTimeframe) {
+        self.timeframe = timeframe;
     }
 
     #[getter(bars)]
@@ -404,15 +439,15 @@ impl PyOhlcv {
         self.close_time_ms()
     }
 
-    #[pyo3(name = "push")]
+    #[pyo3(name = "add")]
     #[inline]
-    pub fn py_push(&mut self, bar: OhlcvBar) {
+    pub fn py_add(&mut self, bar: OhlcvBar) {
         self.push(bar);
     }
 
-    #[pyo3(name = "push_many")]
+    #[pyo3(name = "add_many")]
     #[inline]
-    pub fn py_push_many(&mut self, bars: Vec<OhlcvBar>) {
+    pub fn py_add_many(&mut self, bars: Vec<OhlcvBar>) {
         self.push_many(&bars);
     }
 

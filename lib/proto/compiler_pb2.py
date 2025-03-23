@@ -22,29 +22,34 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63ompiler.proto\x12\x08\x63ompiler\"B\n\x04\x46ile\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\t\x12\x0c\n\x04tags\x18\x03 \x03(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\x89\x01\n\x0c\x42uildRequest\x12\x12\n\nqpc_config\x18\x01 \x01(\t\x12\x13\n\x06target\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x03 \x03(\x0b\x32\x0e.compiler.File\x12\x17\n\ncheck_only\x18\x04 \x01(\x08H\x01\x88\x01\x01\x42\t\n\x07_targetB\r\n\x0b_check_only\"w\n\rBuildResponse\x12\x1d\n\x05\x66iles\x18\x01 \x03(\x0b\x32\x0e.compiler.File\x12%\n\x06status\x18\x02 \x01(\x0e\x32\x15.compiler.BuildStatus\x12\x14\n\x07message\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_message\"\x11\n\x0f\x42uildStartEvent\"\x0f\n\rBuildEndEvent\"\xb0\x01\n\x12\x42uildResponseEvent\x12\x11\n\x07message\x18\x01 \x01(\tH\x00\x12+\n\x08response\x18\x02 \x01(\x0b\x32\x17.compiler.BuildResponseH\x00\x12*\n\x05start\x18\x03 \x01(\x0b\x32\x19.compiler.BuildStartEventH\x00\x12&\n\x03\x65nd\x18\x04 \x01(\x0b\x32\x17.compiler.BuildEndEventH\x00\x42\x06\n\x04kind* \n\x0b\x42uildStatus\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x32N\n\x0b\x43ompilerApi\x12?\n\x05\x42uild\x12\x16.compiler.BuildRequest\x1a\x1c.compiler.BuildResponseEvent0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63ompiler.proto\x12\x08\x63ompiler\x1a\x1bgoogle/protobuf/empty.proto\"\"\n\x04\x46ile\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\x89\x01\n\x0c\x42uildRequest\x12\x12\n\nqpc_config\x18\x01 \x01(\t\x12\x13\n\x06target\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x17\n\ncheck_only\x18\x03 \x01(\x08H\x01\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x04 \x03(\x0b\x32\x0e.compiler.FileB\t\n\x07_targetB\r\n\x0b_check_only\"\xa5\x02\n\nStageEvent\x12+\n\x0b\x63heck_start\x18\x01 \x01(\x0b\x32\x14.compiler.CheckStartH\x00\x12\'\n\tcheck_end\x18\x02 \x01(\x0b\x32\x12.compiler.CheckEndH\x00\x12)\n\nemit_start\x18\x03 \x01(\x0b\x32\x13.compiler.EmitStartH\x00\x12%\n\x08\x65mit_end\x18\x04 \x01(\x0b\x32\x11.compiler.EmitEndH\x00\x12+\n\x0b\x62uild_start\x18\x05 \x01(\x0b\x32\x14.compiler.BuildStartH\x00\x12\'\n\tbuild_end\x18\x06 \x01(\x0b\x32\x12.compiler.BuildEndH\x00\x12\x11\n\x07message\x18\x07 \x01(\tH\x00\x42\x06\n\x04kind\"\x0c\n\nCheckStart\"8\n\x08\x43heckEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_message\"\x0b\n\tEmitStart\"V\n\x07\x45mitEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x03 \x03(\x0b\x32\x0e.compiler.FileB\n\n\x08_message\"\x0c\n\nBuildStart\"f\n\x08\x42uildEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\"\n\x05wheel\x18\x03 \x01(\x0b\x32\x0e.compiler.FileH\x01\x88\x01\x01\x42\n\n\x08_messageB\x08\n\x06_wheel2F\n\x0b\x43ompilerApi\x12\x37\n\x05\x42uild\x12\x16.compiler.BuildRequest\x1a\x14.compiler.StageEvent0\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'compiler_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_BUILDSTATUS']._serialized_start=572
-  _globals['_BUILDSTATUS']._serialized_end=604
-  _globals['_FILE']._serialized_start=28
-  _globals['_FILE']._serialized_end=94
-  _globals['_BUILDREQUEST']._serialized_start=97
-  _globals['_BUILDREQUEST']._serialized_end=234
-  _globals['_BUILDRESPONSE']._serialized_start=236
-  _globals['_BUILDRESPONSE']._serialized_end=355
-  _globals['_BUILDSTARTEVENT']._serialized_start=357
-  _globals['_BUILDSTARTEVENT']._serialized_end=374
-  _globals['_BUILDENDEVENT']._serialized_start=376
-  _globals['_BUILDENDEVENT']._serialized_end=391
-  _globals['_BUILDRESPONSEEVENT']._serialized_start=394
-  _globals['_BUILDRESPONSEEVENT']._serialized_end=570
-  _globals['_COMPILERAPI']._serialized_start=606
-  _globals['_COMPILERAPI']._serialized_end=684
+  _globals['_FILE']._serialized_start=57
+  _globals['_FILE']._serialized_end=91
+  _globals['_BUILDREQUEST']._serialized_start=94
+  _globals['_BUILDREQUEST']._serialized_end=231
+  _globals['_STAGEEVENT']._serialized_start=234
+  _globals['_STAGEEVENT']._serialized_end=527
+  _globals['_CHECKSTART']._serialized_start=529
+  _globals['_CHECKSTART']._serialized_end=541
+  _globals['_CHECKEND']._serialized_start=543
+  _globals['_CHECKEND']._serialized_end=599
+  _globals['_EMITSTART']._serialized_start=601
+  _globals['_EMITSTART']._serialized_end=612
+  _globals['_EMITEND']._serialized_start=614
+  _globals['_EMITEND']._serialized_end=700
+  _globals['_BUILDSTART']._serialized_start=702
+  _globals['_BUILDSTART']._serialized_end=714
+  _globals['_BUILDEND']._serialized_start=716
+  _globals['_BUILDEND']._serialized_end=818
+  _globals['_COMPILERAPI']._serialized_start=820
+  _globals['_COMPILERAPI']._serialized_end=890
 # @@protoc_insertion_point(module_scope)

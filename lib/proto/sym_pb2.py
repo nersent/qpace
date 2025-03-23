@@ -22,23 +22,28 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tsym.proto\"\x1b\n\rGetSymRequest\x12\n\n\x02id\x18\x01 \x01(\t\"#\n\x0eGetSymResponse\x12\x11\n\x03sym\x18\x01 \x01(\x0b\x32\x04.Sym\"\x9b\x03\n\x03Sym\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x06prefix\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08\x63urrency\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x1a\n\rbase_currency\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x13\n\x06ticker\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x16\n\tticker_id\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x14\n\x07\x63ountry\x18\x07 \x01(\tH\x05\x88\x01\x01\x12\x15\n\x08min_tick\x18\x08 \x01(\x01H\x06\x88\x01\x01\x12\x14\n\x07min_qty\x18\t \x01(\x01H\x07\x88\x01\x01\x12\x18\n\x0bprice_scale\x18\n \x01(\x01H\x08\x88\x01\x01\x12\x18\n\x0bpoint_value\x18\x0b \x01(\x01H\t\x88\x01\x01\x12\x14\n\x05icons\x18\x0c \x03(\x0b\x32\x05.IconB\t\n\x07_prefixB\x0b\n\t_currencyB\x10\n\x0e_base_currencyB\t\n\x07_tickerB\x0c\n\n_ticker_idB\n\n\x08_countryB\x0b\n\t_min_tickB\n\n\x08_min_qtyB\x0e\n\x0c_price_scaleB\x0e\n\x0c_point_value\"&\n\x04Icon\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\x11\n\tmime_type\x18\x02 \x01(\t20\n\x06SymApi\x12&\n\x03Get\x12\x0e.GetSymRequest\x1a\x0f.GetSymResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tsym.proto\x12\x03sym\x1a\x1bgoogle/protobuf/empty.proto\"t\n\x06\x46ilter\x12\x0f\n\x02id\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x1a\n\rticker_id_pat\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x16\n\ttimeframe\x18\x03 \x01(\tH\x02\x88\x01\x01\x42\x05\n\x03_idB\x10\n\x0e_ticker_id_patB\x0c\n\n_timeframe\"b\n\x05Query\x12\x1b\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\x0b.sym.Filter\x12\x12\n\x05limit\x18\x02 \x01(\rH\x00\x88\x01\x01\x12\x13\n\x06offset\x18\x03 \x01(\rH\x01\x88\x01\x01\x42\x08\n\x06_limitB\t\n\x07_offset\"\'\n\nGetRequest\x12\x19\n\x05query\x18\x01 \x01(\x0b\x32\n.sym.Query\"%\n\x0bGetResponse\x12\x16\n\x04syms\x18\x01 \x03(\x0b\x32\x08.sym.Sym\"\xe9\x03\n\x03Sym\x12\n\n\x02id\x18\x01 \x01(\t\x12\x16\n\tticker_id\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x13\n\x06prefix\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x15\n\x08\x63urrency\x18\x04 \x01(\tH\x02\x88\x01\x01\x12\x1a\n\rbase_currency\x18\x05 \x01(\tH\x03\x88\x01\x01\x12\x13\n\x06ticker\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x14\n\x07\x63ountry\x18\x07 \x01(\tH\x05\x88\x01\x01\x12\x15\n\x08min_tick\x18\x08 \x01(\x01H\x06\x88\x01\x01\x12\x14\n\x07min_qty\x18\t \x01(\x01H\x07\x88\x01\x01\x12\x18\n\x0bprice_scale\x18\n \x01(\x01H\x08\x88\x01\x01\x12\x18\n\x0bpoint_value\x18\x0b \x01(\x01H\t\x88\x01\x01\x12\x18\n\x05icons\x18\x0c \x03(\x0b\x32\t.sym.Icon\x12\x11\n\x04kind\x18\r \x01(\tH\n\x88\x01\x01\x12\x1a\n\rjson_metadata\x18\x0e \x01(\tH\x0b\x88\x01\x01\x42\x0c\n\n_ticker_idB\t\n\x07_prefixB\x0b\n\t_currencyB\x10\n\x0e_base_currencyB\t\n\x07_tickerB\n\n\x08_countryB\x0b\n\t_min_tickB\n\n\x08_min_qtyB\x0e\n\x0c_price_scaleB\x0e\n\x0c_point_valueB\x07\n\x05_kindB\x10\n\x0e_json_metadata\"&\n\x04Icon\x12\x0b\n\x03url\x18\x01 \x01(\t\x12\x11\n\tmime_type\x18\x02 \x01(\t22\n\x06SymApi\x12(\n\x03Get\x12\x0f.sym.GetRequest\x1a\x10.sym.GetResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'sym_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_GETSYMREQUEST']._serialized_start=13
-  _globals['_GETSYMREQUEST']._serialized_end=40
-  _globals['_GETSYMRESPONSE']._serialized_start=42
-  _globals['_GETSYMRESPONSE']._serialized_end=77
-  _globals['_SYM']._serialized_start=80
-  _globals['_SYM']._serialized_end=491
-  _globals['_ICON']._serialized_start=493
-  _globals['_ICON']._serialized_end=531
-  _globals['_SYMAPI']._serialized_start=533
-  _globals['_SYMAPI']._serialized_end=581
+  _globals['_FILTER']._serialized_start=47
+  _globals['_FILTER']._serialized_end=163
+  _globals['_QUERY']._serialized_start=165
+  _globals['_QUERY']._serialized_end=263
+  _globals['_GETREQUEST']._serialized_start=265
+  _globals['_GETREQUEST']._serialized_end=304
+  _globals['_GETRESPONSE']._serialized_start=306
+  _globals['_GETRESPONSE']._serialized_end=343
+  _globals['_SYM']._serialized_start=346
+  _globals['_SYM']._serialized_end=835
+  _globals['_ICON']._serialized_start=837
+  _globals['_ICON']._serialized_end=875
+  _globals['_SYMAPI']._serialized_start=877
+  _globals['_SYMAPI']._serialized_end=927
 # @@protoc_insertion_point(module_scope)

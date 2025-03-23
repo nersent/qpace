@@ -1,37 +1,79 @@
-// package: 
+// package: sym
 // file: sym.proto
 
 /* tslint:disable */
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 
-export class GetQuery extends jspb.Message { 
+export class Filter extends jspb.Message { 
 
     hasId(): boolean;
     clearId(): void;
     getId(): string | undefined;
-    setId(value: string): GetQuery;
+    setId(value: string): Filter;
 
-    hasTickerId(): boolean;
-    clearTickerId(): void;
-    getTickerId(): string | undefined;
-    setTickerId(value: string): GetQuery;
+    hasTickerIdPat(): boolean;
+    clearTickerIdPat(): void;
+    getTickerIdPat(): string | undefined;
+    setTickerIdPat(value: string): Filter;
+
+    hasTimeframe(): boolean;
+    clearTimeframe(): void;
+    getTimeframe(): string | undefined;
+    setTimeframe(value: string): Filter;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetQuery.AsObject;
-    static toObject(includeInstance: boolean, msg: GetQuery): GetQuery.AsObject;
+    toObject(includeInstance?: boolean): Filter.AsObject;
+    static toObject(includeInstance: boolean, msg: Filter): Filter.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetQuery, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetQuery;
-    static deserializeBinaryFromReader(message: GetQuery, reader: jspb.BinaryReader): GetQuery;
+    static serializeBinaryToWriter(message: Filter, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Filter;
+    static deserializeBinaryFromReader(message: Filter, reader: jspb.BinaryReader): Filter;
 }
 
-export namespace GetQuery {
+export namespace Filter {
     export type AsObject = {
         id?: string,
-        tickerId?: string,
+        tickerIdPat?: string,
+        timeframe?: string,
+    }
+}
+
+export class Query extends jspb.Message { 
+
+    hasFilter(): boolean;
+    clearFilter(): void;
+    getFilter(): Filter | undefined;
+    setFilter(value?: Filter): Query;
+
+    hasLimit(): boolean;
+    clearLimit(): void;
+    getLimit(): number | undefined;
+    setLimit(value: number): Query;
+
+    hasOffset(): boolean;
+    clearOffset(): void;
+    getOffset(): number | undefined;
+    setOffset(value: number): Query;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Query.AsObject;
+    static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Query, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Query;
+    static deserializeBinaryFromReader(message: Query, reader: jspb.BinaryReader): Query;
+}
+
+export namespace Query {
+    export type AsObject = {
+        filter?: Filter.AsObject,
+        limit?: number,
+        offset?: number,
     }
 }
 
@@ -39,8 +81,8 @@ export class GetRequest extends jspb.Message {
 
     hasQuery(): boolean;
     clearQuery(): void;
-    getQuery(): GetQuery | undefined;
-    setQuery(value?: GetQuery): GetRequest;
+    getQuery(): Query | undefined;
+    setQuery(value?: Query): GetRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetRequest.AsObject;
@@ -54,16 +96,15 @@ export class GetRequest extends jspb.Message {
 
 export namespace GetRequest {
     export type AsObject = {
-        query?: GetQuery.AsObject,
+        query?: Query.AsObject,
     }
 }
 
 export class GetResponse extends jspb.Message { 
-
-    hasSym(): boolean;
-    clearSym(): void;
-    getSym(): Sym | undefined;
-    setSym(value?: Sym): GetResponse;
+    clearSymsList(): void;
+    getSymsList(): Array<Sym>;
+    setSymsList(value: Array<Sym>): GetResponse;
+    addSyms(value?: Sym, index?: number): Sym;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetResponse.AsObject;
@@ -76,51 +117,6 @@ export class GetResponse extends jspb.Message {
 }
 
 export namespace GetResponse {
-    export type AsObject = {
-        sym?: Sym.AsObject,
-    }
-}
-
-export class GetListRequest extends jspb.Message { 
-
-    hasQuery(): boolean;
-    clearQuery(): void;
-    getQuery(): GetQuery | undefined;
-    setQuery(value?: GetQuery): GetListRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetListRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: GetListRequest): GetListRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetListRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetListRequest;
-    static deserializeBinaryFromReader(message: GetListRequest, reader: jspb.BinaryReader): GetListRequest;
-}
-
-export namespace GetListRequest {
-    export type AsObject = {
-        query?: GetQuery.AsObject,
-    }
-}
-
-export class GetListResponse extends jspb.Message { 
-    clearSymsList(): void;
-    getSymsList(): Array<Sym>;
-    setSymsList(value: Array<Sym>): GetListResponse;
-    addSyms(value?: Sym, index?: number): Sym;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetListResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: GetListResponse): GetListResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetListResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetListResponse;
-    static deserializeBinaryFromReader(message: GetListResponse, reader: jspb.BinaryReader): GetListResponse;
-}
-
-export namespace GetListResponse {
     export type AsObject = {
         symsList: Array<Sym.AsObject>,
     }
@@ -184,6 +180,16 @@ export class Sym extends jspb.Message {
     setIconsList(value: Array<Icon>): Sym;
     addIcons(value?: Icon, index?: number): Icon;
 
+    hasKind(): boolean;
+    clearKind(): void;
+    getKind(): string | undefined;
+    setKind(value: string): Sym;
+
+    hasJsonMetadata(): boolean;
+    clearJsonMetadata(): void;
+    getJsonMetadata(): string | undefined;
+    setJsonMetadata(value: string): Sym;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Sym.AsObject;
     static toObject(includeInstance: boolean, msg: Sym): Sym.AsObject;
@@ -208,6 +214,8 @@ export namespace Sym {
         priceScale?: number,
         pointValue?: number,
         iconsList: Array<Icon.AsObject>,
+        kind?: string,
+        jsonMetadata?: string,
     }
 }
 

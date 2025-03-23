@@ -69,6 +69,12 @@ impl Ctx {
     }
 
     #[inline]
+    pub fn reset(&mut self) {
+        self.bar_index = 0;
+        self.is_initialized = false;
+    }
+
+    #[inline]
     pub fn bar_index(&self) -> usize {
         self.bar_index
     }

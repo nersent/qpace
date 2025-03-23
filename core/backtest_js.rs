@@ -2,6 +2,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
   use crate::ctx_js::{JsCtx};
   use wasm_bindgen::convert::TryFromJsValue;
+  use js_sys::{Object, Reflect};
 }}
 use crate::{
     backtest::{Backtest, BacktestConfig},
@@ -17,14 +18,22 @@ use chrono::{DateTime, Utc};
 use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 #[cfg(feature = "bindings_wasm")]
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console, js_name = table)]
+    pub fn js_console_table(obj: &JsValue);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn js_console_log(s: &str);
+}
+
+#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class=BacktestConfig)]
 impl BacktestConfig {
     #[wasm_bindgen(constructor)]
     #[inline]
-    pub fn js_new(initial_capital: Option<f64>, process_orders_on_close: Option<bool>) -> Self {
-        let initial_capital = initial_capital.unwrap_or(1000.0);
-        let process_orders_on_close = process_orders_on_close.unwrap_or(false);
-        Self::new(initial_capital, process_orders_on_close)
+    pub fn js_new() -> Self {
+        Self::default()
     }
 
     #[wasm_bindgen(getter = initialCapital)]
@@ -33,10 +42,22 @@ impl BacktestConfig {
         self.initial_capital()
     }
 
+    #[wasm_bindgen(setter = initialCapital)]
+    #[inline]
+    pub fn js_set_initial_capital(&mut self, initial_capital: f64) {
+        self.set_initial_capital(initial_capital)
+    }
+
     #[wasm_bindgen(getter = processOrdersOnClose)]
     #[inline]
     pub fn js_process_orders_on_close(&self) -> bool {
         self.process_orders_on_close()
+    }
+
+    #[wasm_bindgen(setter = processOrdersOnClose)]
+    #[inline]
+    pub fn js_set_process_orders_on_close(&mut self, process_orders_on_close: bool) {
+        self.set_process_orders_on_close(process_orders_on_close)
     }
 }
 
@@ -69,14 +90,35 @@ impl Into<Rc<RefCell<Backtest>>> for JsBacktest {
 impl JsBacktest {
     #[wasm_bindgen(constructor)]
     #[inline]
-    pub fn js_new(js_ctx: JsCtx, config: BacktestConfig) -> Self {
-        Self::new(js_ctx, config)
+    pub fn js_new(ctx: JsCtx, config: BacktestConfig) -> Self {
+        Self::new(ctx, config)
     }
 
     #[wasm_bindgen(getter = ctx)]
     #[inline]
     pub fn js_ctx(&self) -> JsCtx {
         self.js_ctx.clone()
+    }
+
+    #[wasm_bindgen(js_name = "next")]
+    #[inline]
+    pub fn js_next(&mut self) -> Option<usize> {
+        let mut bt = self.bt.borrow_mut();
+        let next = bt.ctx().borrow_mut().next();
+        bt.on_bar_open();
+        return next;
+    }
+
+    #[wasm_bindgen(js_name = "onBarOpen")]
+    #[inline]
+    pub fn js_on_bar_open(&mut self) {
+        self.bt.borrow_mut().on_bar_open();
+    }
+
+    #[wasm_bindgen(js_name = "onBarClose")]
+    #[inline]
+    pub fn js_on_bar_close(&mut self) {
+        self.bt.borrow_mut().on_bar_close();
     }
 
     #[wasm_bindgen(getter = config)]
@@ -99,13 +141,13 @@ impl JsBacktest {
         self.bt.borrow().net_equity()
     }
 
-    #[wasm_bindgen(getter = equitySeries)]
+    #[wasm_bindgen(getter = equityList)]
     #[inline]
     pub fn js_equity_series(&self) -> Vec<f64> {
         self.bt.borrow().equity_series().to_vec()
     }
 
-    #[wasm_bindgen(getter = netEquitySeries)]
+    #[wasm_bindgen(getter = netEquityList)]
     #[inline]
     pub fn js_net_equity_series(&self) -> Vec<f64> {
         self.bt.borrow().net_equity_series().to_vec()
@@ -123,7 +165,7 @@ impl JsBacktest {
         self.bt.borrow().net_equity_returns()
     }
 
-    #[wasm_bindgen(getter = pnlSeries)]
+    #[wasm_bindgen(getter = pnlList)]
     #[inline]
     pub fn js_pnl_series(&self) -> Vec<f64> {
         self.bt.borrow().pnl_series()
@@ -300,22 +342,20 @@ impl JsBacktest {
         self.bt.borrow_mut().signal_batch_dict(_signals)
     }
 
-    #[wasm_bindgen(js_name = "skipRemainingBars")]
+    #[wasm_bindgen(js_name = "skipTo")]
     #[inline]
-    pub fn js_skip_remaining_bars(&mut self) {
-        self.bt.borrow_mut().skip_remaining_bars()
-    }
-
-    #[wasm_bindgen(js_name = "skipToBar")]
-    #[inline]
-    pub fn js_skip_to_bar(&mut self, bar_index: usize) {
+    pub fn js_skip_to(&mut self, bar_index: usize) {
         self.bt.borrow_mut().skip_to_bar(bar_index)
     }
 
-    #[wasm_bindgen(js_name = "skipBars")]
+    #[wasm_bindgen(js_name = "skip")]
     #[inline]
-    pub fn js_skip_bars(&mut self, bars: usize) {
-        self.bt.borrow_mut().skip_bars(bars)
+    pub fn js_skip(&mut self, bars: Option<usize>) {
+        if bars.is_none() {
+            self.bt.borrow_mut().skip_remaining_bars()
+        } else {
+            self.bt.borrow_mut().skip_bars(bars.unwrap())
+        }
     }
 
     #[wasm_bindgen(getter = length)]
@@ -328,5 +368,60 @@ impl JsBacktest {
     #[inline]
     pub fn js_to_pine(&self) -> String {
         self.bt.borrow().to_pine()
+    }
+
+    #[wasm_bindgen(getter = metrics)]
+    pub fn js_metrics(&self) -> JsValue {
+        let bt = self.bt.borrow();
+        let obj = Object::new();
+
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("equity"),
+            &JsValue::from_f64(bt.equity()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("netEquity"),
+            &JsValue::from_f64(bt.net_equity()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("netProfit"),
+            &JsValue::from_f64(bt.net_profit()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("profitFactor"),
+            &JsValue::from_f64(bt.profit_factor()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("winRate"),
+            &JsValue::from_f64(bt.win_rate()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("positionSize"),
+            &JsValue::from_f64(bt.position_size()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("openTrades"),
+            &JsValue::from_f64(bt.open_trades().len() as f64),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("closedTrades"),
+            &JsValue::from_f64(bt.closed_trades().len() as f64),
+        );
+
+        obj.into()
+    }
+
+    #[wasm_bindgen(js_name = "print")]
+    pub fn js_print(&self) {
+        let metrics = self.js_metrics();
+        js_console_table(&metrics);
     }
 }

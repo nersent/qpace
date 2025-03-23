@@ -7,17 +7,17 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   };
   use pyo3::exceptions::PyStopIteration;
   use crate::rs_utils::{pyslice_to_range};
+  use crate::ohlcv_py::PyOhlcv;
+  use crate::timeframe_py::PyTimeframe;
 }}
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     ctx::Ctx,
     ohlcv::{Ohlcv, OhlcvBar, OhlcvReader, OhlcvWriter},
-    ohlcv_py::PyOhlcv,
     rs_utils::get_oldest_possible_datetime,
     sym::Sym,
     timeframe::Timeframe,
-    timeframe_py::PyTimeframe,
 };
 use chrono::{DateTime, Utc};
 
@@ -63,10 +63,10 @@ impl Into<Rc<RefCell<Ctx>>> for PyCtx {
 #[pymethods]
 impl PyCtx {
     #[new]
-    #[pyo3(signature = (ohlcv, sym=None, timeframe=None))]
-    pub fn py_new(ohlcv: PyOhlcv, sym: Option<Sym>, timeframe: Option<PyTimeframe>) -> Self {
+    #[pyo3(signature = (ohlcv, sym=None))]
+    pub fn py_new(ohlcv: PyOhlcv, sym: Option<Sym>) -> Self {
         let sym = sym.unwrap_or_else(|| Sym::default());
-        let timeframe = timeframe.unwrap_or_else(|| PyTimeframe::default());
+        let timeframe = ohlcv.py_timeframe();
         let mut ctx = Ctx::new();
         ctx.set_ohlcv(ohlcv.clone_box());
         ctx.set_sym(sym);
@@ -118,6 +118,13 @@ impl PyCtx {
     #[doc = "Creates a new instance starting from first bar. Reuses same OHLCV and symbol."]
     pub fn py_fork(&self) -> Self {
         self.fork()
+    }
+
+    #[pyo3(name = "reset")]
+    #[inline]
+    #[doc = "Resets the context to the first bar and marks it as uninitialized."]
+    pub fn py_reset(&self) {
+        self.ctx.borrow_mut().reset();
     }
 
     #[pyo3(name = "next")]
