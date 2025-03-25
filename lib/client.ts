@@ -5,23 +5,14 @@ import {
   ClientTelemetry,
   DEFAULT_GRPC_ENDPOINT,
   DEFAULT_REST_ENDPOINT,
-  GetTeamMeRequest,
-  GetTeamMeResponse,
-  OhlcvFilter,
-  ohlcvFilterToProto,
-  OhlcvQuery,
+  MeUser,
   protoToOhlcvBar,
-  protoToSym,
-  SymFilter,
-  symFilterToProto,
-  SymQuery,
-  symQueryToProto,
+  VerifyApiKeyRequest,
+  VerifyApiKeyResponse,
 } from "./internal";
 import { CompilerApiClient } from "./proto/compiler_grpc_pb";
 import { OhlcvApiClient } from "./proto/ohlcv_grpc_pb";
 import * as ohlcvApi from "./proto/ohlcv_pb";
-import { SymApiClient } from "./proto/sym_grpc_pb";
-import * as symApi from "./proto/sym_pb";
 
 import * as qp from "./";
 
@@ -32,10 +23,19 @@ export interface ClientConfig {
   timeout?: number;
 }
 
+interface SymFilter {
+  id?: string;
+  tickerId?: string;
+  timeframe?: qp.Timeframe | string;
+}
+
+type SymOpts = SymFilter & { limit?: number; offset?: number };
+
+type OhlcvOpts = { limit?: number; offset?: number };
+
 export class Client {
   public readonly http: AxiosInstance;
   public readonly compilerClient: CompilerApiClient;
-  public readonly symClient: SymApiClient;
   public readonly ohlcvClient: OhlcvApiClient;
   private _grpcMetadata: grpc.Metadata | undefined;
   private telemetry?: ClientTelemetry;
@@ -62,7 +62,6 @@ export class Client {
       grpcCredentials,
       grpcOptions,
     );
-    this.symClient = new SymApiClient(grpApiBase, grpcCredentials, grpcOptions);
     this.ohlcvClient = new OhlcvApiClient(
       grpApiBase,
       grpcCredentials,
@@ -86,98 +85,71 @@ export class Client {
     return this._grpcMetadata.clone();
   }
 
-  public async getMe(): Promise<{ team: { id: string; name: string } }> {
-    const res = await this.http.get<
-      GetTeamMeRequest,
-      AxiosResponse<GetTeamMeResponse>
-    >("/team/me");
-    return res.data;
-  }
-
-  public async sym(filter: SymFilter | string | qp.Sym): Promise<qp.Sym> {
-    if (filter instanceof qp.Sym) {
-      return filter;
-    }
+  public async sym(filter: SymFilter | string): Promise<qp.Sym> {
+    let query: SymOpts = { limit: 1 };
     if (typeof filter === "string") {
-      filter = { id: filter, tickerId: filter };
+      query = { ...query, id: filter, tickerId: filter };
+    } else {
+      query = { ...query, ...filter };
     }
-    const syms = await this.syms({ ...filter, limit: 1 });
+    const syms = await this.syms(query);
     if (syms.length === 0) {
       throw new Error("No matching symbol found");
     }
     return syms[0];
   }
 
-  public async syms(opts: SymQuery): Promise<qp.Sym[]> {
-    const req = new symApi.GetRequest().setQuery(symQueryToProto(opts));
-    const res = await new Promise<symApi.GetResponse>((_resolve, _reject) => {
-      this.symClient.get(req, this.createGrpcMetadata(), (err, res) => {
-        if (err) return _reject(err);
-        _resolve(res);
-      });
+  public async syms(q: SymOpts = {}): Promise<qp.Sym[]> {
+    const timeframe = q?.timeframe?.toString();
+    const { data } = await this.http.get(`/symbols`, {
+      params: {
+        id_pat: q.id,
+        ticker_id_pat: q.tickerId,
+        limit: q?.limit,
+        offset: q?.offset,
+        timeframe,
+      },
     });
-    return res.getSymsList()!.map((s) => protoToSym(s));
+    return data["symbols"].map((r: any) => qp.Sym.fromJSON(r));
   }
 
-  public async bars(
-    _sym: SymFilter | string | qp.Sym,
-    opts: Omit<OhlcvQuery, "sym"> = {},
-  ): Promise<qp.OhlcvBar[]> {
-    const sym = await this.sym(_sym);
-    if (sym.id == null) {
-      throw new Error(`Symbol has no id ${JSON.stringify(sym)}`);
+  public async ohlcv(
+    sym: SymFilter | string | qp.Sym,
+    timeframe: qp.Timeframe | string,
+    opts?: OhlcvOpts,
+  ): Promise<qp.Ohlcv> {
+    if (!(sym instanceof qp.Sym)) {
+      sym = await this.sym(sym);
     }
-    const query = new ohlcvApi.Query().setFilter(
-      ohlcvFilterToProto({ ...opts, sym: sym.id }),
-    );
-    if (opts?.limit != null) query.setLimit(opts.limit);
-    if (opts?.offset != null) query.setOffset(opts.offset);
-    const req = new ohlcvApi.GetRequest().setQuery(query);
+    const req = new ohlcvApi.GetRequest();
+    if (sym.id == null) {
+      throw new Error("Symbol ID is required");
+    }
+    req.setSymId(sym.id);
+    req.setTimeframe(timeframe.toString());
+    if (opts?.limit != null) req.setLimit(opts.limit);
+    if (opts?.offset != null) req.setOffset(opts.offset);
     const res = await new Promise<ohlcvApi.GetResponse>((_resolve, _reject) => {
       this.ohlcvClient.get(req, this.createGrpcMetadata(), (err, res) => {
         if (err) return _reject(err);
         _resolve(res);
       });
     });
-    return res.getBarsList().map(protoToOhlcvBar);
-  }
-
-  public async ohlcv(
-    _sym: SymFilter | string | qp.Sym,
-    query: Omit<OhlcvQuery, "sym"> | qp.Ohlcv = {},
-  ): Promise<qp.Ohlcv> {
-    if (query instanceof qp.Ohlcv) {
-      return query;
-    }
-    const bars = await this.bars(_sym, query);
-    return qp.Ohlcv.fromBars(bars);
+    return qp.Ohlcv.fromBars(res.getBarsList().map(protoToOhlcvBar));
   }
 
   public async ctx(
-    _sym: SymFilter | string | qp.Sym,
-    query: Omit<OhlcvQuery, "sym"> | qp.Ohlcv = {},
+    sym: SymFilter | string | qp.Sym,
+    timeframe: qp.Timeframe | string,
+    opts?: OhlcvOpts,
   ): Promise<qp.Ctx> {
-    const sym = await this.sym(_sym);
-    const ohlcv = await this.ohlcv(sym, query);
-    return new qp.Ctx(ohlcv, sym);
+    let _sym: qp.Sym;
+    if (sym instanceof qp.Sym) {
+      _sym = sym;
+    } else {
+      _sym = await this.sym(sym);
+    }
+    const ohlcv = await this.ohlcv(sym, timeframe, opts);
+    return new qp.Ctx(ohlcv, _sym);
   }
-
-  // public async bt(
-  //   _sym: SymFilter | string | qp.Sym,
-  //   query: Omit<OhlcvQuery, "sym"> & {
-  //     initialCapital?: number;
-  //     processOrdersOnClose?: boolean;
-  //   } = {},
-  // ): Promise<qp.Backtest> {
-  //   const ctx = await this.ctx(_sym, query);
-  //   const btConfig = new qp.BacktestConfig();
-  //   if (query.initialCapital != null) {
-  //     btConfig.initialCapital = query.initialCapital;
-  //   }
-  //   if (query.processOrdersOnClose != null) {
-  //     btConfig.processOrdersOnClose = query.processOrdersOnClose;
-  //   }
-  //   const bt = new qp.Backtest(ctx, btConfig);
-  //   return bt;
-  // }
 }

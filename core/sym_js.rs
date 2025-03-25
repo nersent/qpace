@@ -51,6 +51,23 @@ impl SymIcon {
         );
         obj.into()
     }
+
+    #[wasm_bindgen(js_name = "fromJSON")]
+    pub fn js_from_json(json: JsValue) -> SymIcon {
+        let obj = json.unchecked_into::<Object>();
+        let url = Reflect::get(&obj, &"url".into())
+            .unwrap()
+            .as_string()
+            .unwrap_or_default();
+        let mime_type = Reflect::get(&obj, &"mimeType".into())
+            .unwrap()
+            .as_string()
+            .unwrap_or_default();
+        let mut icon = SymIcon::default();
+        icon.set_url(url);
+        icon.set_mime_type(mime_type);
+        icon
+    }
 }
 
 #[cfg(feature = "bindings_wasm")]
@@ -63,6 +80,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = id)]
     #[inline]
+    #[doc = "Unique identifier of the symbol fetched via qPACE API"]
     pub fn js_id(&self) -> Option<String> {
         self.id().map(|s| s.to_string())
     }
@@ -75,6 +93,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = tickerId)]
     #[inline]
+    #[doc = "example: `NASDAQ:AAPL`"]
     pub fn js_ticker_id(&self) -> Option<String> {
         self.ticker_id().map(|s| s.to_string())
     }
@@ -87,6 +106,12 @@ impl Sym {
 
     #[wasm_bindgen(getter = minTick)]
     #[inline]
+    #[doc = "
+The tick size is the smallest possible price change an instrument can have [1]. In other words, when the price of an instrument fluctuates, it always changes with the size of at least one tick.
+Stocks usually have a tick size of one cent (0.01). Most spot forex symbols trade in 0.00001 increments. The E-mini S&P 500 future uses a tick size of 0.25, while the EuroStoxx 50 future works with a value of 0.5.
+    
+https://www.tradingcode.net/tradingview/instrument-minimum-tick/
+      "]
     pub fn js_min_tick(&self) -> f64 {
         self.min_tick()
     }
@@ -99,6 +124,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = minQty)]
     #[inline]
+    #[doc = "https://www.tradingcode.net/tradingview/equity-percent-default-order/#order-size-formula"]
     pub fn js_min_qty(&self) -> f64 {
         self.min_qty()
     }
@@ -111,6 +137,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = prefix)]
     #[inline]
+    #[doc = "example: `CME_EOD:TICKER -> CME_EOD`"]
     pub fn js_prefix(&self) -> Option<String> {
         self.prefix().map(|s| s.to_string())
     }
@@ -123,6 +150,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = currency)]
     #[inline]
+    #[doc = "example: `NASDAQ:AAPL -> USD`, `EURJPY -> JPY`"]
     pub fn js_currency(&self) -> Option<String> {
         self.currency().map(|s| s.to_string())
     }
@@ -135,6 +163,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = baseCurrency)]
     #[inline]
+    #[doc = "example: `EURJPY -> EUR`, `BTCUSDT -> BTC`, `CME:6C1! -> CAD`, `NASDAQ:AAPL -> \"\"`"]
     pub fn js_base_currency(&self) -> Option<String> {
         self.base_currency().map(|s| s.to_string())
     }
@@ -147,6 +176,7 @@ impl Sym {
 
     #[wasm_bindgen(getter = ticker)]
     #[inline]
+    #[doc = "symbol name without exchange prefix, \"MSFT\""]
     pub fn js_ticker(&self) -> Option<String> {
         self.ticker().map(|s| s.to_string())
     }
@@ -287,5 +317,82 @@ impl Sym {
         let _ = Reflect::set(&obj, &"icons".into(), &icons_js);
 
         obj.into()
+    }
+
+    #[wasm_bindgen(js_name = "fromJSON")]
+    pub fn js_from_json(json: JsValue) -> Sym {
+        let obj = json.unchecked_into::<Object>();
+        let id = Reflect::get(&obj, &"id".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let ticker_id = Reflect::get(&obj, &"tickerId".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let min_tick = Reflect::get(&obj, &"minTick".into())
+            .unwrap()
+            .as_f64()
+            .unwrap_or_default();
+        let min_qty = Reflect::get(&obj, &"minQty".into())
+            .unwrap()
+            .as_f64()
+            .unwrap_or_default();
+        let prefix = Reflect::get(&obj, &"prefix".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let currency = Reflect::get(&obj, &"currency".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let base_currency = Reflect::get(&obj, &"baseCurrency".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let ticker = Reflect::get(&obj, &"ticker".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let country = Reflect::get(&obj, &"country".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let kind = Reflect::get(&obj, &"kind".into())
+            .unwrap()
+            .as_string()
+            .map(|s| s.to_string());
+        let price_scale = Reflect::get(&obj, &"priceScale".into())
+            .unwrap()
+            .as_f64()
+            .unwrap_or_default();
+        let point_value = Reflect::get(&obj, &"pointValue".into())
+            .unwrap()
+            .as_f64()
+            .unwrap_or_default();
+        let icons_js_value = Reflect::get(&obj, &"icons".into()).unwrap_or_else(|_| JsValue::NULL);
+        let icons_js_array = icons_js_value
+            .dyn_into::<js_sys::Array>()
+            .unwrap_or_else(|_| js_sys::Array::new());
+        let mut icons: Vec<SymIcon> = vec![];
+        for icon_js in icons_js_array.iter() {
+            let icon = SymIcon::js_from_json(icon_js.clone());
+            icons.push(icon);
+        }
+        let mut sym = Sym::default();
+        sym.set_id(id);
+        sym.set_ticker_id(ticker_id);
+        sym.set_min_tick(min_tick);
+        sym.set_min_qty(min_qty);
+        sym.set_prefix(prefix);
+        sym.set_currency(currency);
+        sym.set_base_currency(base_currency);
+        sym.set_ticker(ticker);
+        sym.set_country(country);
+        sym.set_kind(kind);
+        sym.set_price_scale(price_scale);
+        sym.set_point_value(point_value);
+        sym.set_icons(icons);
+        sym
     }
 }

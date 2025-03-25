@@ -7,6 +7,8 @@ client = qp.Client(
 # Fetching symbol
 if True:
     sym = client.sym("BITSTAMP:BTCUSD")
+    sym = client.sym("BITSTAMP:BTC*")
+    sym = client.sym("*:BTCUSD")
     sym = client.sym(ticker_id="BITSTAMP:BTCUSD")
     sym = client.sym("d791fa0d-19d3-4bd0-8ace-fd0e2f2db442")
     sym = client.sym(id="d791fa0d-19d3-4bd0-8ace-fd0e2f2db442")

@@ -2,6 +2,7 @@ import { readFile, writeFile } from "fs/promises";
 import { basename, dirname, normalize, relative, resolve } from "path";
 
 import { ClientReadableStream } from "@grpc/grpc-js";
+import * as grpc from "@grpc/grpc-js";
 import chalk from "chalk";
 import { glob } from "glob";
 import ora, { Ora } from "ora";
@@ -22,6 +23,7 @@ interface DriverContextConfig {
   verbose?: boolean;
   rootDir: string;
   client: CompilerApiClient;
+  grpcMetadata?: grpc.Metadata;
 }
 
 type CheckpointTime = [number | undefined, number | undefined];
@@ -53,105 +55,113 @@ class DriverContext {
   constructor(private readonly config: DriverContextConfig) {}
 
   public async start(srcPaths: string[]): Promise<void> {
-    const { checkOnly, verbose, qpcConfig, target, rootDir } = this.config;
-    CheckpointTime.start(this.time);
+    return new Promise<void>(async (_resolve, _reject) => {
+      const { checkOnly, verbose, qpcConfig, target, rootDir } = this.config;
+      CheckpointTime.start(this.time);
 
-    const req = await this.createBuildRequest(srcPaths);
-    this.stream = this.config.client.build(req);
-    this.stream.on("data", (e: compilerApi.StageEvent) => this.onStage(e));
+      const req = await this.createBuildRequest(srcPaths);
+      this.stream = this.config.client.build(req, this.config.grpcMetadata);
+      this.stream.on("error", (err) => {
+        this.ok = false;
+        this.ora?.fail();
+        console.error(chalk.redBright(err));
+        _reject(err);
+      });
+      this.stream.on("data", (e: compilerApi.StageEvent) => this.onStage(e));
 
-    this.ora = ora(`Checking`).start();
-    if (this.ok) {
-      let e = await this.waitForStage("check_end");
-      this.ora.text = `${this.ora.text} (${prettifyTime(
-        CheckpointTime.diff(this.checkTime),
-      )})`;
-      const checkEvent = e.getCheckEnd();
-      if (checkEvent == null) {
-        throw new Error(`Expected check end event`);
-      }
-      if (checkEvent.getOk()) {
-        this.ora = this.ora.succeed();
-      } else {
-        this.ora = this.ora.fail();
-        this.ok = false;
-        this.printMessage(checkEvent.getMessage());
-      }
-    }
-    if (this.ok && qpcConfig.emit) {
-      this.ora = ora(`Emitting ${target ?? ""}`.trim()).start();
-      const e = await this.waitForStage("emit_end");
-      const emitEvent = e.getEmitEnd();
-      if (emitEvent == null) {
-        throw new Error(`Expected emit end event`);
-      }
-      this.ora.stop();
-      await Promise.all(
-        emitEvent.getFilesList().map((r) => this.onReceivedFile(r)),
-      );
-      if (emitEvent.getOk()) {
-        this.ora.succeed(
-          `${this.ora.text} (${prettifyTime(
-            CheckpointTime.diff(this.emitTime),
-          )})`,
-        );
-      } else {
-        this.ok = false;
-        this.ora.fail();
-        this.printMessage(emitEvent.getMessage());
-      }
-    }
-    if (this.ok && !checkOnly && target != null) {
-      this.ora = ora(`Building ${target ?? ""}`.trim()).start();
-      const e = await this.waitForStage("build_end");
-      const buildEvent = e.getBuildEnd();
-      if (buildEvent == null) {
-        throw new Error(`Expected build end event`);
-      }
-      if (buildEvent.getOk()) {
-        this.ora.succeed(
-          `${this.ora.text} (${prettifyTime(
-            CheckpointTime.diff(this.buildTime),
-          )})`,
-        );
-      } else {
-        this.ok = false;
-        this.ora.fail();
-        this.printMessage(buildEvent.getMessage());
-      }
-
-      if (
-        this.ok &&
-        target?.startsWith("python") &&
-        qpcConfig.python?.installWheel
-      ) {
-        const wheelFile = buildEvent.getWheel();
-        if (wheelFile == null) {
-          throw new Error(`Expected wheel file`);
-        }
-        const wheelPath = await this.onReceivedFile(wheelFile);
-        this.ora = ora(`Installing ${relative(rootDir, wheelPath)}`).start();
-        CheckpointTime.start(this.wheelInstallTime);
-        const execRes = await exec({
-          command: `pip install "${wheelPath}" --force-reinstall`,
-          io: verbose,
-        });
-        CheckpointTime.end(this.wheelInstallTime);
+      this.ora = ora(`Checking`).start();
+      if (this.ok) {
+        let e = await this.waitForStage("check_end");
         this.ora.text = `${this.ora.text} (${prettifyTime(
-          CheckpointTime.diff(this.wheelInstallTime),
+          CheckpointTime.diff(this.checkTime),
         )})`;
-        if (execRes.exitCode === 0) {
-          this.ora.succeed();
+        const checkEvent = e.getCheckEnd();
+        if (checkEvent == null) {
+          throw new Error(`Expected check end event`);
+        }
+        if (checkEvent.getOk()) {
+          this.ora = this.ora.succeed();
         } else {
-          this.ora.fail();
+          this.ora = this.ora.fail();
           this.ok = false;
-          process.stdout.write(execRes.stdout);
-          process.stderr.write(execRes.stderr);
+          this.printMessage(checkEvent.getMessage());
         }
       }
-    }
-    CheckpointTime.end(this.time);
-    this.logEnd();
+      if (this.ok && qpcConfig.emit) {
+        this.ora = ora(`Emitting ${target ?? ""}`.trim()).start();
+        const e = await this.waitForStage("emit_end");
+        const emitEvent = e.getEmitEnd();
+        if (emitEvent == null) {
+          throw new Error(`Expected emit end event`);
+        }
+        this.ora.stop();
+        await Promise.all(
+          emitEvent.getFilesList().map((r) => this.onReceivedFile(r)),
+        );
+        if (emitEvent.getOk()) {
+          this.ora.succeed(
+            `${this.ora.text} (${prettifyTime(
+              CheckpointTime.diff(this.emitTime),
+            )})`,
+          );
+        } else {
+          this.ok = false;
+          this.ora.fail();
+          this.printMessage(emitEvent.getMessage());
+        }
+      }
+      if (this.ok && !checkOnly && target != null) {
+        this.ora = ora(`Building ${target ?? ""}`.trim()).start();
+        const e = await this.waitForStage("build_end");
+        const buildEvent = e.getBuildEnd();
+        if (buildEvent == null) {
+          throw new Error(`Expected build end event`);
+        }
+        if (buildEvent.getOk()) {
+          this.ora.succeed(
+            `${this.ora.text} (${prettifyTime(
+              CheckpointTime.diff(this.buildTime),
+            )})`,
+          );
+        } else {
+          this.ok = false;
+          this.ora.fail();
+          this.printMessage(buildEvent.getMessage());
+        }
+
+        if (
+          this.ok &&
+          target?.startsWith("python") &&
+          qpcConfig.python?.installWheel
+        ) {
+          const wheelFile = buildEvent.getWheel();
+          if (wheelFile == null) {
+            throw new Error(`Expected wheel file`);
+          }
+          const wheelPath = await this.onReceivedFile(wheelFile);
+          this.ora = ora(`Installing ${relative(rootDir, wheelPath)}`).start();
+          CheckpointTime.start(this.wheelInstallTime);
+          const execRes = await exec({
+            command: `pip install "${wheelPath}" --force-reinstall`,
+            io: verbose,
+          });
+          CheckpointTime.end(this.wheelInstallTime);
+          this.ora.text = `${this.ora.text} (${prettifyTime(
+            CheckpointTime.diff(this.wheelInstallTime),
+          )})`;
+          if (execRes.exitCode === 0) {
+            this.ora.succeed();
+          } else {
+            this.ora.fail();
+            this.ok = false;
+            process.stdout.write(execRes.stdout);
+            process.stderr.write(execRes.stderr);
+          }
+        }
+      }
+      CheckpointTime.end(this.time);
+      this.logEnd();
+    });
   }
 
   private printMessage(message?: string): void {
@@ -266,6 +276,7 @@ export interface RemoteDriverOpts {
   client: CompilerApiClient;
   rootDir: string;
   verbose?: boolean;
+  grpcMetadata?: grpc.Metadata;
 }
 
 export class RemoteDriver {
@@ -273,12 +284,14 @@ export class RemoteDriver {
   public readonly client: CompilerApiClient;
   public readonly rootDir: string;
   public readonly verbose: boolean;
+  private readonly grpcMetadata?: grpc.Metadata;
 
   constructor(opts: RemoteDriverOpts) {
     this.qpcConfig = opts.qpcConfig;
     this.client = opts.client;
     this.rootDir = opts.rootDir;
     this.verbose = opts.verbose ?? false;
+    this.grpcMetadata = opts.grpcMetadata;
   }
 
   public async collectSrcFiles(): Promise<string[]> {
@@ -302,6 +315,7 @@ export class RemoteDriver {
       client: this.client,
       target,
       verbose: this.verbose,
+      grpcMetadata: this.grpcMetadata,
     });
     return ctx.start(await this.collectSrcFiles());
   }
@@ -313,6 +327,7 @@ export class RemoteDriver {
       rootDir: this.rootDir,
       client: this.client,
       verbose: this.verbose,
+      grpcMetadata: this.grpcMetadata,
     });
     return ctx.start(await this.collectSrcFiles());
   }

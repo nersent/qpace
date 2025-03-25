@@ -145,6 +145,22 @@ impl OhlcvBar {
         dict.set_item("volume", self.volume())?;
         return Ok(dict.to_object(py));
     }
+
+    // #[pyo3(name = "from_dict")]
+    // #[inline]
+    // pub fn py_from_dict(py: Python<'_>, dict: PyDict) -> PyResult<OhlcvBar> {
+    //     let open_time = dict.get_item("open_time").and_then(|x| x.extract().ok());
+    //     let close_time = dict.get_item("close_time").and_then(|x| x.extract().ok());
+    //     let open = dict.get_item("open").and_then(|x| x.extract().ok());
+    //     let high = dict.get_item("high").and_then(|x| x.extract().ok());
+    //     let low = dict.get_item("low").and_then(|x| x.extract().ok());
+    //     let close = dict.get_item("close").and_then(|x| x.extract().ok());
+    //     let volume = dict.get_item("volume").and_then(|x| x.extract().ok());
+
+    //     Ok(OhlcvBar::new(
+    //         open_time, close_time, open, high, low, close, volume,
+    //     ))
+    // }
 }
 
 #[cfg(feature = "bindings_py")]

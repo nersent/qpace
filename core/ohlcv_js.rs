@@ -2,6 +2,8 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
   use js_sys::{Object, Reflect};
   use crate::timeframe_js::{JsTimeframe};
+  use js_sys::Float64Array;
+  use js_sys::Array;
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
 use crate::timeframe::Timeframe;
@@ -15,6 +17,16 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use std::{ffi::OsStr, ops::Range, path::Path};
+
+#[cfg(feature = "bindings_wasm")]
+#[wasm_bindgen(raw_module = "../../lib/internal.js")]
+extern "C" {
+    #[wasm_bindgen(js_name = readOhlcvBarsFromPath)]
+    fn js_read_ohlcv_bars_from_path(format: &str, path: &str, time_unit: &str) -> Vec<OhlcvBar>;
+
+    #[wasm_bindgen(js_name = writeOhlcvBarsToPath)]
+    fn js_write_ohlcv_bars_to_path(format: &str, path: &str, bars: Vec<OhlcvBar>);
+}
 
 #[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class=OhlcvBar)]
@@ -127,12 +139,12 @@ impl OhlcvBar {
         let obj = Object::new();
         let _ = Reflect::set(
             &obj,
-            &"openTime".into(),
+            &"open_time".into(),
             &JsValue::from(self.js_open_time()),
         );
         let _ = Reflect::set(
             &obj,
-            &"closeTime".into(),
+            &"close_time".into(),
             &JsValue::from(self.js_close_time()),
         );
         let _ = Reflect::set(&obj, &"open".into(), &JsValue::from(self.js_open()));
@@ -141,6 +153,43 @@ impl OhlcvBar {
         let _ = Reflect::set(&obj, &"close".into(), &JsValue::from(self.js_close()));
         let _ = Reflect::set(&obj, &"volume".into(), &JsValue::from(self.js_volume()));
         obj.into()
+    }
+
+    #[wasm_bindgen(js_name = "fromJSON")]
+    pub fn js_from_json(json: JsValue) -> Self {
+        let obj = json.unchecked_into::<Object>();
+        let open_time = Reflect::get(&obj, &"open_time".into())
+            .unwrap()
+            .unchecked_into::<js_sys::Date>();
+        let close_time = Reflect::get(&obj, &"close_time".into())
+            .unwrap()
+            .unchecked_into::<js_sys::Date>();
+        let open = Reflect::get(&obj, &"open".into())
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        let high = Reflect::get(&obj, &"high".into())
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        let low = Reflect::get(&obj, &"low".into()).unwrap().as_f64().unwrap();
+        let close = Reflect::get(&obj, &"close".into())
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        let volume = Reflect::get(&obj, &"volume".into())
+            .unwrap()
+            .as_f64()
+            .unwrap();
+        Self::new(
+            open_time.into(),
+            close_time.into(),
+            open,
+            high,
+            low,
+            close,
+            volume,
+        )
     }
 }
 
@@ -342,5 +391,37 @@ impl JsOhlcv {
     #[inline]
     pub fn js_add_many(&mut self, bars: Vec<OhlcvBar>) {
         self.push_many(&bars);
+    }
+
+    #[wasm_bindgen(js_name = "readCSV")]
+    #[inline]
+    #[doc = "`time_unit: 'ms' | 's`. Default: 'ms'"]
+    pub fn js_read_csv(path: &str, time_unit: Option<String>) -> JsOhlcv {
+        let time_unit = time_unit.unwrap_or("ms".to_string());
+        let bars = js_read_ohlcv_bars_from_path("csv", path, &time_unit);
+        Ohlcv::from_bars(bars).into()
+    }
+
+    #[wasm_bindgen(js_name = "readParquet")]
+    #[inline]
+    #[doc = "`time_unit: 'ms' | 's`. Default: 'ms'"]
+    pub fn js_read_parquet(path: &str, time_unit: Option<String>) -> JsOhlcv {
+        let time_unit = time_unit.unwrap_or("ms".to_string());
+        let bars = js_read_ohlcv_bars_from_path("parquet", path, &time_unit);
+        Ohlcv::from_bars(bars).into()
+    }
+
+    #[wasm_bindgen(js_name = "writeCSV")]
+    #[inline]
+    pub fn js_write_csv(&self, path: &str) {
+        let bars = self.all_bars();
+        js_write_ohlcv_bars_to_path("csv", path, bars.to_vec());
+    }
+
+    #[wasm_bindgen(js_name = "writeParquet")]
+    #[inline]
+    pub fn js_write_parquet(&self, path: &str) {
+        let bars = self.all_bars();
+        js_write_ohlcv_bars_to_path("parquet", path, bars.to_vec());
     }
 }

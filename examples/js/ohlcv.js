@@ -52,6 +52,7 @@ const client = new qp.Client({
     /* volume */
     Float64Array.from([1000.0]),
   );
+  console.log(bars[0].close);
 }
 
 // OHLCV dataframe from bars
@@ -78,28 +79,35 @@ const client = new qp.Client({
   ohlcv.timeframe = qp.Timeframe.days(1);
 }
 
-// OHLCV dataframe from path
-// @TODO: This is not implemented yet
-// {
-//   const ohlcv = qp.Ohlcv.readPath("btc.csv");
-// }
-
-// Empty OHLCV dataframe
+// Fetching OHLCV dataframe
 {
-  const ohlcv = new qp.Ohlcv();
-}
-
-// Fetch OHLCV dataframe
-{
-  const ohlcv = await client.ohlcv("BITSTAMP:BTCUSD", {
-    timeframe: qp.Timeframe.days(1),
+  const ohlcv = await client.ohlcv("BITSTAMP:BTCUSD", "1D");
+  const ohlcv = await client.ohlcv("BITSTAMP:BTCUSD", qp.Timeframe.days(1));
+  const ohlcv = await client.ohlcv("BITSTAMP:BTCUSD", qp.Timeframe.days(1), {
+    offset: 50, // starting from bar index 50
+    limit: 100, // maximum 100 bars, so last bar index will be 149
   });
 }
 {
   const sym = await client.sym("BITSTAMP:BTCUSD");
-  const ohlcv = await client.ohlcv(sym, {
-    timeframe: qp.Timeframe.days(1),
-  });
+  const ohlcv = await client.ohlcv(sym, qp.Timeframe.days(1));
+}
+
+// Loading OHLCV dataframe from path
+{
+  const ohlcv = await qp.Ohlcv.readCSV("ohlcv.csv");
+  const ohlcv = await qp.Ohlcv.readParquet("ohlcv.parquet");
+}
+
+// Saving OHLCV dataframe to path
+{
+  await ohlcv.writeCSV("ohlcv.csv");
+  await ohlcv.writeParquet("ohlcv.parquet");
+}
+
+// Empty OHLCV dataframe
+{
+  const ohlcv = new qp.Ohlcv();
 }
 
 // Updating OHLCV dataframe

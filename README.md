@@ -9,7 +9,7 @@
 
 </div>
 
-**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place.
+**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
 
 ![backtest summary](/static/backtest_summary.png)
 

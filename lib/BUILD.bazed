@@ -126,7 +126,10 @@ const prodPackageJson = {
     },
   },
   files: ["base", "core", "lib"],
-  peerDependencies: {},
+  peerDependencies: {
+    "@grpc/grpc-js": "^1.12.0",
+    axios: "^0.27.2",
+  },
 };
 
 const packageJson = template((tmpl) => {

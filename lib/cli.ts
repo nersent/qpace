@@ -4,7 +4,7 @@ import { homedir } from "os";
 import { resolve } from "path";
 
 import { input } from "@inquirer/prompts";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import { watch } from "chokidar";
 import { Command, Option } from "commander";
@@ -27,6 +27,8 @@ import {
   ENV_API_KEY,
   ENV_GRPC_ENDPOINT,
   ENV_REST_ENDPOINT,
+  VerifyApiKeyRequest,
+  VerifyApiKeyResponse,
 } from "~/lib/internal";
 
 export interface UserConfig {
@@ -180,6 +182,7 @@ class Cli {
   public async maybePromptApiKey(
     apiKey?: string,
     force?: boolean,
+    canRelogin?: boolean,
   ): Promise<void> {
     apiKey ??= this.userConfig.apiKey;
     if (apiKey == null) {
@@ -209,11 +212,17 @@ class Cli {
 
     try {
       const client = this.getClient();
-      const team = await client.getMe();
+      const {
+        data: { team },
+      } = await client.http.get<
+        VerifyApiKeyResponse,
+        AxiosResponse<VerifyApiKeyResponse>,
+        VerifyApiKeyRequest
+      >(`/api_keys/verify/${this.apiKey}`);
       if (inputApiKey != null) {
         console.log(
           `${QPACE_BG_PREFIX}Logged in as team ${chalk.yellowBright(
-            team.team.name,
+            team?.name,
           )}. Use ${chalk.white.bold(
             `\`qpace login --force\``,
           )} to force relogin.`,
@@ -223,7 +232,10 @@ class Cli {
         await this.saveConfig();
       }
     } catch (e) {
-      if (axios.isAxiosError(e) && e.response?.status === 401) {
+      if (axios.isAxiosError(e) && e.response?.status === 403) {
+        if (canRelogin) {
+          await this.maybePromptApiKey(inputApiKey, true, false);
+        }
         throw new CliError("Invalid API key. Try authenticating again.");
       }
       throw e;
@@ -304,7 +316,7 @@ const main = async (): Promise<void> => {
     .command("login")
     .argument("[api key]")
     .action(async (apiKey: string | undefined) => {
-      await cli.maybePromptApiKey(apiKey, true);
+      await cli.maybePromptApiKey(apiKey, apiKey == null, true);
     });
   program.command("init").action(() => console.log("init"));
   program
@@ -359,6 +371,7 @@ const main = async (): Promise<void> => {
           qpcConfig,
           rootDir,
           verbose: opts.verbose,
+          grpcMetadata: client["createGrpcMetadata"](),
         });
         await driver.build({ target });
         if (opts.watch) {
@@ -386,6 +399,7 @@ const main = async (): Promise<void> => {
         client: client.compilerClient,
         qpcConfig,
         rootDir,
+        grpcMetadata: client["createGrpcMetadata"](),
       });
       await driver.check();
       if (opts.watch) {
@@ -467,17 +481,17 @@ const main = async (): Promise<void> => {
       ) => {
         await cli.maybePromptApiKey();
         const timeframe =
-          opts.timeframe != null
+          (opts.timeframe != null
             ? qp.Timeframe.fromString(opts.timeframe)
-            : undefined;
+            : undefined) ?? qp.Timeframe.fromString("1D");
         const client = cli.getClient();
         const syms: qp.Sym[] = [];
         let items: any[] = [];
         for (const pattern of patterns) {
           const sym = await client.sym({ tickerId: pattern });
           if (syms.find((r) => r.id === sym.id)) continue;
-          const bars = await client.bars({ sym, timeframe });
-          const _items = bars.map((r) => ({
+          const ohlcv = await client.ohlcv(sym, timeframe);
+          const _items = ohlcv.bars.map((r) => ({
             tickerId: sym.tickerId,
             ...r.toJSON(),
           }));

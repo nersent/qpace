@@ -49,6 +49,7 @@ impl Sym {
 
     #[getter(id)]
     #[inline]
+    #[doc = "Unique identifier of the symbol fetched via qPACE API"]
     pub fn py_id(&self) -> Option<String> {
         self.id().map(|s| s.to_string())
     }
@@ -61,6 +62,7 @@ impl Sym {
 
     #[getter(ticker_id)]
     #[inline]
+    #[doc = "example: `NASDAQ:AAPL`"]
     pub fn py_ticker_id(&self) -> Option<String> {
         self.ticker_id().map(|s| s.to_string())
     }
@@ -104,6 +106,7 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
 
     #[getter(prefix)]
     #[inline]
+    #[doc = "example: `CME_EOD:TICKER -> CME_EOD`"]
     pub fn py_prefix(&self) -> Option<String> {
         self.prefix().map(|s| s.to_string())
     }
@@ -116,6 +119,7 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
 
     #[getter(currency)]
     #[inline]
+    #[doc = "example: `NASDAQ:AAPL -> USD`, `EURJPY -> JPY`"]
     pub fn py_currency(&self) -> Option<String> {
         self.currency().map(|s| s.to_string())
     }
@@ -128,6 +132,7 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
 
     #[getter(base_currency)]
     #[inline]
+    #[doc = "example: `EURJPY -> EUR`, `BTCUSDT -> BTC`, `CME:6C1! -> CAD`, `NASDAQ:AAPL -> \"\"`"]
     pub fn py_base_currency(&self) -> Option<String> {
         self.base_currency().map(|s| s.to_string())
     }
@@ -140,6 +145,7 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
 
     #[getter(ticker)]
     #[inline]
+    #[doc = "symbol name without exchange prefix, \"MSFT\""]
     pub fn py_ticker(&self) -> Option<String> {
         self.ticker().map(|s| s.to_string())
     }

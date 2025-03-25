@@ -17,9 +17,16 @@ const client = new qp.Client({
 
 // Fetching
 {
-  const ctx = await client.ctx("BITSTAMP:BTCUSD", {
-    timeframe: qp.Timeframe.days(1),
+  const ctx = await client.ctx("BITSTAMP:BTCUSD", "1D");
+  const ctx = await client.ctx("BITSTAMP:BTCUSD", qp.Timeframe.days(1));
+  const ctx = await client.ctx("BITSTAMP:BTCUSD", qp.Timeframe.days(1), {
+    offset: 50, // starting from bar index 50
+    limit: 100, // maximum 100 bars, so last bar index will be 149
   });
+}
+{
+  const sym = await client.sym("BITSTAMP:BTCUSD");
+  const ctx = await client.ctx(sym, qp.Timeframe.days(1));
 }
 
 // `ctx.fork()` - creates a new context, seperate from the original one, but with the same symbol and ohlcv and bar position.

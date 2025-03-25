@@ -2,7 +2,6 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-import "sym.proto";
 
 package ohlcv;
 
@@ -10,25 +9,17 @@ service OhlcvApi {
   rpc Get(GetRequest) returns (GetResponse);
 }
 
-message Filter {
-  string sym_id = 1;
-  optional string timeframe = 2;
-}
-
-message Query {
-  Filter filter = 1;
-  optional uint32 limit = 2;
-  optional uint32 offset = 3;
-}
-
 message GetRequest {
-  Query query = 1;
+  string sym_id = 1;
+  string timeframe = 2;
+  optional uint32 limit = 3;
+  optional uint32 offset = 4;
 }
 
 message GetResponse {
   repeated OhlcvBar bars = 1;
-  uint32 total_bars = 2;
-  // uint32 bars_remaining = 3;
+  uint32 total = 2; // total number of bars available for that symbol and timeframe
+  uint32 remaining = 3; // number of bars remaining to be fetched
 }
 
 message OhlcvBar {

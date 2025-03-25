@@ -8,27 +8,11 @@ const client = new qp.Client({
   apiKey: "ENTER_YOUR_API_KEY_HERE",
 });
 
-// Fetching symbol
-{
-  let sym = await client.sym("BITSTAMP:BTCUSD");
-  sym = await client.sym({ tickerId: "BITSTAMP:BTCUSD" });
-  sym = await client.sym("d791fa0d-19d3-4bd0-8ace-fd0e2f2db442");
-  sym = await client.sym({ id: "d791fa0d-19d3-4bd0-8ace-fd0e2f2db442" });
-  console.log(sym.id, sym.tickerId);
-}
-
-// Fetching multiple symbols
-{
-  let syms = await client.syms("BITSTAMP:*USD");
-  syms = await client.syms({ tickerId: "BITSTAMP:BTC*" });
-  console.log(syms[0].id, syms[0].tickerId);
-}
-
 // Built-in static symbols
 {
-  let sym = qp.Sym.btc_usd();
-  sym = qp.Sym.eth_usd();
-  sym = qp.Sym.sol_usd();
+  const sym = qp.Sym.btc_usd();
+  const sym = qp.Sym.eth_usd();
+  const sym = qp.Sym.sol_usd();
   console.log(sym.minQty, sym.minTick);
 }
 
@@ -51,4 +35,22 @@ const client = new qp.Client({
   icon.mimeType = "image/png";
   icon.url = "https://example.com/icon.png";
   sym.icons = [icon];
+}
+
+// Fetching symbol
+{
+  const sym = await client.sym("BITSTAMP:BTCUSD");
+  const sym = await client.sym("BITSTAMP:BTC*");
+  const sym = await client.sym("*:BTCUSD");
+  sym = await client.sym({ tickerId: "BITSTAMP:BTCUSD" });
+  sym = await client.sym("d791fa0d-19d3-4bd0-8ace-fd0e2f2db442");
+  sym = await client.sym({ id: "d791fa0d-19d3-4bd0-8ace-fd0e2f2db442" });
+  sym = await client.sym({ id: "d791fa0d-19d3-4bd0-8ace-*" });
+  console.log(sym.id, sym.tickerId);
+}
+
+// Fetching multiple symbols
+{
+  const syms = await client.syms({ tickerId: "BITSTAMP:BTC*" });
+  console.log(syms[0].id, syms[0].tickerId);
 }

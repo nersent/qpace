@@ -24,26 +24,21 @@ _sym_db = _symbol_database.Default()
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
-from . import sym_pb2 as sym__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bohlcv.proto\x12\x05ohlcv\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\tsym.proto\">\n\x06\x46ilter\x12\x0e\n\x06sym_id\x18\x01 \x01(\t\x12\x16\n\ttimeframe\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x0c\n\n_timeframe\"d\n\x05Query\x12\x1d\n\x06\x66ilter\x18\x01 \x01(\x0b\x32\r.ohlcv.Filter\x12\x12\n\x05limit\x18\x02 \x01(\rH\x00\x88\x01\x01\x12\x13\n\x06offset\x18\x03 \x01(\rH\x01\x88\x01\x01\x42\x08\n\x06_limitB\t\n\x07_offset\")\n\nGetRequest\x12\x1b\n\x05query\x18\x01 \x01(\x0b\x32\x0c.ohlcv.Query\"@\n\x0bGetResponse\x12\x1d\n\x04\x62\x61rs\x18\x01 \x03(\x0b\x32\x0f.ohlcv.OhlcvBar\x12\x12\n\ntotal_bars\x18\x02 \x01(\r\"\xb1\x01\n\x08OhlcvBar\x12-\n\topen_time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nclose_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04open\x18\x03 \x01(\x01\x12\x0c\n\x04high\x18\x04 \x01(\x01\x12\x0b\n\x03low\x18\x05 \x01(\x01\x12\r\n\x05\x63lose\x18\x06 \x01(\x01\x12\x0e\n\x06volume\x18\x07 \x01(\x01\x32\x38\n\x08OhlcvApi\x12,\n\x03Get\x12\x11.ohlcv.GetRequest\x1a\x12.ohlcv.GetResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0bohlcv.proto\x12\x05ohlcv\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"m\n\nGetRequest\x12\x0e\n\x06sym_id\x18\x01 \x01(\t\x12\x11\n\ttimeframe\x18\x02 \x01(\t\x12\x12\n\x05limit\x18\x03 \x01(\rH\x00\x88\x01\x01\x12\x13\n\x06offset\x18\x04 \x01(\rH\x01\x88\x01\x01\x42\x08\n\x06_limitB\t\n\x07_offset\"N\n\x0bGetResponse\x12\x1d\n\x04\x62\x61rs\x18\x01 \x03(\x0b\x32\x0f.ohlcv.OhlcvBar\x12\r\n\x05total\x18\x02 \x01(\r\x12\x11\n\tremaining\x18\x03 \x01(\r\"\xb1\x01\n\x08OhlcvBar\x12-\n\topen_time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nclose_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04open\x18\x03 \x01(\x01\x12\x0c\n\x04high\x18\x04 \x01(\x01\x12\x0b\n\x03low\x18\x05 \x01(\x01\x12\r\n\x05\x63lose\x18\x06 \x01(\x01\x12\x0e\n\x06volume\x18\x07 \x01(\x01\x32\x38\n\x08OhlcvApi\x12,\n\x03Get\x12\x11.ohlcv.GetRequest\x1a\x12.ohlcv.GetResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ohlcv_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_FILTER']._serialized_start=95
-  _globals['_FILTER']._serialized_end=157
-  _globals['_QUERY']._serialized_start=159
-  _globals['_QUERY']._serialized_end=259
-  _globals['_GETREQUEST']._serialized_start=261
-  _globals['_GETREQUEST']._serialized_end=302
-  _globals['_GETRESPONSE']._serialized_start=304
-  _globals['_GETRESPONSE']._serialized_end=368
-  _globals['_OHLCVBAR']._serialized_start=371
-  _globals['_OHLCVBAR']._serialized_end=548
-  _globals['_OHLCVAPI']._serialized_start=550
-  _globals['_OHLCVAPI']._serialized_end=606
+  _globals['_GETREQUEST']._serialized_start=84
+  _globals['_GETREQUEST']._serialized_end=193
+  _globals['_GETRESPONSE']._serialized_start=195
+  _globals['_GETRESPONSE']._serialized_end=273
+  _globals['_OHLCVBAR']._serialized_start=276
+  _globals['_OHLCVBAR']._serialized_end=453
+  _globals['_OHLCVAPI']._serialized_start=455
+  _globals['_OHLCVAPI']._serialized_end=511
 # @@protoc_insertion_point(module_scope)

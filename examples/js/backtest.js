@@ -17,9 +17,7 @@ const client = new qp.Client({
 
 // Fetching
 {
-  const ctx = client.ctx("BITSTAMP:BTCUSD", {
-    timeframe: qp.Timeframe.days(1),
-  });
+  const ctx = await client.ctx("BITSTAMP:BTCUSD", "1D");
   const bt = new qp.Backtest(ctx.fork(), btConfig);
   consle.log(
     bt.ctx.timeframe.toString(),

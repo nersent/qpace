@@ -398,23 +398,40 @@ pub fn zip_ohlcv_bars(
     return bars;
 }
 
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
-    #[wasm_bindgen(js_name=zipOhlcvBars)]
-    #[inline]
-    pub fn js_zip_ohlcv_bars(
-        open_time: Option<Vec<js_sys::Date>>,
-        close_time: Option<Vec<js_sys::Date>>,
-        open: Option<Vec<f64>>,
-        high: Option<Vec<f64>>,
-        low: Option<Vec<f64>>,
-        close: Option<Vec<f64>>,
-        volume: Option<Vec<f64>>,
-    ) -> Vec<OhlcvBar> {
-        let open_time = open_time.map(|list| list.iter().map(|x| Some(DateTime::from(x))).collect::<Vec<_>>());
-        let close_time = close_time.map(|list| list.iter().map(|x| Some(DateTime::from(x))).collect::<Vec<_>>());
-        zip_ohlcv_bars(open_time, close_time, open, high, low, close, volume)
-    }
-}}
+#[cfg(feature = "bindings_wasm")]
+#[wasm_bindgen(js_name=zipOhlcvBars)]
+#[inline]
+pub fn js_zip_ohlcv_bars(
+    open_time: Option<Vec<js_sys::Date>>,
+    close_time: Option<Vec<js_sys::Date>>,
+    open: Option<Vec<f64>>,
+    high: Option<Vec<f64>>,
+    low: Option<Vec<f64>>,
+    close: Option<Vec<f64>>,
+    volume: Option<Vec<f64>>,
+) -> Vec<OhlcvBar> {
+    let open_time = open_time.map(|list| {
+        list.iter()
+            .map(|x| Some(DateTime::from(x)))
+            .collect::<Vec<_>>()
+    });
+    let close_time = close_time.map(|list| {
+        list.iter()
+            .map(|x| Some(DateTime::from(x)))
+            .collect::<Vec<_>>()
+    });
+    zip_ohlcv_bars(open_time, close_time, open, high, low, close, volume)
+}
+
+// implement unzip for js
+// #[cfg(feature = "bindings_wasm")]
+// #[wasm_bindgen(js_name=unzipOhlcvBars)]
+// #[inline]
+// pub fn js_unzip_ohlcv_bars(bars: Vec<OhlcvBar>) -> Vec<Vec<Option<js_sys::Date>>> {
+//     let open_time = bars.iter().map(|bar| Some(js_sys::Date::new(&bar.open_time.to_string()))).collect::<Vec<_>>();
+//     let close_time = bars.iter().map(|bar| Some(js_sys::Date::new(&bar.close_time.to_string()))).collect::<Vec<_>>();
+//     vec![open_time, close_time]
+// }
 
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     #[inline]

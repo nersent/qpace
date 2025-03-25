@@ -1,6 +1,5 @@
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf import empty_pb2 as _empty_pb2
-import sym_pb2 as _sym_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -8,37 +7,27 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class Filter(_message.Message):
-    __slots__ = ("sym_id", "timeframe")
+class GetRequest(_message.Message):
+    __slots__ = ("sym_id", "timeframe", "limit", "offset")
     SYM_ID_FIELD_NUMBER: _ClassVar[int]
     TIMEFRAME_FIELD_NUMBER: _ClassVar[int]
-    sym_id: str
-    timeframe: str
-    def __init__(self, sym_id: _Optional[str] = ..., timeframe: _Optional[str] = ...) -> None: ...
-
-class Query(_message.Message):
-    __slots__ = ("filter", "limit", "offset")
-    FILTER_FIELD_NUMBER: _ClassVar[int]
     LIMIT_FIELD_NUMBER: _ClassVar[int]
     OFFSET_FIELD_NUMBER: _ClassVar[int]
-    filter: Filter
+    sym_id: str
+    timeframe: str
     limit: int
     offset: int
-    def __init__(self, filter: _Optional[_Union[Filter, _Mapping]] = ..., limit: _Optional[int] = ..., offset: _Optional[int] = ...) -> None: ...
-
-class GetRequest(_message.Message):
-    __slots__ = ("query",)
-    QUERY_FIELD_NUMBER: _ClassVar[int]
-    query: Query
-    def __init__(self, query: _Optional[_Union[Query, _Mapping]] = ...) -> None: ...
+    def __init__(self, sym_id: _Optional[str] = ..., timeframe: _Optional[str] = ..., limit: _Optional[int] = ..., offset: _Optional[int] = ...) -> None: ...
 
 class GetResponse(_message.Message):
-    __slots__ = ("bars", "total_bars")
+    __slots__ = ("bars", "total", "remaining")
     BARS_FIELD_NUMBER: _ClassVar[int]
-    TOTAL_BARS_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    REMAINING_FIELD_NUMBER: _ClassVar[int]
     bars: _containers.RepeatedCompositeFieldContainer[OhlcvBar]
-    total_bars: int
-    def __init__(self, bars: _Optional[_Iterable[_Union[OhlcvBar, _Mapping]]] = ..., total_bars: _Optional[int] = ...) -> None: ...
+    total: int
+    remaining: int
+    def __init__(self, bars: _Optional[_Iterable[_Union[OhlcvBar, _Mapping]]] = ..., total: _Optional[int] = ..., remaining: _Optional[int] = ...) -> None: ...
 
 class OhlcvBar(_message.Message):
     __slots__ = ("open_time", "close_time", "open", "high", "low", "close", "volume")

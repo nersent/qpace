@@ -66,7 +66,7 @@ if True:
 if True:
     ohlcv = qp.Ohlcv()
 
-# Fetch OHLCV dataframe
+# Fetching OHLCV dataframe
 if True:
     ohlcv = client.ohlcv("BITSTAMP_BTCUSD", timeframe=qp.Timeframe.Days(1))
 if True:
