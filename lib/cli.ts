@@ -10,7 +10,7 @@ import { watch } from "chokidar";
 import { Command, Option } from "commander";
 
 import { RemoteDriver } from "./remote_driver";
-
+import os from "os";
 import { exists, readJson, writeJson } from "~/base/node/fs";
 import { isLinux, isMacOs, isWindows } from "~/base/node/os";
 import * as qp from "~/lib";
@@ -30,6 +30,7 @@ import {
   VerifyApiKeyRequest,
   VerifyApiKeyResponse,
 } from "~/lib/internal";
+import { exec } from "~/base/node/exec";
 
 export interface UserConfig {
   apiKey?: string;
@@ -212,9 +213,12 @@ class Cli {
 
     try {
       const client = this.getClient();
+      if (inputApiKey != null) {
+        await this._initClientInfo(client);
+      }
       const {
         data: { team },
-      } = await client.http.get<
+      } = await client["http"].get<
         VerifyApiKeyResponse,
         AxiosResponse<VerifyApiKeyResponse>,
         VerifyApiKeyRequest
@@ -264,6 +268,36 @@ class Cli {
     console.log(
       `\nLearn more at: ${chalk.cyan(`https://qpace.dev/telemetry`)}`,
     );
+  }
+
+  private async _initClientInfo(client: qp.Client): Promise<void> {
+    if (!this.telemetry) return;
+    client["clientInfo"] ??= {};
+    client["clientInfo"]["platform"] = os.platform();
+    client["clientInfo"]["arch"] = os.arch();
+    client["clientInfo"]["cpus"] = os.cpus().length;
+    client["clientInfo"]["osRelease"] = os.release();
+    client["clientInfo"]["memory"] = os.totalmem();
+    client["clientInfo"]["cpu"] = os.cpus()[0].model;
+    await Promise.all(
+      [
+        ["npm", "npm --version"],
+        ["pnpm", "pnpm --version"],
+        ["yarn", "yarn --version"],
+        ["python", "python --version"],
+        ["python3", "python3 --version"],
+        ["pip", "pip --version"],
+        ["pip3", "pip3 --version"],
+        ["rustc", "rustc --version"],
+        ["cargo", "cargo --version"],
+      ].map(async ([key, command]) => {
+        const { stdout } = await exec({
+          command,
+        });
+        client["clientInfo"]![key] = stdout;
+      }),
+    );
+    client["init"]();
   }
 }
 
@@ -367,7 +401,7 @@ const main = async (): Promise<void> => {
         }
 
         const driver = new RemoteDriver({
-          client: client.compilerClient,
+          client: client["compilerClient"],
           qpcConfig,
           rootDir,
           verbose: opts.verbose,
@@ -396,7 +430,7 @@ const main = async (): Promise<void> => {
       const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
       const qpcConfig = await loadOrCreateConfig(rootDir);
       const driver = new RemoteDriver({
-        client: client.compilerClient,
+        client: client["compilerClient"],
         qpcConfig,
         rootDir,
         grpcMetadata: client["createGrpcMetadata"](),

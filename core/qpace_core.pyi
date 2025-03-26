@@ -133,8 +133,6 @@ class Ohlcv:
     volume: builtins.list[builtins.float]
     open_time: builtins.list[datetime.datetime]
     close_time: builtins.list[datetime.datetime]
-    open_time_ms: builtins.list[builtins.int]
-    close_time_ms: builtins.list[builtins.int]
     def __new__(cls,): ...
     @staticmethod
     def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
@@ -144,20 +142,13 @@ class Ohlcv:
     def from_pandas(df:typing.Any) -> Ohlcv:
         ...
 
-    @staticmethod
-    def read_path(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
-        r"""
-        `time_unit: 's' | 'ms'`
-        """
-        ...
-
     def py_set_timeframe(self, timeframe:Timeframe) -> None:
         ...
 
-    def bars_from_slice(self, slice:slice) -> builtins.list[OhlcvBar]:
+    def slice(self, slice:slice) -> builtins.list[OhlcvBar]:
         ...
 
-    def bar(self, index:builtins.int) -> OhlcvBar:
+    def __getitem__(self, index:builtins.int) -> OhlcvBar:
         ...
 
     def __len__(self) -> builtins.int:
@@ -169,18 +160,30 @@ class Ohlcv:
     def add_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
         ...
 
-    def __format__(self, format_spec:typing.Optional[builtins.str]=None) -> builtins.str:
+    def __str__(self) -> builtins.str:
         ...
 
     def to_pandas(self) -> pandas.DataFrame:
+        ...
+
+    @staticmethod
+    def read_csv(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
+        r"""
+        `time_unit: 's' | 'ms'`
+        """
+        ...
+
+    @staticmethod
+    def read_parquet(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
+        r"""
+        `time_unit: 's' | 'ms'`
+        """
         ...
 
 
 class OhlcvBar:
     open_time: datetime.datetime
     close_time: datetime.datetime
-    open_time_ms: builtins.int
-    close_time_ms: builtins.int
     open: builtins.float
     high: builtins.float
     low: builtins.float
@@ -303,6 +306,13 @@ class Sym:
     def sol_usd() -> Sym:
         ...
 
+    def to_dict(self) -> typing.Any:
+        ...
+
+    @staticmethod
+    def from_dict(dict:typing.Any) -> Sym:
+        ...
+
 
 class SymIcon:
     url: builtins.str
@@ -312,6 +322,13 @@ class SymIcon:
         ...
 
     def py_set_mime_type(self, mime_type:builtins.str) -> None:
+        ...
+
+    def to_dict(self) -> typing.Any:
+        ...
+
+    @staticmethod
+    def from_dict(dict:typing.Any) -> SymIcon:
         ...
 
 
@@ -430,7 +447,7 @@ def expectancy(pnl_series:typing.Sequence[builtins.float]) -> builtins.float:
 def expectancy_score(expectancy:builtins.float, opportunity_bars:builtins.float) -> builtins.float:
     ...
 
-def get_version() -> builtins.str:
+def get_core_version() -> builtins.str:
     ...
 
 def gross_loss_pct(gross_loss:builtins.float, initial_capital:builtins.float) -> builtins.float:

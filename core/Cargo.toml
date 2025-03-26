@@ -1,13 +1,12 @@
 [package]
 name = "qpace_core"
-version = "1.0.0"
+version = "0.0.1-dev.1"
 edition = "2021"
 
 [lib]
 name = "qpace_core"
 path = "lib.rs"
 crate-type = ["cdylib", "rlib"]
-version = "1.0.0"
 edition = "2021"
 
 [[bin]]

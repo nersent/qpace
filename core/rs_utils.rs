@@ -251,6 +251,24 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
           None => panic!("Unsupported file type for path {:?}", path.display()),
       }
   }
+
+  #[inline]
+  pub fn write_df_csv(path: &Path, df: &mut DataFrame) {
+      let mut file = std::fs::File::create(path).unwrap();
+      CsvWriter::new(&mut file)
+          .has_header(true)
+          .finish(df)
+          .unwrap();
+  }
+
+  #[inline]
+  pub fn write_df_parquet(path: &Path, df: &mut DataFrame) {
+        let mut file = std::fs::File::create(path).unwrap();
+        ParquetWriter::new(&mut file)
+            .finish(df)
+            .unwrap();
+  }
+
 }}
 
 pub trait Float64Utils {

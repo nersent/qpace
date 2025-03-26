@@ -55,6 +55,18 @@ const client = new qp.Client({
   console.log(bars[0].close);
 }
 
+// Loading OHLCV dataframe from path
+{
+  const ohlcv = await qp.Ohlcv.readCSV("ohlcv.csv");
+  const ohlcv = await qp.Ohlcv.readParquet("ohlcv.parquet");
+}
+
+// Saving OHLCV dataframe to path
+{
+  await ohlcv.writeCSV("ohlcv.csv");
+  await ohlcv.writeParquet("ohlcv.parquet");
+}
+
 // OHLCV dataframe from bars
 {
   const bars = [
@@ -91,18 +103,6 @@ const client = new qp.Client({
 {
   const sym = await client.sym("BITSTAMP:BTCUSD");
   const ohlcv = await client.ohlcv(sym, qp.Timeframe.days(1));
-}
-
-// Loading OHLCV dataframe from path
-{
-  const ohlcv = await qp.Ohlcv.readCSV("ohlcv.csv");
-  const ohlcv = await qp.Ohlcv.readParquet("ohlcv.parquet");
-}
-
-// Saving OHLCV dataframe to path
-{
-  await ohlcv.writeCSV("ohlcv.csv");
-  await ohlcv.writeParquet("ohlcv.parquet");
 }
 
 // Empty OHLCV dataframe

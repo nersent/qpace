@@ -2,13 +2,9 @@ import * as grpc from "@grpc/grpc-js";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 import {
-  ClientTelemetry,
   DEFAULT_GRPC_ENDPOINT,
   DEFAULT_REST_ENDPOINT,
-  MeUser,
   protoToOhlcvBar,
-  VerifyApiKeyRequest,
-  VerifyApiKeyResponse,
 } from "./internal";
 import { CompilerApiClient } from "./proto/compiler_grpc_pb";
 import { OhlcvApiClient } from "./proto/ohlcv_grpc_pb";
@@ -34,28 +30,36 @@ type SymOpts = SymFilter & { limit?: number; offset?: number };
 type OhlcvOpts = { limit?: number; offset?: number };
 
 export class Client {
-  public readonly http: AxiosInstance;
-  public readonly compilerClient: CompilerApiClient;
-  public readonly ohlcvClient: OhlcvApiClient;
+  private http!: AxiosInstance;
+  private compilerClient!: CompilerApiClient;
+  private ohlcvClient!: OhlcvApiClient;
   private _grpcMetadata: grpc.Metadata | undefined;
-  private telemetry?: ClientTelemetry;
+  private clientInfo?: Record<string, any>;
 
   constructor(private readonly config: ClientConfig) {
-    const apiBase = config.apiBase ?? DEFAULT_REST_ENDPOINT;
-    const grpApiBase = config.grpcApiBase ?? DEFAULT_GRPC_ENDPOINT;
-    const grpcCredentials = grpc.ChannelCredentials.createInsecure();
-    const grpcOptions = {
-      "grpc.max_receive_message_length": -1,
-    };
+    this.clientInfo ??= {};
+    this.clientInfo["qpace"] ??= qp.getVersion();
+    this.clientInfo["qpaceCore"] ??= qp.getCoreVersion();
+    this.clientInfo["node"] ??= process.versions.node;
+    this.init();
+  }
 
+  private init(): void {
+    const apiBase = this.config.apiBase ?? DEFAULT_REST_ENDPOINT;
+    const grpApiBase = this.config.grpcApiBase ?? DEFAULT_GRPC_ENDPOINT;
     this.http = axios.create({
       baseURL: apiBase,
       withCredentials: true,
       headers: {
         "Content-Type": "application/json",
         "x-api-key": this.config.apiKey,
+        "x-info": JSON.stringify(this.clientInfo),
       },
     });
+    const grpcCredentials = grpc.ChannelCredentials.createInsecure();
+    const grpcOptions = {
+      "grpc.max_receive_message_length": -1,
+    };
 
     this.compilerClient = new CompilerApiClient(
       grpApiBase,
@@ -67,18 +71,14 @@ export class Client {
       grpcCredentials,
       grpcOptions,
     );
-
-    this.telemetry ??= {};
-    this.telemetry.qpaceCoreVersion ??= qp.getVersion();
-    this.telemetry.qpaceVersion ??= "0.0.1";
   }
 
   private createGrpcMetadata(): grpc.Metadata {
     if (this._grpcMetadata == null) {
       const metadata = new grpc.Metadata();
       metadata.set("x-api-key", `${this.config.apiKey}`);
-      if (this.telemetry != null) {
-        metadata.set("x-qpace-telemetry", JSON.stringify(this.telemetry));
+      if (this.clientInfo != null) {
+        metadata.set("x-info", JSON.stringify(this.clientInfo));
       }
       this._grpcMetadata = metadata;
     }
@@ -94,7 +94,7 @@ export class Client {
     }
     const syms = await this.syms(query);
     if (syms.length === 0) {
-      throw new Error("No matching symbol found");
+      throw new Error("Symbol not found");
     }
     return syms[0];
   }
@@ -123,9 +123,12 @@ export class Client {
     }
     const req = new ohlcvApi.GetRequest();
     if (sym.id == null) {
-      throw new Error("Symbol ID is required");
+      throw new Error("Symbol has no id");
     }
     req.setSymId(sym.id);
+    if (!(timeframe instanceof qp.Timeframe)) {
+      timeframe = qp.Timeframe.fromString(timeframe);
+    }
     req.setTimeframe(timeframe.toString());
     if (opts?.limit != null) req.setLimit(opts.limit);
     if (opts?.offset != null) req.setOffset(opts.offset);
@@ -135,7 +138,9 @@ export class Client {
         _resolve(res);
       });
     });
-    return qp.Ohlcv.fromBars(res.getBarsList().map(protoToOhlcvBar));
+    const ohlcv = qp.Ohlcv.fromBars(res.getBarsList().map(protoToOhlcvBar));
+    ohlcv.timeframe = timeframe;
+    return ohlcv;
   }
 
   public async ctx(

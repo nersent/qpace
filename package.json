@@ -1,7 +1,26 @@
 {
-  "name": "@nersent/bazed",
-  "version": "0.0.1",
-  "private": true,
+  "name": "qpace",
+  "version": "0.0.1-dev.1",
+  "bin": {
+    "qpace": "lib/cli.bazed.js",
+    "qpc": "lib/cli.bazed.js"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": ["lib/index.d.ts"],
+      "lib/proto": [
+        "lib/proto/compiler_grpc_pb.d.ts",
+        "lib/proto/compiler_pb.d.ts",
+        "lib/proto/ohlcv_grpc_pb.d.ts",
+        "lib/proto/ohlcv_pb.d.ts",
+        "lib/proto/sym_grpc_pb.d.ts",
+        "lib/proto/sym_pb.d.ts"
+      ]
+    }
+  },
+  "files": ["base", "core", "lib"],
   "scripts": {
     "bazed:clean": "rimraf build",
     "wasm": "wasm-pack build ./core --target nodejs --no-default-features --features=bindings_wasm",
@@ -35,7 +54,6 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.12.0",
     "@grpc/proto-loader": "^0.7.13",
     "@inquirer/prompts": "^7.4.0",
     "@nersent/bazed": "^0.0.37",
@@ -49,5 +67,9 @@
     "nodejs-polars": "^0.8.4",
     "object-hash": "^3.0.0",
     "ora": "^5.4.1"
+  },
+  "peerDependencies": {
+    "@grpc/grpc-js": "^1.12.0",
+    "axios": "^0.27.2"
   }
 }

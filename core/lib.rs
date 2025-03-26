@@ -57,10 +57,10 @@ pub mod trade_py;
 pub mod utils;
 
 #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
-#[cfg_attr(feature = "bindings_py", pyfunction(name = "get_version"))]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = getVersion))]
+#[cfg_attr(feature = "bindings_py", pyfunction(name = "get_core_version"))]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = getCoreVersion))]
 pub fn get_version() -> String {
-    return "0.0.1".to_string();
+    return env!("CARGO_PKG_VERSION").to_string();
 }
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {

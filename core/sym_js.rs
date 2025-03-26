@@ -46,7 +46,7 @@ impl SymIcon {
         let _ = Reflect::set(&obj, &"url".into(), &JsValue::from_str(&self.js_url()));
         let _ = Reflect::set(
             &obj,
-            &"mimeType".into(),
+            &"mime_type".into(),
             &JsValue::from_str(&self.js_mime_type()),
         );
         obj.into()
@@ -59,7 +59,7 @@ impl SymIcon {
             .unwrap()
             .as_string()
             .unwrap_or_default();
-        let mime_type = Reflect::get(&obj, &"mimeType".into())
+        let mime_type = Reflect::get(&obj, &"mime_type".into())
             .unwrap()
             .as_string()
             .unwrap_or_default();
@@ -278,35 +278,35 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
         }
 
         set_opt_string(&obj, "id", &self.js_id());
-        set_opt_string(&obj, "tickerId", &self.js_ticker_id());
+        set_opt_string(&obj, "ticker_id", &self.js_ticker_id());
 
         // Use references for numeric values as well
         let _ = Reflect::set(
             &obj,
-            &"minTick".into(),
+            &"min_tick".into(),
             &JsValue::from_f64(self.js_min_tick()),
         );
         let _ = Reflect::set(
             &obj,
-            &"minQty".into(),
+            &"min_qty".into(),
             &JsValue::from_f64(self.js_min_qty()),
         );
 
         set_opt_string(&obj, "prefix", &self.js_prefix());
         set_opt_string(&obj, "currency", &self.js_currency());
-        set_opt_string(&obj, "baseCurrency", &self.js_base_currency());
+        set_opt_string(&obj, "base_currency", &self.js_base_currency());
         set_opt_string(&obj, "ticker", &self.js_ticker());
         set_opt_string(&obj, "country", &self.js_country());
         set_opt_string(&obj, "kind", &self.js_kind());
 
         let _ = Reflect::set(
             &obj,
-            &"priceScale".into(),
+            &"price_scale".into(),
             &JsValue::from_f64(self.js_price_scale()),
         );
         let _ = Reflect::set(
             &obj,
-            &"pointValue".into(),
+            &"point_value".into(),
             &JsValue::from_f64(self.js_point_value()),
         );
 
@@ -326,15 +326,15 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
             .unwrap()
             .as_string()
             .map(|s| s.to_string());
-        let ticker_id = Reflect::get(&obj, &"tickerId".into())
+        let ticker_id = Reflect::get(&obj, &"ticker_id".into())
             .unwrap()
             .as_string()
             .map(|s| s.to_string());
-        let min_tick = Reflect::get(&obj, &"minTick".into())
+        let min_tick = Reflect::get(&obj, &"min_tick".into())
             .unwrap()
             .as_f64()
             .unwrap_or_default();
-        let min_qty = Reflect::get(&obj, &"minQty".into())
+        let min_qty = Reflect::get(&obj, &"min_qty".into())
             .unwrap()
             .as_f64()
             .unwrap_or_default();
@@ -346,7 +346,7 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
             .unwrap()
             .as_string()
             .map(|s| s.to_string());
-        let base_currency = Reflect::get(&obj, &"baseCurrency".into())
+        let base_currency = Reflect::get(&obj, &"base_currency".into())
             .unwrap()
             .as_string()
             .map(|s| s.to_string());
@@ -362,11 +362,11 @@ https://www.tradingcode.net/tradingview/instrument-minimum-tick/
             .unwrap()
             .as_string()
             .map(|s| s.to_string());
-        let price_scale = Reflect::get(&obj, &"priceScale".into())
+        let price_scale = Reflect::get(&obj, &"price_scale".into())
             .unwrap()
             .as_f64()
             .unwrap_or_default();
-        let point_value = Reflect::get(&obj, &"pointValue".into())
+        let point_value = Reflect::get(&obj, &"point_value".into())
             .unwrap()
             .as_f64()
             .unwrap_or_default();

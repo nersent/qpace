@@ -146,31 +146,3 @@ export const protoToOhlcvBar = (proto: ohlcvApi.OhlcvBar): qp.OhlcvBar => {
   );
 };
 
-/*
-  We use telemetry to collect information about the client usage and performance.
-  This information is used to improve the client and the qpace platform.
-  We don't collect any personal information or sensitive data.
-
-  You can opt-out of telemetry by setting the QPACE_TELEMETRY environment variable to false or by using `qpc telemetry disable` command.
-*/
-export interface ClientTelemetry {
-  qpaceVersion?: string;
-  qpaceCoreVersion?: string;
-  deviceId?: string;
-  nodeVersion?: string;
-  npmVersion?: string;
-  yarnVersion?: string;
-  pnpmVersion?: string;
-  goVersion?: string;
-  pythonVersion?: string;
-  python3Version?: string;
-  pip3Version?: string;
-  pipVersion?: string;
-  rustVersion?: string;
-  cargoVersion?: string;
-  os?: string;
-  arch?: string;
-  platform?: string;
-  cpu?: string;
-  memory?: string;
-}

@@ -68,17 +68,17 @@ impl OhlcvBar {
         (*self.close_time()).into()
     }
 
-    #[wasm_bindgen(getter = openTimeMs)]
-    #[inline]
-    pub fn js_open_time_ms(&self) -> f64 {
-        self.open_time().timestamp_millis() as f64
-    }
+    // #[wasm_bindgen(getter = openTimeMs)]
+    // #[inline]
+    // pub fn js_open_time_ms(&self) -> f64 {
+    //     self.open_time().timestamp_millis() as f64
+    // }
 
-    #[wasm_bindgen(getter = closeTimeMs)]
-    #[inline]
-    pub fn js_close_time_ms(&self) -> f64 {
-        self.close_time().timestamp_millis() as f64
-    }
+    // #[wasm_bindgen(getter = closeTimeMs)]
+    // #[inline]
+    // pub fn js_close_time_ms(&self) -> f64 {
+    //     self.close_time().timestamp_millis() as f64
+    // }
 
     #[wasm_bindgen(getter = open)]
     #[inline]
@@ -305,7 +305,7 @@ impl JsOhlcv {
 
     #[wasm_bindgen(js_name = "at")]
     #[inline]
-    pub fn js_at(&self, index: usize) -> OhlcvBar {
+    pub fn js_bar_at(&self, index: usize) -> OhlcvBar {
         *self.bar(index)
     }
 
@@ -369,17 +369,17 @@ impl JsOhlcv {
             .collect::<Vec<_>>()
     }
 
-    #[wasm_bindgen(getter = "openTimeMs")]
-    #[inline]
-    pub fn js_open_time_ms(&self) -> Vec<f64> {
-        self.open_time_ms().iter().map(|x| *x as f64).collect()
-    }
+    // #[wasm_bindgen(getter = "openTimeMs")]
+    // #[inline]
+    // pub fn js_open_time_ms(&self) -> Vec<f64> {
+    //     self.open_time_ms().iter().map(|x| *x as f64).collect()
+    // }
 
-    #[wasm_bindgen(getter = "closeTimeMs")]
-    #[inline]
-    pub fn js_close_time_ms(&self) -> Vec<f64> {
-        self.close_time_ms().iter().map(|x| *x as f64).collect()
-    }
+    // #[wasm_bindgen(getter = "closeTimeMs")]
+    // #[inline]
+    // pub fn js_close_time_ms(&self) -> Vec<f64> {
+    //     self.close_time_ms().iter().map(|x| *x as f64).collect()
+    // }
 
     #[wasm_bindgen(js_name = "add")]
     #[inline]

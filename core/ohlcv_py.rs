@@ -14,6 +14,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
     use crate::rs_utils::{read_df};
     use crate::ohlcv::{ohlcv_bars_from_polars};
+    use crate::rs_utils::{read_df_csv, read_df_parquet};
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
 use crate::timeframe::Timeframe;
@@ -66,17 +67,17 @@ impl OhlcvBar {
         *self.close_time()
     }
 
-    #[getter(open_time_ms)]
-    #[inline]
-    pub fn py_open_time_ms(&self) -> i64 {
-        self.open_time().timestamp_millis()
-    }
+    // #[getter(open_time_ms)]
+    // #[inline]
+    // pub fn py_open_time_ms(&self) -> i64 {
+    //     self.open_time().timestamp_millis()
+    // }
 
-    #[getter(close_time_ms)]
-    #[inline]
-    pub fn py_close_time_ms(&self) -> i64 {
-        self.close_time().timestamp_millis()
-    }
+    // #[getter(close_time_ms)]
+    // #[inline]
+    // pub fn py_close_time_ms(&self) -> i64 {
+    //     self.close_time().timestamp_millis()
+    // }
 
     #[getter(open)]
     #[inline]
@@ -145,22 +146,6 @@ impl OhlcvBar {
         dict.set_item("volume", self.volume())?;
         return Ok(dict.to_object(py));
     }
-
-    // #[pyo3(name = "from_dict")]
-    // #[inline]
-    // pub fn py_from_dict(py: Python<'_>, dict: PyDict) -> PyResult<OhlcvBar> {
-    //     let open_time = dict.get_item("open_time").and_then(|x| x.extract().ok());
-    //     let close_time = dict.get_item("close_time").and_then(|x| x.extract().ok());
-    //     let open = dict.get_item("open").and_then(|x| x.extract().ok());
-    //     let high = dict.get_item("high").and_then(|x| x.extract().ok());
-    //     let low = dict.get_item("low").and_then(|x| x.extract().ok());
-    //     let close = dict.get_item("close").and_then(|x| x.extract().ok());
-    //     let volume = dict.get_item("volume").and_then(|x| x.extract().ok());
-
-    //     Ok(OhlcvBar::new(
-    //         open_time, close_time, open, high, low, close, volume,
-    //     ))
-    // }
 }
 
 #[cfg(feature = "bindings_py")]
@@ -246,8 +231,14 @@ impl Ohlcv {
     }
 
     #[inline]
-    pub fn read_path(path: &Path, time_unit: &str) -> Ohlcv {
-        let df = read_df(path);
+    pub fn read_csv(path: &Path, time_unit: &str) -> Ohlcv {
+        let df = read_df_csv(path);
+        Self::from_polars(&df, time_unit)
+    }
+
+    #[inline]
+    pub fn read_parquet(path: &Path, time_unit: &str) -> Ohlcv {
+        let df = read_df_parquet(path);
         Self::from_polars(&df, time_unit)
     }
 }
@@ -355,13 +346,10 @@ impl PyOhlcv {
         Ohlcv::py_from_pandas(py, df).map(|x| x.into())
     }
 
-    #[cfg(feature = "polars")]
-    #[staticmethod]
-    #[pyo3(name = "read_path", signature = (path, time_unit="s".to_string()))]
+    #[setter(timeframe)]
     #[inline]
-    #[doc = "`time_unit: 's' | 'ms'`"]
-    pub fn py_read_path(path: String, time_unit: String) -> Self {
-        Ohlcv::read_path(&Path::new(&path), &time_unit).into()
+    pub fn py_set_timeframe(&mut self, timeframe: PyTimeframe) {
+        self.timeframe = timeframe;
     }
 
     #[getter(timeframe)]
@@ -370,28 +358,22 @@ impl PyOhlcv {
         self.timeframe.clone()
     }
 
-    #[setter(timeframe)]
-    #[inline]
-    pub fn py_set_timeframe(&mut self, timeframe: PyTimeframe) {
-        self.timeframe = timeframe;
-    }
-
     #[getter(bars)]
     #[inline]
     pub fn py_bars(&self) -> Vec<OhlcvBar> {
         self.all_bars().to_vec()
     }
 
-    #[pyo3(name = "bars_from_slice")]
+    #[pyo3(name = "slice")]
     #[inline]
-    pub fn py_bars_from_slice(&self, slice: &Bound<'_, PySlice>) -> Vec<OhlcvBar> {
+    pub fn py_slice(&self, slice: &Bound<'_, PySlice>) -> Vec<OhlcvBar> {
         let range = pyslice_to_range(slice, self.len());
         self.bars(range).to_vec()
     }
 
-    #[pyo3(name = "bar")]
+    #[pyo3(name = "__getitem__")]
     #[inline]
-    pub fn py_bar(&self, index: usize) -> OhlcvBar {
+    pub fn py_getitem(&self, index: usize) -> OhlcvBar {
         *self.bar(index)
     }
 
@@ -443,17 +425,17 @@ impl PyOhlcv {
         self.close_time()
     }
 
-    #[getter(open_time_ms)]
-    #[inline]
-    pub fn py_open_time_ms(&self) -> Vec<i64> {
-        self.open_time_ms()
-    }
+    // #[getter(open_time_ms)]
+    // #[inline]
+    // pub fn py_open_time_ms(&self) -> Vec<i64> {
+    //     self.open_time_ms()
+    // }
 
-    #[getter(close_time_ms)]
-    #[inline]
-    pub fn py_close_time_ms(&self) -> Vec<i64> {
-        self.close_time_ms()
-    }
+    // #[getter(close_time_ms)]
+    // #[inline]
+    // pub fn py_close_time_ms(&self) -> Vec<i64> {
+    //     self.close_time_ms()
+    // }
 
     #[pyo3(name = "add")]
     #[inline]
@@ -467,15 +449,35 @@ impl PyOhlcv {
         self.push_many(&bars);
     }
 
-    #[pyo3(name = "__format__", signature = (format_spec=None))]
+    #[pyo3(name = "__str__")]
     #[inline]
-    pub fn py_format(&self, format_spec: Option<String>) -> String {
-        format!("Ohlcv(len={})", self.len())
+    pub fn py_str(&self) -> String {
+        let timeframe: Timeframe = self.timeframe.into();
+        let timeframe: String = timeframe.into();
+        format!("Ohlcv(timeframe={}, len={})", timeframe, self.len())
     }
 
     #[pyo3(name = "to_pandas")]
     pub fn py_to_pandas(&self, py: Python<'_>) -> PandasDataFrame {
         let inner = self.inner.read().unwrap();
         PandasDataFrame(inner.py_to_pandas(py).unwrap())
+    }
+
+    #[cfg(feature = "polars")]
+    #[staticmethod]
+    #[pyo3(name = "read_csv", signature = (path, time_unit="s".to_string()))]
+    #[inline]
+    #[doc = "`time_unit: 's' | 'ms'`"]
+    pub fn py_read_csv(path: String, time_unit: String) -> Self {
+        Ohlcv::read_csv(&Path::new(&path), &time_unit).into()
+    }
+
+    #[cfg(feature = "polars")]
+    #[staticmethod]
+    #[pyo3(name = "read_parquet", signature = (path, time_unit="s".to_string()))]
+    #[inline]
+    #[doc = "`time_unit: 's' | 'ms'`"]
+    pub fn py_read_parquet(path: String, time_unit: String) -> Self {
+        Ohlcv::read_parquet(&Path::new(&path), &time_unit).into()
     }
 }

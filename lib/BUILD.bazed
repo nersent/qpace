@@ -1,3 +1,6 @@
+const { readFileSync } = require("fs");
+const { resolve } = require("path");
+
 fileSet("py_src", {
   srcs: [glob("**/*.py")],
   deps: ["//core", "//lib/content"],
@@ -9,7 +12,7 @@ fileSet("ts_proto", {
 
 tsLibrary("wasm", {
   srcs: ["client.ts", "compiler.ts", "index.ts", "internal.ts"],
-  deps: [":ts_proto", "//core:wasm"],
+  deps: [":ts_proto", "//core:wasm", "//:package_json"],
   compiler: "tsc",
 });
 
@@ -27,7 +30,11 @@ include qpace_content/*
 `.replaceAll("\n", "\\n");
 
 // python -m twine upload *
-const SETUP_PY = `
+const GET_SETUP_PY = (ctx) => {
+  const packageJson = JSON.parse(
+    readFileSync(resolve(ctx.workspacePath, "package.json"), "utf8"),
+  );
+  return `
 from setuptools import setup, find_packages
 
 local_packages = [
@@ -38,7 +45,7 @@ print(local_packages)
 
 setup(
     name="qpace",
-    version="0.0.4",
+    version="${packageJson.version}",
     package_dir={
         "": "lib",
         "qpace": "lib",
@@ -65,8 +72,9 @@ setup(
 )
 
 `
-  .replaceAll("\n", "\\n")
-  .replaceAll(`"`, `""`);
+    .replaceAll("\n", "\\n")
+    .replaceAll(`"`, `""`);
+};
 
 const PYPROJECT_TOML = `
 [build-system]
@@ -89,70 +97,41 @@ unpackWheel(`maturin_unwheel_content`, (ctx) => ({
 execute("wheel", (ctx) => ({
   command: [
     `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
-    `node -e "require('fs').writeFileSync('setup.py', '${SETUP_PY}')"`,
+    `node -e "require('fs').writeFileSync('setup.py', '${GET_SETUP_PY(ctx)}')"`,
     `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
     `python setup.py bdist_wheel --plat-name win_amd64`,
   ].join(" && "),
   cwd: ctx.sandboxPath,
   deps: [
     ":py_src",
-    "//:md",
+    "//:package_json",
     ":maturin_unwheel_core",
     ":maturin_unwheel_content",
   ],
   run: true,
 }));
 
-const prodPackageJson = {
-  name: "qpace",
-  version: "0.0.1-dev.1",
-  bin: {
-    qpace: "lib/cli.bazed.js",
-    qpc: "lib/cli.bazed.js",
-  },
-  main: "lib/index.js",
-  types: "lib/index.d.ts",
-  typesVersions: {
-    "*": {
-      ".": ["lib/index.d.ts"],
-      "lib/proto": [
-        "lib/proto/compiler_grpc_pb.d.ts",
-        "lib/proto/compiler_pb.d.ts",
-        "lib/proto/ohlcv_grpc_pb.d.ts",
-        "lib/proto/ohlcv_pb.d.ts",
-        "lib/proto/sym_grpc_pb.d.ts",
-        "lib/proto/sym_pb.d.ts",
-      ],
-    },
-  },
-  files: ["base", "core", "lib"],
-  peerDependencies: {
-    "@grpc/grpc-js": "^1.12.0",
-    axios: "^0.27.2",
-  },
-};
-
-const packageJson = template((tmpl) => {
-  writeFile(tmpl.label.name, (ctx) => ({
-    content: JSON.stringify(tmpl.options.json, null, 2),
-    // TODO: rules should support absolute paths, remove |sandboxRelativePath|
-    output: `${ctx.sandboxRelativePath}/package.json`,
-  }));
-});
-
-packageJson("package_json_prod", { json: prodPackageJson });
-
 execute("npm_link", (ctx) => ({
   command: `cd ${ctx.sandboxPath} && pnpm link --global`,
   copyDeps: true,
-  deps: [":wasm", ":package_json_prod", ":cli_main", ":cli_src"],
+  deps: [
+    ":wasm",
+    // ":package_json_prod",
+    ":cli_main",
+    ":cli_src",
+  ],
   run: true,
 }));
 
 execute("publish_npm", (ctx) => ({
   command: `cd ${ctx.sandboxPath} && npm publish --access public --force`, //  --dry-run
   copyDeps: true,
-  deps: [":wasm", ":package_json_prod", ":cli_main", ":cli_src"],
+  deps: [
+    ":wasm",
+    // ":package_json_prod",
+    ":cli_main",
+    ":cli_src",
+  ],
   run: true,
 }));
 

@@ -43,7 +43,7 @@ impl PyTimeframe {
     #[pyo3(name = "__str__")]
     #[inline]
     pub fn py_str(&self) -> String {
-        format!("{:?}", self)
+        self.inner.into()
     }
 
     #[staticmethod]

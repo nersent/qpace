@@ -32,15 +32,16 @@ if True:
         volume=[1000.0],
     )
 
-# OHLCV dataframe from bars
+# Loading OHLCV dataframe from path
 if True:
-    ohlcv = qp.Ohlcv.from_bars(bars)
+    ohlcv = qp.Ohlcv.read_csv("ohlcv.csv")
+    ohlcv = qp.Ohlcv.read_parquet("ohlcv.parquet")
     ohlcv.timeframe = qp.Timeframe.Days(1)
 
-# OHLCV dataframe from path
+# Saving OHLCV dataframe to path
 if True:
-    ohlcv = qp.Ohlcv.read_path("btc.csv")
-    ohlcv = qp.Ohlcv.read_path("btc.parquet")
+    ohlcv.write_csv("ohlcv.csv")
+    ohlcv.write_parquet("ohlcv.parquet")
 
 # OHLCV dataframe from pandas
 if True:
@@ -62,9 +63,20 @@ if True:
 
     ohlcv = qp.Ohlcv.from_pandas(df)
 
-# Empty OHLCV dataframe
+# OHLCV dataframe from bars
 if True:
-    ohlcv = qp.Ohlcv()
+    bars = [
+        qp.OhlcvBar(
+            open_time=datetime(2025, 1, 1, tzinfo=timezone.utc),
+            close_time=datetime(2025, 1, 2, tzinfo=timezone.utc),
+            open=100.0,
+            close=110.0,
+            high=115.0,
+            low=95.0,
+            volume=1000.0,
+        )
+    ]
+    ohlcv = qp.Ohlcv.from_bars(bars)
 
 # Fetching OHLCV dataframe
 if True:
@@ -72,6 +84,10 @@ if True:
 if True:
     sym = client.sym("BITSTAMP_BTCUSD")
     ohlcv = client.ohlcv(sym, timeframe=qp.Timeframe.Days(1))
+
+# Empty OHLCV dataframe
+if True:
+    ohlcv = qp.Ohlcv()
 
 # Updating OHLCV dataframe
 if True:
