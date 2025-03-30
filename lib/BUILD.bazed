@@ -1,4 +1,4 @@
-const { readFileSync } = require("fs");
+const { readFileSync, writeFileSync, mkdirSync } = require("fs");
 const { resolve } = require("path");
 
 fileSet("py_src", {
@@ -27,7 +27,8 @@ include lib/*
 include lib/xd/*
 include qpace_core/*
 include qpace_content/*
-`.replaceAll("\n", "\\n");
+`;
+// .replaceAll("\n", "\\n");
 
 // python -m twine upload *
 const GET_SETUP_PY = (ctx) => {
@@ -54,8 +55,8 @@ setup(
     },
     packages=[*local_packages],
     package_data={
-        "qpace_core": ["qpace_core.pyd"],
-        "qpace_content": ["qpace_content.pyd"],
+        "qpace_core": ["qpace_core.pyd", "qpace_core.abi3.so"],
+        "qpace_content": ["qpace_content.pyd", "qpace_content.abi3.so"],
     },
     include_package_data=True,
     python_requires=">=3.10",
@@ -67,22 +68,24 @@ setup(
         "requests",
         "tqdm",
         "plotly",
+        "grpcio==1.70.0",
+        "protobuf==5.29.1",
     ],
     # platforms=["win_amd64"],
 )
 
-`
-    .replaceAll("\n", "\\n")
-    .replaceAll(`"`, `""`);
+`;
+  // .replaceAll("\n", "\\n")
+  // .replaceAll(`"`, `""`);
 };
 
 const PYPROJECT_TOML = `
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
-`
-  .replaceAll("\n", "\\n")
-  .replaceAll(`"`, `""`);
+`;
+  // .replaceAll("\n", "\\n")
+  // .replaceAll(`"`, `""`);
 
 unpackWheel(`maturin_unwheel_core`, (ctx) => ({
   deps: ["//core:maturin"],
@@ -94,22 +97,37 @@ unpackWheel(`maturin_unwheel_content`, (ctx) => ({
   dir: ctx.sandboxPath,
 }));
 
-execute("wheel", (ctx) => ({
-  command: [
-    `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
-    `node -e "require('fs').writeFileSync('setup.py', '${GET_SETUP_PY(ctx)}')"`,
-    `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
-    `python setup.py bdist_wheel --plat-name win_amd64`,
-  ].join(" && "),
-  cwd: ctx.sandboxPath,
-  deps: [
-    ":py_src",
-    "//:package_json",
-    ":maturin_unwheel_core",
-    ":maturin_unwheel_content",
-  ],
-  run: true,
-}));
+execute("wheel", (ctx) => {
+  mkdirSync(resolve(ctx.sandboxPath), { recursive: true });
+  // console.log("XDDDD", resolve(ctx.sandboxPath))
+  writeFileSync(resolve(ctx.sandboxPath, "../MANIFEST.in"), MANIFEST_IN, 'utf8');
+  writeFileSync(resolve(ctx.sandboxPath, "../setup.py"), GET_SETUP_PY(ctx), 'utf8');
+  writeFileSync(resolve(ctx.sandboxPath, "../pyproject.toml"), PYPROJECT_TOML, 'utf8');
+  return {
+    command: [
+      "cp ../MANIFEST.in .",
+      "cp ../setup.py .",
+      "cp ../pyproject.toml .",
+      // copy from ../ctx.sandboxPath to here
+      // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
+      // `node -e "require('fs').writeFileSync('setup.py', '${GET_SETUP_PY(
+      //   ctx,
+      // )}')"`,
+      // `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
+      // `python setup.py bdist_wheel --plat-name win_amd64`,
+      // macos arm
+      `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
+    ].join(" && "),
+    cwd: ctx.sandboxPath,
+    deps: [
+      ":py_src",
+      "//:package_json",
+      ":maturin_unwheel_core",
+      ":maturin_unwheel_content",
+    ],
+    run: true,
+  };
+});
 
 execute("npm_link", (ctx) => ({
   command: `cd ${ctx.sandboxPath} && pnpm link --global`,
@@ -124,7 +142,7 @@ execute("npm_link", (ctx) => ({
 }));
 
 execute("npm_publish", (ctx) => ({
-  command: `cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force`, //  --dry-run
+  command: `echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js > temp && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force --dry-run`, //  --dry-run
   copyDeps: true,
   deps: [
     ":wasm",
