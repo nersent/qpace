@@ -12,9 +12,6 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
-    use crate::rs_utils::{read_df};
-    use crate::ohlcv::{ohlcv_bars_from_polars};
-    use crate::rs_utils::{read_df_csv, read_df_parquet};
 }}
 use crate::ohlcv::{zip_ohlcv_bars, Ohlcv};
 use crate::timeframe::Timeframe;
@@ -146,6 +143,12 @@ impl OhlcvBar {
         dict.set_item("volume", self.volume())?;
         return Ok(dict.to_object(py));
     }
+
+    #[pyo3(name = "merge")]
+    #[inline]
+    pub fn py_merge(&self, other: &OhlcvBar) -> OhlcvBar {
+        self.merge(other)
+    }
 }
 
 #[cfg(feature = "bindings_py")]
@@ -220,26 +223,6 @@ impl Ohlcv {
         let df = pd.getattr("DataFrame")?.call1((dict,))?;
 
         Ok(df.into())
-    }
-}
-
-#[cfg(feature = "polars")]
-impl Ohlcv {
-    #[inline]
-    pub fn from_polars(df: &DataFrame, time_unit: &str) -> Ohlcv {
-        Self::from_bars(ohlcv_bars_from_polars(&df, time_unit))
-    }
-
-    #[inline]
-    pub fn read_csv(path: &Path, time_unit: &str) -> Ohlcv {
-        let df = read_df_csv(path);
-        Self::from_polars(&df, time_unit)
-    }
-
-    #[inline]
-    pub fn read_parquet(path: &Path, time_unit: &str) -> Ohlcv {
-        let df = read_df_parquet(path);
-        Self::from_polars(&df, time_unit)
     }
 }
 
@@ -479,5 +462,17 @@ impl PyOhlcv {
     #[doc = "`time_unit: 's' | 'ms'`"]
     pub fn py_read_parquet(path: String, time_unit: String) -> Self {
         Ohlcv::read_parquet(&Path::new(&path), &time_unit).into()
+    }
+
+    #[pyo3(name = "resample", signature = (timeframe, align_utc=true))]
+    #[inline]
+    #[doc = "Resamples OHLCV bars into the specified timeframe.
+    If align_utc is true, bars are pinned to calendar-based UTC boundaries;
+    otherwise, a rolling time window is used.\n`align_utc`: boolean. Default: true"]
+    pub fn py_resample(&self, timeframe: PyTimeframe, align_utc: bool) -> Self {
+        let timeframe: Timeframe = timeframe.into();
+        let ohlcv = self.inner.read().unwrap().clone();
+        let resampled = ohlcv.resample(timeframe, align_utc);
+        resampled.into()
     }
 }

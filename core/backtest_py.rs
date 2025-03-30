@@ -63,16 +63,6 @@ pub struct PyBacktest {
 }
 
 #[cfg(feature = "bindings_py")]
-impl PyBacktest {
-    pub fn new(py_ctx: PyCtx, config: BacktestConfig) -> Self {
-        Self {
-            bt: Rc::new(RefCell::new(Backtest::new(py_ctx.clone().into(), config))),
-            py_ctx,
-        }
-    }
-}
-
-#[cfg(feature = "bindings_py")]
 impl Into<Rc<RefCell<Backtest>>> for PyBacktest {
     fn into(self) -> Rc<RefCell<Backtest>> {
         self.bt
@@ -83,10 +73,15 @@ impl Into<Rc<RefCell<Backtest>>> for PyBacktest {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyBacktest {
+    #[pyo3(signature = (ctx, config=None))]
     #[new]
     #[inline]
-    pub fn py_new(ctx: PyCtx, config: BacktestConfig) -> Self {
-        Self::new(ctx, config)
+    pub fn py_new(ctx: PyCtx, config: Option<BacktestConfig>) -> Self {
+        let config = config.unwrap_or(BacktestConfig::default());
+        Self {
+            bt: Rc::new(RefCell::new(Backtest::new(ctx.clone().into(), config))),
+            py_ctx: ctx,
+        }
     }
 
     #[getter(config)]
@@ -441,7 +436,7 @@ impl PyBacktest {
         ]));
 
         table.add_row(Row::from(vec![
-            Cell::new("Percent Profitable"),
+            Cell::new("% Profitable"),
             Cell::new(f_percent(bt.win_rate() * 100.0)),
         ]));
 
@@ -469,8 +464,8 @@ impl PyBacktest {
         println!("{}", table);
     }
 
-    #[pyo3(name = "print")]
-    pub fn py_print(&self) {
+    #[pyo3(name = "print", signature = (plot=Some((120, 60))))]
+    pub fn py_print(&self, plot: Option<(u32, u32)>) {
         self.print_metrics();
 
         let bt = self.bt.borrow();
@@ -506,7 +501,7 @@ impl PyBacktest {
         table.add_row(Row::from(vec![
             Cell::new("Net Profit").add_attribute(Attribute::Bold),
             Cell::new("Total Closed Trades").add_attribute(Attribute::Bold),
-            Cell::new("Percent Profitable").add_attribute(Attribute::Bold),
+            Cell::new("% Profitable").add_attribute(Attribute::Bold),
             Cell::new("Profit Factor").add_attribute(Attribute::Bold),
             // Cell::new("Max Drawdown").add_attribute(Attribute::Bold),
             Cell::new("Avg Trade").add_attribute(Attribute::Bold),
@@ -551,13 +546,15 @@ impl PyBacktest {
 
         println!("{}", table);
 
-        self.text_plot_equity();
+        if plot.is_some() {
+            self.text_plot_equity(plot);
+        }
     }
 }
 
 #[cfg(feature = "bindings_py")]
 impl PyBacktest {
-    fn text_plot_equity(&self) {
+    fn text_plot_equity(&self, size: Option<(u32, u32)>) {
         let bt = self.bt.borrow();
         let net_equity_series: Vec<f64> = bt.net_equity_series().to_vec();
         let net_equity_line: Vec<(f32, f32)> = net_equity_series
@@ -565,8 +562,7 @@ impl PyBacktest {
             .enumerate()
             .map(|(i, &value)| (i as f32 + 1.0, value as f32))
             .collect();
-        let w = 120;
-        let h = 60;
+        let (w, h) = size.unwrap_or((120, 60));
         Chart::new(w, h, 1.0, net_equity_series.len() as f32)
             .lineplot(&Shape::Lines(&net_equity_line))
             .nice();

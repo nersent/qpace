@@ -1,3 +1,5 @@
+use chrono::Duration;
+
 use crate::utils::{round_contracts, round_to_min_tick, validate_contracts};
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
@@ -37,7 +39,7 @@ impl Into<String> for Timeframe {
             Timeframe::Months(value) => format!("{}M", value),
             Timeframe::Weeks(value) => format!("{}W", value),
             Timeframe::Days(value) => format!("{}D", value),
-            Timeframe::Hours(value) => format!("{}H", value),
+            Timeframe::Hours(value) => format!("{}h", value),
             Timeframe::Minutes(value) => format!("{}m", value),
             Timeframe::Seconds(value) => format!("{}s", value),
             Timeframe::Ticks(value) => format!("{}T", value),
@@ -50,7 +52,7 @@ impl Into<String> for Timeframe {
 impl From<String> for Timeframe {
     #[inline]
     fn from(value: String) -> Self {
-        if value == "" || value == "unknown" {
+        if value == "" || value == "?" {
             return Timeframe::Unknown();
         }
         let mut chars = value.chars();
@@ -63,18 +65,40 @@ impl From<String> for Timeframe {
                 unit.push(c);
             }
         }
-        let num = num.parse::<usize>().unwrap();
+        let num = num.parse::<usize>();
+        if num.is_err() {
+            return Timeframe::Unknown();
+        }
+        let num = num.unwrap();
         return match unit.as_str() {
             "Y" => Timeframe::Years(num),
             "M" => Timeframe::Months(num),
             "W" => Timeframe::Weeks(num),
             "D" => Timeframe::Days(num),
-            "H" => Timeframe::Hours(num),
+            "h" => Timeframe::Hours(num),
             "m" => Timeframe::Minutes(num),
             "s" => Timeframe::Seconds(num),
             "T" => Timeframe::Ticks(num),
             "R" => Timeframe::Ranges(num),
             _ => Timeframe::Unknown(),
+        };
+    }
+}
+
+impl TryInto<Duration> for Timeframe {
+    type Error = String;
+
+    #[inline]
+    fn try_into(self) -> Result<Duration, Self::Error> {
+        return match self {
+            Timeframe::Years(value) => Ok(Duration::days((value * 365) as i64)),
+            Timeframe::Months(value) => Ok(Duration::days((value * 30) as i64)),
+            Timeframe::Weeks(value) => Ok(Duration::weeks(value as i64)),
+            Timeframe::Days(value) => Ok(Duration::days(value as i64)),
+            Timeframe::Hours(value) => Ok(Duration::hours(value as i64)),
+            Timeframe::Minutes(value) => Ok(Duration::minutes(value as i64)),
+            Timeframe::Seconds(value) => Ok(Duration::seconds(value as i64)),
+            _ => Err("Unknown timeframe".to_string()),
         };
     }
 }

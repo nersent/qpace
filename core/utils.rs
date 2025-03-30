@@ -11,6 +11,22 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
     use wasm_bindgen::prelude::*;
 }}
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Ord {
+    Asc,
+    Desc,
+}
+
+impl From<String> for Ord {
+    fn from(s: String) -> Self {
+        match s.as_str() {
+            "asc" => Ord::Asc,
+            "desc" => Ord::Desc,
+            _ => panic!("Invalid value for Ord: {}", s),
+        }
+    }
+}
+
 #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_py", pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen)]

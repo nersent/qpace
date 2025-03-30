@@ -98,6 +98,7 @@ const client = new qp.Client({
   const ohlcv = await client.ohlcv("BITSTAMP:BTCUSD", qp.Timeframe.days(1), {
     offset: 50, // starting from bar index 50
     limit: 100, // maximum 100 bars, so last bar index will be 149
+    pb: true, // displays download progress bar
   });
 }
 {
@@ -115,4 +116,43 @@ const client = new qp.Client({
   const ohlcv = new qp.Ohlcv();
   ohlcv.add(new qp.OhlcvBar());
   ohlcv.addMany([new qp.OhlcvBar(), new qp.OhlcvBar()]);
+}
+
+// Resampling OHLCV dataframe
+{
+  const ohlcv = new qp.Ohlcv();
+  ohlcv.timeframe = qp.Timeframe.minutes(15);
+
+  // open_time: 00:00 UTC, close_time 00:00 UTC
+  const ohlcv_1d_utc = ohlcv.resample(
+    qp.Timeframe.days(1),
+    /* align to UTC */ true,
+  );
+
+  // open_time: first bar open time, close_time: last bar close time
+  const ohlcv_1d_rolling = ohlcv.resample(qp.Timeframe.days(1), false);
+}
+
+// Sorting OHLCV dataframe
+{
+  const ohlcv = new qp.Ohlcv();
+  // sorts in-place by open_time
+  ohlcv.sort("asc");
+  ohlcv.sort("desc");
+}
+
+// Extending OHLCV dataframe
+{
+  const ohlcv = new qp.Ohlcv();
+  const other = new qp.Ohlcv();
+  // extends in-place "ohlcv" with "other"
+  ohlcv.extend(other);
+}
+
+// Cloning OHLCV dataframe
+{
+  const ohlcv = new qp.Ohlcv();
+  const ohlcv_clone = ohlcv.clone();
+  ohlcv.add(new qp.OhlcvBar());
+  console.log(ohlcv.length === ohlcv_clone.length); // false
 }

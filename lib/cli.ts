@@ -1,16 +1,17 @@
 import { existsSync, FSWatcher, Stats } from "fs";
-import { mkdir } from "fs/promises";
-import { homedir } from "os";
+import { mkdir, writeFile } from "fs/promises";
+import os, { homedir } from "os";
 import { resolve } from "path";
 
-import { input } from "@inquirer/prompts";
+import { input, confirm, select } from "@inquirer/prompts";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import { watch } from "chokidar";
 import { Command, Option } from "commander";
 
 import { RemoteDriver } from "./remote_driver";
-import os from "os";
+
+import { exec } from "~/base/node/exec";
 import { exists, readJson, writeJson } from "~/base/node/fs";
 import { isLinux, isMacOs, isWindows } from "~/base/node/os";
 import * as qp from "~/lib";
@@ -30,7 +31,6 @@ import {
   VerifyApiKeyRequest,
   VerifyApiKeyResponse,
 } from "~/lib/internal";
-import { exec } from "~/base/node/exec";
 
 export interface UserConfig {
   apiKey?: string;
@@ -76,16 +76,109 @@ const loadConfig = async (dir: string): Promise<Config> => {
   return config;
 };
 
-const loadOrCreateConfig = async (dir: string): Promise<Config> => {
+const loadOrCreateConfig = async (
+  dir: string,
+  _prompt = false,
+): Promise<Config> => {
   const configPath = resolve(dir, QPC_CONFIG_FILENAME);
-  if (!(await exists(configPath))) {
-    const config = getInitConfig();
-    console.log(
-      chalk.yellowBright(
-        `Warning: Config file not found at ${configPath}. Creating a default config file.`,
-      ),
-    );
+  const hasConfig = await exists(configPath);
+  let config: Config | undefined;
+  if (!hasConfig || _prompt) {
+    if (_prompt && hasConfig) {
+      console.log(
+        chalk.yellowBright(
+          `Warning: Config file already exists at ${configPath}`,
+        ),
+      );
+      config = await loadConfig(dir);
+    } else {
+      console.log(
+        chalk.yellowBright(
+          `Warning: Config file not found at ${configPath}. Creating a default config file.`,
+        ),
+      );
+      config = getInitConfig();
+    }
+    const usePython = await confirm({
+      message: "Do you want to use Python?",
+    });
+    if (usePython) {
+      const pythonPackageName = await input({
+        message: "Enter python package name for your project",
+        default: config.python?.package ?? "qpace_artifact",
+        required: false,
+        validate: (x) => {
+          if (x.trim().length === 0) {
+            return "Python package name is required";
+          }
+          if (!/^[a-zA-Z0-9_.-]+$/.test(x)) {
+            return "Invalid python package name";
+          }
+          return true;
+        },
+      });
+      if (pythonPackageName != null) {
+        config.python ??= {};
+        config.python.package = pythonPackageName;
+      }
+    }
+    const examplePine = usePython
+      ? await select({
+          message: `Do you want to use an example?`,
+          default: "no",
+          choices: [
+            {
+              name: "no",
+              value: "no",
+            },
+            {
+              name: "EMA with matplotlib",
+              value: "ema_matplotlib",
+            },
+          ],
+        })
+      : undefined;
+    if (examplePine != null && examplePine !== "no") {
+      if (examplePine === "ema_matplotlib") {
+        await writeFile(
+          resolve(dir, "indicator.pine"),
+          `
+library("indicator")
+
+export custom_ma(series<float> src, int length = 14) =>
+    ta.ema(src, length)
+        `.trim(),
+        );
+        await writeFile(
+          resolve(dir, "main.py"),
+          `
+import matplotlib.pyplot as plt
+import qpace as qp
+import ${config.python?.package ?? ""} as pine
+
+client = qp.Client(api_key="ENTER_YOUR_API_KEY")
+ctx = client.ctx("BITSTAMP:BTCUSD", "1D", pb=True)
+ohlcv = ctx.ohlcv
+
+rsi = qp.ta.rsi(ctx.fork(), ohlcv.close)
+ma = pine.indicator.custom_ma(ctx.fork(), src=ohlcv.close, length=14)
+plt.plot(ohlcv.open_time, ohlcv.close, label="Close", color="black")
+plt.plot(ohlcv.open_time, ma, label="Custom MA", color="red")
+plt.legend()
+plt.show()
+
+        `.trim(),
+        );
+      }
+    }
     await writeJson(configPath, config, true);
+    console.log(chalk.greenBright(`qPACE project intialized successfully!`));
+    if (usePython) {
+      console.log(
+        `To build the project, use: "qpc build --target python", then "python main.py"`,
+      );
+    }
+
     return config;
   }
   return await loadConfig(dir);
@@ -217,7 +310,7 @@ class Cli {
         await this._initClientInfo(client);
       }
       const {
-        data: { team },
+        data: { user },
       } = await client["http"].get<
         VerifyApiKeyResponse,
         AxiosResponse<VerifyApiKeyResponse>,
@@ -225,8 +318,8 @@ class Cli {
       >(`/api_keys/verify/${this.apiKey}`);
       if (inputApiKey != null) {
         console.log(
-          `${QPACE_BG_PREFIX}Logged in as team ${chalk.yellowBright(
-            team?.name,
+          `${QPACE_BG_PREFIX}Logged in as ${chalk.yellowBright(
+            user?.name,
           )}. Use ${chalk.white.bold(
             `\`qpace login --force\``,
           )} to force relogin.`,
@@ -345,14 +438,29 @@ const main = async (): Promise<void> => {
   const cli = new Cli();
   await cli.init();
   const program = new Command();
-  program.version(`qpace_core = ${qp.getVersion()}`);
+  program.option("-v, --version", "Show version").action(async () => {
+    console.table({
+      qpace: qp.getVersion(),
+      qpaceCore: qp.getCoreVersion(),
+    });
+  });
+  // program.version(`qpace_core = ${qp.getVersion()}`);
   program
     .command("login")
     .argument("[api key]")
     .action(async (apiKey: string | undefined) => {
       await cli.maybePromptApiKey(apiKey, apiKey == null, true);
     });
-  program.command("init").action(() => console.log("init"));
+  program
+    .command("init")
+    .option("--cwd <path>", `Project root directory`)
+    .action(async (opts: { cwd?: string }) => {
+      await cli.maybePromptApiKey();
+      const client = cli.getClient();
+      const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
+      await mkdir(rootDir, { recursive: true });
+      const qpcConfig = await loadOrCreateConfig(rootDir, true);
+    });
   program
     .command("build")
     .addOption(
@@ -365,6 +473,11 @@ const main = async (): Promise<void> => {
     .option(
       "--install-wheel",
       `Installs generated python wheel artifact. Default: "config.python.installWheel"`,
+    )
+    .option(
+      "--skip-wheel-test",
+      `Skips testing generated python wheel artifact`,
+      false,
     )
     .option("--cwd <path>", `Project root directory`)
     .option("--verbose, -v", `Verbose output`)
@@ -379,6 +492,7 @@ const main = async (): Promise<void> => {
         installWheel?: boolean;
         verbose?: boolean;
         watch?: boolean;
+        skipWheelTest?: boolean;
       }) => {
         await cli.maybePromptApiKey();
         const client = cli.getClient();
@@ -390,6 +504,8 @@ const main = async (): Promise<void> => {
         qpcConfig.python ??= {};
         qpcConfig.python.installWheel =
           opts.installWheel ?? qpcConfig.python.installWheel;
+        qpcConfig.python.testWheel =
+          qpcConfig.python.testWheel && !opts.skipWheelTest;
         qpcConfig.buildDir = opts.dir ?? qpcConfig.buildDir;
 
         const target = tryMapBuildTarget(opts.target as any);
@@ -493,7 +609,7 @@ const main = async (): Promise<void> => {
           items,
           opts.full
             ? undefined
-            : ["tickerId", "baseCurrency", "currency", "prefix"],
+            : ["ticker_id", "base_currency", "currency", "prefix"],
         );
       },
     );
@@ -524,24 +640,36 @@ const main = async (): Promise<void> => {
         for (const pattern of patterns) {
           const sym = await client.sym({ tickerId: pattern });
           if (syms.find((r) => r.id === sym.id)) continue;
-          const ohlcv = await client.ohlcv(sym, timeframe);
-          const _items = ohlcv.bars.map((r) => ({
+          const ohlcv = await client.ohlcv(sym, timeframe, { pb: true });
+          let _items = ohlcv.bars.map((r) => ({
             tickerId: sym.tickerId,
             ...r.toJSON(),
           }));
+          if (opts.order === "asc") {
+            _items.sort((a, b) => a.openTime - b.openTime);
+          } else {
+            _items.sort((a, b) => b.openTime - a.openTime);
+          }
+          if (opts.limit != null) {
+            _items = _items.slice(0, parseInt(opts.limit));
+          }
           items.push(..._items);
         }
+        // {
+        //   const sym = qp.Sym.fromJSON({
+        //     id: "adbc7c0a-edc1-4995-afb5-6dabd7f6670c",
+        //   });
+        //   const ohlcv = await client.ohlcv(sym, timeframe);
+        //   const _items = ohlcv.bars.map((r) => ({
+        //     tickerId: sym.tickerId,
+        //     ...r.toJSON(),
+        //   }));
+        //   items.push(..._items);
+        // }
         if (items.length === 0) {
           throw new CliError("No bars found");
         }
-        if (opts.order === "asc") {
-          items.sort((a, b) => a.openTime - b.openTime);
-        } else {
-          items.sort((a, b) => b.openTime - a.openTime);
-        }
-        if (opts.limit != null) {
-          items = items.slice(0, parseInt(opts.limit));
-        }
+
         console.table(items);
       },
     );

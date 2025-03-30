@@ -80,7 +80,15 @@ if True:
 
 # Fetching OHLCV dataframe
 if True:
+    ohlcv = client.ohlcv("BITSTAMP_BTCUSD", "1D")
     ohlcv = client.ohlcv("BITSTAMP_BTCUSD", timeframe=qp.Timeframe.Days(1))
+    ohlcv = client.ohlcv(
+        "BITSTAMP_BTCUSD",
+        timeframe=qp.Timeframe.Days(1),
+        offset=50,  # starting from bar index 50
+        limit=100,  # maximum 100 bars, so last bar index will be 149
+        pb=True,  # displays download progress bar
+    )
 if True:
     sym = client.sym("BITSTAMP_BTCUSD")
     ohlcv = client.ohlcv(sym, timeframe=qp.Timeframe.Days(1))

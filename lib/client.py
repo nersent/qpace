@@ -5,6 +5,7 @@ from typing import Optional, Union
 import qpace_core as qp
 import json
 import requests
+from tqdm import tqdm
 from .internal import (
     DEFAULT_GRPC_ENDPOINT,
     DEFAULT_REST_ENDPOINT,
@@ -20,6 +21,7 @@ class Client:
         api_key: str,
         api_base: Optional[str] = None,
         grpc_api_base: Optional[str] = None,
+        grpc_credentials: Optional[grpc.ChannelCredentials] = None,
     ):
         from . import get_version
 
@@ -37,7 +39,16 @@ class Client:
         self.http.headers.update({"x-info": json.dumps(self.client_info)})
         self.http.headers.update({"Accept": "application/json"})
 
-        self.grpc_channel = grpc.insecure_channel(self.grpc_api_base)
+        if grpc_credentials is None:
+            grpc_credentials = grpc.ssl_channel_credentials()
+        self.grpc_channel = grpc.secure_channel(
+            self.grpc_api_base,
+            grpc_credentials,
+            options=[
+                ("grpc.max_receive_message_length", -1),
+                ("grpc.max_send_message_length", -1),
+            ],
+        )
         self._grpc_metadata = None
         self.ohlcv_api_client = OhlcvApiClient(self.grpc_channel)
 
@@ -55,6 +66,7 @@ class Client:
         timeframe: Optional[Union[qp.Timeframe, str]] = None,
         id: Optional[str] = None,
         ticker_id: Optional[str] = None,
+        **kwargs,
     ) -> qp.Sym:
         syms = self.syms(
             pat=pat,
@@ -75,6 +87,7 @@ class Client:
         ticker_id: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        **kwargs,
     ) -> list[qp.Sym]:
         if timeframe is not None:
             timeframe = str(timeframe)
@@ -91,6 +104,8 @@ class Client:
                 "timeframe": timeframe,
             },
         )
+        if not res.ok:
+            raise Exception(f"Error: {res.status_code} {res.reason} {res.text}")
         res = res.json()
         return [qp.Sym.from_dict(sym) for sym in res["symbols"]]
 
@@ -100,14 +115,54 @@ class Client:
         timeframe: Union[qp.Timeframe, str],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        pb: bool = False,
         **kwargs,
     ) -> qp.Ohlcv:
+        if not isinstance(timeframe, qp.Timeframe):
+            timeframe = qp.Timeframe.from_str(timeframe)
+        if offset is None:
+            offset = 0
+        _pb: Optional[tqdm] = None
+        _bars: list[ohlcv_api.OhlcvBar] = []
+        while True:
+            res = self._ohlcv(
+                sym=sym,
+                timeframe=timeframe,
+                limit=limit,
+                offset=offset,
+                **kwargs,
+            )
+            bars = [proto_to_ohlcv_bar(proto) for proto in res.bars]
+            remaining: int = res.remaining
+            _bars.extend(bars)
+            offset += len(bars)
+            if remaining == 0 or limit is not None:
+                break
+            if pb:
+                if _pb is None:
+                    _pb = tqdm(
+                        total=remaining + len(_bars),
+                        desc=f"Loading OHLCV for {sym.id} {str(timeframe)}",
+                        mininterval=1.0,
+                    )
+                _pb.update(len(bars))
+
+        ohlcv = qp.Ohlcv.from_bars(_bars)
+        ohlcv.timeframe = timeframe
+        return ohlcv
+
+    def _ohlcv(
+        self,
+        sym: Union[Optional[str], qp.Sym],
+        timeframe: Union[qp.Timeframe, str],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        **kwargs,
+    ) -> ohlcv_api.GetResponse:
         if not isinstance(sym, qp.Sym):
             sym = self.sym(sym)
         if sym.id is None:
             raise Exception(f"Symbol has no id")
-        if not isinstance(timeframe, qp.Timeframe):
-            timeframe = qp.Timeframe.from_str(timeframe)
         req = ohlcv_api.GetRequest(
             sym_id=sym.id,
             timeframe=str(timeframe),
@@ -117,9 +172,7 @@ class Client:
         res: ohlcv_api.GetResponse = self.ohlcv_api_client.Get(
             req, metadata=self._create_grpc_metadata()
         )
-        ohlcv = qp.Ohlcv.from_bars([proto_to_ohlcv_bar(proto) for proto in res.bars])
-        ohlcv.timeframe = timeframe
-        return ohlcv
+        return res
 
     def ctx(
         self,
@@ -128,7 +181,7 @@ class Client:
         **kwargs,
     ) -> qp.Ctx:
         if not isinstance(sym, qp.Sym):
-            sym = self.sym(sym)
+            sym = self.sym(sym, **kwargs)
         ohlcv = self.ohlcv(
             sym=sym,
             timeframe=timeframe,

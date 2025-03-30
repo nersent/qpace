@@ -1,10 +1,11 @@
 {
   "name": "qpace",
-  "version": "0.0.1-dev.1",
+  "version": "0.0.1-dev.5",
   "bin": {
     "qpace": "lib/cli.bazed.js",
     "qpc": "lib/cli.bazed.js"
   },
+  "files": ["base", "core", "lib"],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "typesVersions": {
@@ -20,7 +21,6 @@
       ]
     }
   },
-  "files": ["base", "core", "lib"],
   "scripts": {
     "bazed:clean": "rimraf build",
     "wasm": "wasm-pack build ./core --target nodejs --no-default-features --features=bindings_wasm",
@@ -70,6 +70,7 @@
   },
   "peerDependencies": {
     "@grpc/grpc-js": "^1.12.0",
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "cli-progress": "^2.1.1"
   }
 }

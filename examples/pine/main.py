@@ -1,15 +1,12 @@
 from datetime import datetime
+import sys
 import matplotlib.pyplot as plt
 import qpace as qp
 import python_pine_example as pine
+import pandas as pd
 
-client = qp.Client(
-    #   "ENTER_YOUR_API_KEY_HERE"
-    api_key="sk_2835bf23-a22f-40cb-987b-ecdb938bd62b",
-    api_base="http://localhost:3000/v1",
-    grpc_api_base="localhost:3001",
-)
-ctx = client.ctx("BITSTAMP:BTCUSD", "1D")
+client = qp.Client("ENTER_YOUR_API_KEY")
+ctx = client.ctx("BITSTAMP:BTCUSD", "1D", pb=True)
 ohlcv = ctx.ohlcv
 
 rsi = qp.ta.rsi(ctx.fork(), ohlcv.close)

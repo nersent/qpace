@@ -11,7 +11,7 @@ ENV_API_KEY = "QPACE_API_KEY"
 ENV_TELEMETRY = "QPACE_TELEMETRY"
 
 DEFAULT_REST_ENDPOINT = "https://api.qpace.dev/v1"
-DEFAULT_GRPC_ENDPOINT = "https://api.qpace.dev/grpc"
+DEFAULT_GRPC_ENDPOINT = "grpc.qpace.dev"
 
 
 def proto_to_ohlcv_bar(proto: ohlcv_api.OhlcvBar) -> qp.OhlcvBar:

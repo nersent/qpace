@@ -75,6 +75,8 @@ export interface PythonConfig {
   qpacePackage?: string;
   /* Name of python package being built. default: `qpace_artifact` */
   package?: string;
+  /* Tests the wheel after building by running test python code. default: `false` */
+  testWheel?: boolean;
 }
 
 export interface WasmConfig {
@@ -100,6 +102,7 @@ export const getDefaultConfig = (): Config => {
       installWheel: true,
       qpacePackage: "qpace",
       package: "qpace_artifact",
+      testWheel: true,
     },
     wasm: {
       bindings: false,

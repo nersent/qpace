@@ -1,11 +1,20 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 package compiler;
 
 service CompilerApi {
+  rpc Version(VersionRequest) returns (VersionResponse);
   rpc Build(BuildRequest) returns (stream StageEvent);
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  string version = 1;
+  google.protobuf.Timestamp build_time = 2;
 }
 
 message File {

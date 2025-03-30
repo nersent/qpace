@@ -1,3 +1,4 @@
+import { writeFileSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { basename, dirname, normalize, relative, resolve } from "path";
 
@@ -50,6 +51,7 @@ class DriverContext {
   private emitTime = CheckpointTime.def();
   private buildTime = CheckpointTime.def();
   private wheelInstallTime = CheckpointTime.def();
+  private wheelTestTime = CheckpointTime.def();
   private ok = true;
 
   constructor(private readonly config: DriverContextConfig) {}
@@ -141,7 +143,7 @@ class DriverContext {
           const wheelPath = await this.onReceivedFile(wheelFile);
           this.ora = ora(`Installing ${relative(rootDir, wheelPath)}`).start();
           CheckpointTime.start(this.wheelInstallTime);
-          const execRes = await exec({
+          const installWheelRes = await exec({
             command: `pip install "${wheelPath}" --force-reinstall`,
             io: verbose,
           });
@@ -149,13 +151,38 @@ class DriverContext {
           this.ora.text = `${this.ora.text} (${prettifyTime(
             CheckpointTime.diff(this.wheelInstallTime),
           )})`;
-          if (execRes.exitCode === 0) {
+          if (installWheelRes.exitCode === 0) {
             this.ora.succeed();
           } else {
             this.ora.fail();
             this.ok = false;
-            process.stdout.write(execRes.stdout);
-            process.stderr.write(execRes.stderr);
+            process.stdout.write(installWheelRes.stdout);
+            process.stderr.write(installWheelRes.stderr);
+          }
+          if (qpcConfig.python.testWheel) {
+            this.ora = ora(`Testing python wheel`).start();
+            CheckpointTime.start(this.wheelTestTime);
+            const testWheelRes = await exec({
+              command: `python -c "import ${qpcConfig.python.package}`,
+              io: verbose,
+            });
+            CheckpointTime.end(this.wheelTestTime);
+            this.ora.text = `${this.ora.text} (${prettifyTime(
+              CheckpointTime.diff(this.wheelTestTime),
+            )})`;
+            if (testWheelRes.exitCode === 0) {
+              if (testWheelRes.stdout.includes("warnings.warn")) {
+                this.ora.warn();
+                process.stdout.write(testWheelRes.stdout);
+              } else {
+                this.ora.succeed();
+              }
+            } else {
+              this.ora.fail();
+              this.ok = false;
+              process.stdout.write(testWheelRes.stdout);
+              process.stderr.write(testWheelRes.stderr);
+            }
           }
         }
       }
@@ -165,6 +192,7 @@ class DriverContext {
   }
 
   private printMessage(message?: string): void {
+    console.log(resolve("xd.txt"));
     if (message?.length) console.log(message);
   }
 

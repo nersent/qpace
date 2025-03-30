@@ -5,7 +5,51 @@
 /* eslint-disable */
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
+
+export class VersionRequest extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): VersionRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: VersionRequest): VersionRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: VersionRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): VersionRequest;
+    static deserializeBinaryFromReader(message: VersionRequest, reader: jspb.BinaryReader): VersionRequest;
+}
+
+export namespace VersionRequest {
+    export type AsObject = {
+    }
+}
+
+export class VersionResponse extends jspb.Message { 
+    getVersion(): string;
+    setVersion(value: string): VersionResponse;
+
+    hasBuildTime(): boolean;
+    clearBuildTime(): void;
+    getBuildTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
+    setBuildTime(value?: google_protobuf_timestamp_pb.Timestamp): VersionResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): VersionResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: VersionResponse): VersionResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: VersionResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): VersionResponse;
+    static deserializeBinaryFromReader(message: VersionResponse, reader: jspb.BinaryReader): VersionResponse;
+}
+
+export namespace VersionResponse {
+    export type AsObject = {
+        version: string,
+        buildTime?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    }
+}
 
 export class File extends jspb.Message { 
     getPath(): string;

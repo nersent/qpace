@@ -191,6 +191,18 @@ impl OhlcvBar {
             volume,
         )
     }
+
+    #[wasm_bindgen(js_name = "merge")]
+    #[inline]
+    pub fn js_merge(&self, other: &OhlcvBar) -> OhlcvBar {
+        self.merge(other)
+    }
+
+    // #[wasm_bindgen(js_name = "hash")]
+    // #[inline]
+    // pub fn js_hash(&self) -> String {
+    //     self.hash()
+    // }
 }
 
 #[cfg(feature = "bindings_wasm")]
@@ -305,8 +317,16 @@ impl JsOhlcv {
 
     #[wasm_bindgen(js_name = "at")]
     #[inline]
-    pub fn js_bar_at(&self, index: usize) -> OhlcvBar {
-        *self.bar(index)
+    pub fn js_bar_at(&self, index: i32) -> Option<OhlcvBar> {
+        let index = if index < 0 {
+            (self.len() as i32 + index) as usize
+        } else {
+            index as usize
+        };
+        if index >= self.len() {
+            return None;
+        }
+        Some(*self.bar(index))
     }
 
     #[wasm_bindgen(getter = length)]
@@ -395,18 +415,18 @@ impl JsOhlcv {
 
     #[wasm_bindgen(js_name = "readCSV")]
     #[inline]
-    #[doc = "`time_unit: 'ms' | 's`. Default: 'ms'"]
+    #[doc = "`time_unit: 'ms' | 's`. Default: 's'"]
     pub fn js_read_csv(path: &str, time_unit: Option<String>) -> JsOhlcv {
-        let time_unit = time_unit.unwrap_or("ms".to_string());
+        let time_unit = time_unit.unwrap_or("s".to_string());
         let bars = js_read_ohlcv_bars_from_path("csv", path, &time_unit);
         Ohlcv::from_bars(bars).into()
     }
 
     #[wasm_bindgen(js_name = "readParquet")]
     #[inline]
-    #[doc = "`time_unit: 'ms' | 's`. Default: 'ms'"]
+    #[doc = "`time_unit: 'ms' | 's`. Default: 's'"]
     pub fn js_read_parquet(path: &str, time_unit: Option<String>) -> JsOhlcv {
-        let time_unit = time_unit.unwrap_or("ms".to_string());
+        let time_unit = time_unit.unwrap_or("s".to_string());
         let bars = js_read_ohlcv_bars_from_path("parquet", path, &time_unit);
         Ohlcv::from_bars(bars).into()
     }
@@ -424,4 +444,49 @@ impl JsOhlcv {
         let bars = self.all_bars();
         js_write_ohlcv_bars_to_path("parquet", path, bars.to_vec());
     }
+
+    #[wasm_bindgen(js_name = "resample")]
+    #[inline]
+    #[doc = "Resamples OHLCV bars into the specified timeframe.
+If align_utc is true, bars are pinned to calendar-based UTC boundaries;
+otherwise, a rolling time window is used.\n`align_utc`: boolean. Default: true"]
+    pub fn js_resample(&self, timeframe: JsTimeframe, align_utc: Option<bool>) -> JsOhlcv {
+        let align_utc = align_utc.unwrap_or(true);
+        let timeframe: Timeframe = timeframe.into();
+        self.inner.borrow().resample(timeframe, align_utc).into()
+    }
+
+    #[wasm_bindgen(js_name = "sort")]
+    #[inline]
+    #[doc = "Sorts the OHLCV in-place based on time. \n`ord`: 'asc' | 'desc'. Default: 'asc'"]
+    pub fn js_sort(&self, ord: Option<String>) {
+        let ord = ord.unwrap_or("asc".to_string());
+        self.inner.borrow_mut().sort(ord.into());
+    }
+
+    #[wasm_bindgen(js_name = "extend")]
+    #[inline]
+    #[doc = "Merges data from the other OHLCV into this one."]
+    pub fn js_extend(&self, other: &JsOhlcv) {
+        self.inner
+            .borrow_mut()
+            .push_many(&other.inner.borrow().bars);
+    }
+
+    #[wasm_bindgen(js_name = "clone")]
+    #[inline]
+    pub fn js_clone(&self) -> JsOhlcv {
+        let ohlcv = self.inner.borrow_mut().clone();
+        let mut ohlcv: JsOhlcv = ohlcv.into();
+        ohlcv.timeframe = self.timeframe.clone();
+        ohlcv
+    }
+
+    // #[wasm_bindgen(js_name = "removeDuplicates")]
+    // #[inline]
+    // pub fn js_remove_duplicates(&self, other: &JsOhlcv) {
+    //     self.inner
+    //         .borrow_mut()
+    //         .
+    // }
 }

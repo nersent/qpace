@@ -123,8 +123,8 @@ execute("npm_link", (ctx) => ({
   run: true,
 }));
 
-execute("publish_npm", (ctx) => ({
-  command: `cd ${ctx.sandboxPath} && npm publish --access public --force`, //  --dry-run
+execute("npm_publish", (ctx) => ({
+  command: `cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force`, //  --dry-run
   copyDeps: true,
   deps: [
     ":wasm",

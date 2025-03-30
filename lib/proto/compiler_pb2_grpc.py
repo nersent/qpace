@@ -34,6 +34,11 @@ class CompilerApiStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.Version = channel.unary_unary(
+                '/compiler.CompilerApi/Version',
+                request_serializer=compiler__pb2.VersionRequest.SerializeToString,
+                response_deserializer=compiler__pb2.VersionResponse.FromString,
+                _registered_method=True)
         self.Build = channel.unary_stream(
                 '/compiler.CompilerApi/Build',
                 request_serializer=compiler__pb2.BuildRequest.SerializeToString,
@@ -44,6 +49,12 @@ class CompilerApiStub(object):
 class CompilerApiServicer(object):
     """Missing associated documentation comment in .proto file."""
 
+    def Version(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Build(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -53,6 +64,11 @@ class CompilerApiServicer(object):
 
 def add_CompilerApiServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'Version': grpc.unary_unary_rpc_method_handler(
+                    servicer.Version,
+                    request_deserializer=compiler__pb2.VersionRequest.FromString,
+                    response_serializer=compiler__pb2.VersionResponse.SerializeToString,
+            ),
             'Build': grpc.unary_stream_rpc_method_handler(
                     servicer.Build,
                     request_deserializer=compiler__pb2.BuildRequest.FromString,
@@ -68,6 +84,33 @@ def add_CompilerApiServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class CompilerApi(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Version(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/compiler.CompilerApi/Version',
+            compiler__pb2.VersionRequest.SerializeToString,
+            compiler__pb2.VersionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
 
     @staticmethod
     def Build(request,

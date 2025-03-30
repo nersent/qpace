@@ -22,34 +22,39 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63ompiler.proto\x12\x08\x63ompiler\x1a\x1bgoogle/protobuf/empty.proto\"\"\n\x04\x46ile\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\x89\x01\n\x0c\x42uildRequest\x12\x12\n\nqpc_config\x18\x01 \x01(\t\x12\x13\n\x06target\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x17\n\ncheck_only\x18\x03 \x01(\x08H\x01\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x04 \x03(\x0b\x32\x0e.compiler.FileB\t\n\x07_targetB\r\n\x0b_check_only\"\xa5\x02\n\nStageEvent\x12+\n\x0b\x63heck_start\x18\x01 \x01(\x0b\x32\x14.compiler.CheckStartH\x00\x12\'\n\tcheck_end\x18\x02 \x01(\x0b\x32\x12.compiler.CheckEndH\x00\x12)\n\nemit_start\x18\x03 \x01(\x0b\x32\x13.compiler.EmitStartH\x00\x12%\n\x08\x65mit_end\x18\x04 \x01(\x0b\x32\x11.compiler.EmitEndH\x00\x12+\n\x0b\x62uild_start\x18\x05 \x01(\x0b\x32\x14.compiler.BuildStartH\x00\x12\'\n\tbuild_end\x18\x06 \x01(\x0b\x32\x12.compiler.BuildEndH\x00\x12\x11\n\x07message\x18\x07 \x01(\tH\x00\x42\x06\n\x04kind\"\x0c\n\nCheckStart\"8\n\x08\x43heckEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_message\"\x0b\n\tEmitStart\"V\n\x07\x45mitEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x03 \x03(\x0b\x32\x0e.compiler.FileB\n\n\x08_message\"\x0c\n\nBuildStart\"f\n\x08\x42uildEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\"\n\x05wheel\x18\x03 \x01(\x0b\x32\x0e.compiler.FileH\x01\x88\x01\x01\x42\n\n\x08_messageB\x08\n\x06_wheel2F\n\x0b\x43ompilerApi\x12\x37\n\x05\x42uild\x12\x16.compiler.BuildRequest\x1a\x14.compiler.StageEvent0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63ompiler.proto\x12\x08\x63ompiler\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x10\n\x0eVersionRequest\"R\n\x0fVersionResponse\x12\x0f\n\x07version\x18\x01 \x01(\t\x12.\n\nbuild_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\"\n\x04\x46ile\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\x89\x01\n\x0c\x42uildRequest\x12\x12\n\nqpc_config\x18\x01 \x01(\t\x12\x13\n\x06target\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x17\n\ncheck_only\x18\x03 \x01(\x08H\x01\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x04 \x03(\x0b\x32\x0e.compiler.FileB\t\n\x07_targetB\r\n\x0b_check_only\"\xa5\x02\n\nStageEvent\x12+\n\x0b\x63heck_start\x18\x01 \x01(\x0b\x32\x14.compiler.CheckStartH\x00\x12\'\n\tcheck_end\x18\x02 \x01(\x0b\x32\x12.compiler.CheckEndH\x00\x12)\n\nemit_start\x18\x03 \x01(\x0b\x32\x13.compiler.EmitStartH\x00\x12%\n\x08\x65mit_end\x18\x04 \x01(\x0b\x32\x11.compiler.EmitEndH\x00\x12+\n\x0b\x62uild_start\x18\x05 \x01(\x0b\x32\x14.compiler.BuildStartH\x00\x12\'\n\tbuild_end\x18\x06 \x01(\x0b\x32\x12.compiler.BuildEndH\x00\x12\x11\n\x07message\x18\x07 \x01(\tH\x00\x42\x06\n\x04kind\"\x0c\n\nCheckStart\"8\n\x08\x43heckEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\n\n\x08_message\"\x0b\n\tEmitStart\"V\n\x07\x45mitEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x05\x66iles\x18\x03 \x03(\x0b\x32\x0e.compiler.FileB\n\n\x08_message\"\x0c\n\nBuildStart\"f\n\x08\x42uildEnd\x12\n\n\x02ok\x18\x01 \x01(\x08\x12\x14\n\x07message\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\"\n\x05wheel\x18\x03 \x01(\x0b\x32\x0e.compiler.FileH\x01\x88\x01\x01\x42\n\n\x08_messageB\x08\n\x06_wheel2\x86\x01\n\x0b\x43ompilerApi\x12>\n\x07Version\x12\x18.compiler.VersionRequest\x1a\x19.compiler.VersionResponse\x12\x37\n\x05\x42uild\x12\x16.compiler.BuildRequest\x1a\x14.compiler.StageEvent0\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'compiler_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_FILE']._serialized_start=57
-  _globals['_FILE']._serialized_end=91
-  _globals['_BUILDREQUEST']._serialized_start=94
-  _globals['_BUILDREQUEST']._serialized_end=231
-  _globals['_STAGEEVENT']._serialized_start=234
-  _globals['_STAGEEVENT']._serialized_end=527
-  _globals['_CHECKSTART']._serialized_start=529
-  _globals['_CHECKSTART']._serialized_end=541
-  _globals['_CHECKEND']._serialized_start=543
-  _globals['_CHECKEND']._serialized_end=599
-  _globals['_EMITSTART']._serialized_start=601
-  _globals['_EMITSTART']._serialized_end=612
-  _globals['_EMITEND']._serialized_start=614
-  _globals['_EMITEND']._serialized_end=700
-  _globals['_BUILDSTART']._serialized_start=702
-  _globals['_BUILDSTART']._serialized_end=714
-  _globals['_BUILDEND']._serialized_start=716
-  _globals['_BUILDEND']._serialized_end=818
-  _globals['_COMPILERAPI']._serialized_start=820
-  _globals['_COMPILERAPI']._serialized_end=890
+  _globals['_VERSIONREQUEST']._serialized_start=90
+  _globals['_VERSIONREQUEST']._serialized_end=106
+  _globals['_VERSIONRESPONSE']._serialized_start=108
+  _globals['_VERSIONRESPONSE']._serialized_end=190
+  _globals['_FILE']._serialized_start=192
+  _globals['_FILE']._serialized_end=226
+  _globals['_BUILDREQUEST']._serialized_start=229
+  _globals['_BUILDREQUEST']._serialized_end=366
+  _globals['_STAGEEVENT']._serialized_start=369
+  _globals['_STAGEEVENT']._serialized_end=662
+  _globals['_CHECKSTART']._serialized_start=664
+  _globals['_CHECKSTART']._serialized_end=676
+  _globals['_CHECKEND']._serialized_start=678
+  _globals['_CHECKEND']._serialized_end=734
+  _globals['_EMITSTART']._serialized_start=736
+  _globals['_EMITSTART']._serialized_end=747
+  _globals['_EMITEND']._serialized_start=749
+  _globals['_EMITEND']._serialized_end=835
+  _globals['_BUILDSTART']._serialized_start=837
+  _globals['_BUILDSTART']._serialized_end=849
+  _globals['_BUILDEND']._serialized_start=851
+  _globals['_BUILDEND']._serialized_end=953
+  _globals['_COMPILERAPI']._serialized_start=956
+  _globals['_COMPILERAPI']._serialized_end=1090
 # @@protoc_insertion_point(module_scope)

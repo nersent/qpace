@@ -701,6 +701,7 @@ impl Backtest {
         pine += "//@version=5";
         pine += &format!("\nstrategy(\"Strategy export\", overlay=true, initial_capital={initial_capital}, default_qty_type = strategy.percent_of_equity, default_qty_value = 100)");
         pine += &format!("\n// Generated at {:?}", chrono::offset::Utc::now());
+        pine += &format!("\n// by https://qpace.dev - The technical analysis framework\n\n");
         pine += &format!(
             "
 type Trade
@@ -710,7 +711,6 @@ type Trade
     float size
         "
         );
-        pine += &format!("\n// Generated at {:?}", chrono::offset::Utc::now());
 
         fn trade_to_pine(ctx: &Ctx, trade: &Trade, id: String) -> String {
             let entry_open_time_ms = trade

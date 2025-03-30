@@ -1,3 +1,5 @@
+import * as grpc from "@grpc/grpc-js";
+import * as cliProgress from "cli-progress";
 import { Empty } from "google-protobuf/google/protobuf/empty_pb";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 // import { minimatch } from "minimatch";
@@ -14,17 +16,14 @@ export const ENV_GRPC_ENDPOINT = "QPACE_GRPC_API_BASE";
 export const ENV_API_KEY = "QPACE_API_KEY";
 export const ENV_TELEMETRY = "QPACE_TELEMETRY";
 
-// export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
-// export const DEFAULT_GRPC_ENDPOINT = `https://api.qpace.dev/grpc`;
-export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
-export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
-
-// cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- sym --list
-// cross-env QPACE_API_KEY="sk_b6fc26f0-d900-4fb0-8fc1-d83abdf1837f" QPACE_REST_ENDPOINT="http://0.0.0.0:3000/v1" QPACE_GRPC_ENDPOINT="0.0.0.0:3001" pnpm bazed run //lib:cli -- -- -- build --target python --cwd C:\projects\nersent\qpace-pine-example
+export const DEFAULT_REST_ENDPOINT = `https://api.qpace.dev/v1`;
+export const DEFAULT_GRPC_ENDPOINT = `grpc.qpace.dev`;
+// export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
+// export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
 
 export interface VerifyApiKeyRequest {}
 export interface VerifyApiKeyResponse {
-  team?: {
+  user?: {
     id: string;
     name: string;
   };
@@ -53,49 +52,107 @@ const readDf = (path: string): pl.DataFrame => {
   throw new Error(`Unsupported file format: ${path}`);
 };
 
-const writeDf = (path: string, df: pl.DataFrame): void => {
+const writeDf = (
+  path: string,
+  df: pl.DataFrame,
+  opts?: { compression?: "brotli" },
+): void => {
   if (path.endsWith(".csv")) return df.writeCSV(path);
   if (path.endsWith(".parquet")) return df.writeParquet(path);
+};
+
+const getTimeSeries = (
+  df: pl.DataFrame,
+  colName: string | undefined,
+  timeUnit: "s" | "ms",
+): (Date | undefined)[] | undefined => {
+  if (!colName || !df.columns.includes(colName)) return undefined;
+  const col = df.getColumn(colName);
+  return Array.from(col.values()).map((val: number | null) => {
+    if (val == null) return undefined;
+    return new Date(timeUnit === "s" ? val * 1000 : val);
+  });
+};
+
+const getNumericSeries = (
+  df: pl.DataFrame,
+  colName: string,
+): Float64Array | undefined => {
+  if (!df.columns.includes(colName)) return undefined;
+  return Float64Array.from(df.getColumn(colName).values());
+};
+
+const coerceDates = (
+  arr: (Date | undefined)[] | undefined,
+): Date[] | undefined => {
+  if (!arr) return undefined; // stay undefined if the array itself is undefined
+  return arr.map((d) => d ?? new Date(0)); // replace undefined with a default Date
 };
 
 export const readOhlcvBarsFromPath = (
   format: "csv" | "parquet",
   path: string,
-  timeUnit: string,
+  timeUnit: "s" | "ms" = "s",
   // opts?: { limit?: number; offset?: number },
 ): qp.OhlcvBar[] => {
-  let df: pl.DataFrame;
-  df = readDf(path);
-  // if (opts == null) {
-  //   df = readDf(path);
-  // } else {
-  //   if (path.endsWith(".csv")) {
-  //     df = pl.readCSV(path, { startRows: opts?.offset, nRows: opts?.limit });
-  //   } else if (path.endsWith(".parquet")) {
-  //     df = pl.readParquet(path, {
+  // 1) Read the file into a Polars DataFrame.
+  const df = readDf(path);
+  const cols = df.columns;
 
-  //     });
-  //   }
-  // }
-  const _openTime = df.getColumn("open_time");
-  const _closeTime = df.getColumn("close_time");
-  const _open = df.getColumn("open");
-  const _high = df.getColumn("high");
-  const _low = df.getColumn("low");
-  const _close = df.getColumn("close");
-  const _volume = df.getColumn("volume");
-  const openTime: Date[] = Array.from(_openTime.values()).map(
-    (r) => new Date(timeUnit === "s" ? r * 1000 : r),
+  // 2) Figure out which column name to use for open_time, close_time.
+  //    If "open_time" is missing, fall back to "time."
+  const openTimeCol = cols.includes("open_time")
+    ? "open_time"
+    : cols.includes("time")
+    ? "time"
+    : undefined;
+  const closeTimeCol = cols.includes("close_time")
+    ? "close_time"
+    : cols.includes("time")
+    ? "time"
+    : undefined;
+
+  // 3) Extract numeric columns for open/high/low/close/volume.
+  //    The Rust version uses unwrap(), which panics on missing columns
+  //    for open/high/low/close. You can throw if you need them mandatory:
+  if (!cols.includes("open")) {
+    throw new Error('Missing required "open" column');
+  }
+  if (!cols.includes("high")) {
+    throw new Error('Missing required "high" column');
+  }
+  if (!cols.includes("low")) {
+    throw new Error('Missing required "low" column');
+  }
+  if (!cols.includes("close")) {
+    throw new Error('Missing required "close" column');
+  }
+
+  const openSeries = getNumericSeries(df, "open") ?? new Float64Array(0);
+  const highSeries = getNumericSeries(df, "high") ?? new Float64Array(0);
+  const lowSeries = getNumericSeries(df, "low") ?? new Float64Array(0);
+  const closeSeries = getNumericSeries(df, "close") ?? new Float64Array(0);
+
+  // volume is optional; if missing, pass an empty array or Float64Array(…).
+  const volumeSeries =
+    getNumericSeries(df, "volume") ?? new Float64Array(openSeries.length);
+
+  // 4) Convert time columns to arrays of Date objects, or undefined if absent.
+  const openTime = getTimeSeries(df, openTimeCol, timeUnit);
+  const closeTime = getTimeSeries(df, closeTimeCol, timeUnit);
+
+  // 5) Finally, zip them into an array of OhlcvBar-compatible objects.
+  //    If openTime / closeTime are undefined, your zip function should handle that
+  //    (like the Rust code does), or you can default them to a large array of “oldest” dates.
+  return qp.zipOhlcvBars(
+    coerceDates(openTime),
+    coerceDates(closeTime),
+    openSeries,
+    highSeries,
+    lowSeries,
+    closeSeries,
+    volumeSeries,
   );
-  const closeTime: Date[] = Array.from(_closeTime.values()).map(
-    (r) => new Date(timeUnit === "s" ? r * 1000 : r),
-  );
-  const open = Float64Array.from(_open.values());
-  const high = Float64Array.from(_high.values());
-  const low = Float64Array.from(_low.values());
-  const close = Float64Array.from(_close.values());
-  const volume = Float64Array.from(_volume.values());
-  return qp.zipOhlcvBars(openTime, closeTime, open, high, low, close, volume);
 };
 
 export const writeOhlcvBarsToPath = (
@@ -146,3 +203,121 @@ export const protoToOhlcvBar = (proto: ohlcvApi.OhlcvBar): qp.OhlcvBar => {
   );
 };
 
+export type TqdmStepper = {
+  setTotal: (total: number) => void;
+  step: () => void;
+  stop: () => void;
+  setProgress: (progress: number) => void;
+};
+
+export const createTqdmStepper = (
+  total: number,
+  stopIfTotal = false,
+): TqdmStepper => {
+  let progress = 0;
+  let lastProgress = 0;
+
+  const bar = new cliProgress.Bar(
+    {
+      format: " {bar} {percentage}% | ETA: {eta_formatted} | {value}/{total}",
+      etaBuffer: 100,
+    },
+    cliProgress.Presets.shades_classic,
+  );
+  bar.start(total, progress, { eta: 0 });
+
+  const updateBar = (): void => {
+    bar.update(progress);
+    lastProgress = progress;
+
+    if (stopIfTotal && progress === total) {
+      stop();
+    }
+  };
+
+  const stop = (): void => {
+    bar.stop();
+  };
+
+  return {
+    setTotal: (newTotal: number): void => {
+      total = newTotal;
+      bar.setTotal(total);
+    },
+    stop,
+    step: (): void => {
+      progress++;
+      updateBar();
+    },
+    setProgress: (prog: number): void => {
+      progress = prog;
+      updateBar();
+    },
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const createTqdm = (total: number) => {
+  const stepper = createTqdmStepper(total, true);
+
+  return <T, A extends any[]>(cb: (...args: A) => T) => {
+    return (...args: A): T => {
+      const res = cb(...args);
+      if (res instanceof Promise) {
+        return new Promise((resolve, reject) => {
+          res
+            .then((x) => {
+              stepper.step();
+              resolve(x);
+            })
+            .catch(reject);
+        }) as any;
+      }
+      stepper.step();
+      return res;
+    };
+  };
+};
+
+export function* tqdm<T>(arr: T[]): Iterable<T> {
+  const stepper = createTqdmStepper(arr.length, true);
+
+  for (let i = 0; i < arr.length; i++) {
+    yield arr[i];
+    stepper.step();
+  }
+}
+
+export const createLazyTqdmStepper = (): ((remaining: number) => void) => {
+  let pb: TqdmStepper | undefined;
+
+  return (remaining: number) => {
+    pb ??= createTqdmStepper(remaining);
+    pb.step();
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// export const getInfo = async ({
+//   compilerClient,
+//   metadata,
+// }: {
+//   compilerClient: CompilerApiClient;
+//   metadata: grpc.Metadata;
+// }) => {
+//   const req = new compilerApi.VersionRequest();
+//   const res = await new Promise<compilerApi.VersionResponse>(
+//     (_resolve, _reject) => {
+//       compilerClient.version(req, metadata, (err, res) => {
+//         if (err) return _reject(err);
+//         _resolve(res);
+//       });
+//     },
+//   );
+//   return {
+//     qpace: qp.getVersion(),
+//     qpaceCore: qp.getCoreVersion(),
+//     compiler: res.getVersion(),
+//     compilerBuildTime: res.getBuildTime()?.toDate(),
+//   };
+// };

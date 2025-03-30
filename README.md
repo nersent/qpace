@@ -5,7 +5,7 @@
 
 <h1><b>qPACE</b></h1>
 
-<a href="https://discord.gg/P7Vn4VX"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
+<a href="https://discord.gg/E4GBpN3SxT"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
 
 </div>
 
@@ -81,9 +81,10 @@
   - Integration with our own API and Yahoo Finance API
   - Loading
   - Resampling
-    - Lower timeframe to higher timeframe
+    - Aggregation (rolling window or align to UTC) - `15m` -> `8h`, `1D`, `4D`, ...
     - Tick Bars
     - Dollar Bars
+    - Volume Bars
   - And More
   
 - Performance metrics

@@ -2,9 +2,13 @@ import * as grpc from "@grpc/grpc-js";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 import {
+  createLazyTqdmStepper,
+  createTqdm,
+  createTqdmStepper,
   DEFAULT_GRPC_ENDPOINT,
   DEFAULT_REST_ENDPOINT,
   protoToOhlcvBar,
+  TqdmStepper,
 } from "./internal";
 import { CompilerApiClient } from "./proto/compiler_grpc_pb";
 import { OhlcvApiClient } from "./proto/ohlcv_grpc_pb";
@@ -17,6 +21,7 @@ export interface ClientConfig {
   grpcApiBase?: string;
   apiKey: string;
   timeout?: number;
+  grpcCredentials?: grpc.ChannelCredentials;
 }
 
 interface SymFilter {
@@ -27,7 +32,7 @@ interface SymFilter {
 
 type SymOpts = SymFilter & { limit?: number; offset?: number };
 
-type OhlcvOpts = { limit?: number; offset?: number };
+type OhlcvOpts = { limit?: number; offset?: number; pb?: boolean };
 
 export class Client {
   private http!: AxiosInstance;
@@ -56,9 +61,12 @@ export class Client {
         "x-info": JSON.stringify(this.clientInfo),
       },
     });
-    const grpcCredentials = grpc.ChannelCredentials.createInsecure();
-    const grpcOptions = {
+    // grpc.ChannelCredentials.createInsecure()
+    const grpcCredentials =
+      this.config.grpcCredentials ?? grpc.ChannelCredentials.createSsl();
+    const grpcOptions: grpc.ClientOptions = {
       "grpc.max_receive_message_length": -1,
+      "grpc.max_send_message_length": -1,
     };
 
     this.compilerClient = new CompilerApiClient(
@@ -118,6 +126,35 @@ export class Client {
     timeframe: qp.Timeframe | string,
     opts?: OhlcvOpts,
   ): Promise<qp.Ohlcv> {
+    let offset = opts?.offset ?? 0;
+    if (!(timeframe instanceof qp.Timeframe)) {
+      timeframe = qp.Timeframe.fromString(timeframe);
+    }
+    let pb: TqdmStepper | undefined;
+    const _bars: qp.OhlcvBar[] = [];
+    while (true) {
+      const res = await this._ohlcv(sym, timeframe, { ...opts, offset });
+      const bars = res.getBarsList().map(protoToOhlcvBar);
+      const remaining = res.getRemaining();
+      _bars.push(...bars);
+      offset += bars.length;
+      if (remaining === 0 || opts?.limit != null) break;
+      if (opts?.pb) {
+        pb ??= createTqdmStepper(remaining + _bars.length);
+        pb?.setProgress(_bars.length);
+      }
+    }
+    pb?.stop();
+    const ohlcv = qp.Ohlcv.fromBars(_bars);
+    ohlcv.timeframe = timeframe;
+    return ohlcv;
+  }
+
+  private async _ohlcv(
+    sym: SymFilter | string | qp.Sym,
+    timeframe: qp.Timeframe | string,
+    opts?: OhlcvOpts,
+  ): Promise<ohlcvApi.GetResponse> {
     if (!(sym instanceof qp.Sym)) {
       sym = await this.sym(sym);
     }
@@ -126,9 +163,6 @@ export class Client {
       throw new Error("Symbol has no id");
     }
     req.setSymId(sym.id);
-    if (!(timeframe instanceof qp.Timeframe)) {
-      timeframe = qp.Timeframe.fromString(timeframe);
-    }
     req.setTimeframe(timeframe.toString());
     if (opts?.limit != null) req.setLimit(opts.limit);
     if (opts?.offset != null) req.setOffset(opts.offset);
@@ -138,9 +172,7 @@ export class Client {
         _resolve(res);
       });
     });
-    const ohlcv = qp.Ohlcv.fromBars(res.getBarsList().map(protoToOhlcvBar));
-    ohlcv.timeframe = timeframe;
-    return ohlcv;
+    return res;
   }
 
   public async ctx(
