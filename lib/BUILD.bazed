@@ -167,3 +167,9 @@ nodeMainWrapper(`cli_main`, {
   main: "cli.js",
   output: "cli.bazed.js",
 });
+
+// python3 -m twine upload
+
+// export TWINE_USERNAME=
+// export TWINE_PASSWORD=
+
