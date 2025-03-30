@@ -84,8 +84,8 @@ const PYPROJECT_TOML = `
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 `;
-  // .replaceAll("\n", "\\n")
-  // .replaceAll(`"`, `""`);
+// .replaceAll("\n", "\\n")
+// .replaceAll(`"`, `""`);
 
 unpackWheel(`maturin_unwheel_core`, (ctx) => ({
   deps: ["//core:maturin"],
@@ -100,9 +100,21 @@ unpackWheel(`maturin_unwheel_content`, (ctx) => ({
 execute("wheel", (ctx) => {
   mkdirSync(resolve(ctx.sandboxPath), { recursive: true });
   // console.log("XDDDD", resolve(ctx.sandboxPath))
-  writeFileSync(resolve(ctx.sandboxPath, "../MANIFEST.in"), MANIFEST_IN, 'utf8');
-  writeFileSync(resolve(ctx.sandboxPath, "../setup.py"), GET_SETUP_PY(ctx), 'utf8');
-  writeFileSync(resolve(ctx.sandboxPath, "../pyproject.toml"), PYPROJECT_TOML, 'utf8');
+  writeFileSync(
+    resolve(ctx.sandboxPath, "../MANIFEST.in"),
+    MANIFEST_IN,
+    "utf8",
+  );
+  writeFileSync(
+    resolve(ctx.sandboxPath, "../setup.py"),
+    GET_SETUP_PY(ctx),
+    "utf8",
+  );
+  writeFileSync(
+    resolve(ctx.sandboxPath, "../pyproject.toml"),
+    PYPROJECT_TOML,
+    "utf8",
+  );
   return {
     command: [
       "cp ../MANIFEST.in .",
@@ -142,7 +154,8 @@ execute("npm_link", (ctx) => ({
 }));
 
 execute("npm_publish", (ctx) => ({
-  command: `echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js > temp && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force --dry-run`, //  --dry-run
+  // echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js
+  command: `node -e "const fs = require('fs'); const path = require('path').resolve('./cli.bazed.js'); fs.writeFileSync(path, '#!/usr/bin/env node\\n' + fs.readFileSync(path, 'utf8'), 'utf8');" && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force`, //  --dry-run
   copyDeps: true,
   deps: [
     ":wasm",
