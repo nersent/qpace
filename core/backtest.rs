@@ -25,8 +25,6 @@ use std::{
     rc::Rc,
 };
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "BacktestConfig"))]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "BacktestConfig"))]
 #[derive(Debug, Clone, Copy)]
 pub struct BacktestConfig {

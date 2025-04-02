@@ -78,7 +78,6 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TradeDirection>()?;
     m.add_class::<TradeEvent>()?;
     m.add_class::<OrderConfig>()?;
-    m.add_class::<BacktestConfig>()?;
     m.add_class::<PyBacktest>()?;
     m.add_function(wrap_pyfunction!(get_version, m)?)?;
     m.add_function(wrap_pyfunction!(utils::hl2, m)?)?;

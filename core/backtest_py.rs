@@ -31,36 +31,23 @@ use chrono::{DateTime, Utc};
 use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 #[cfg(feature = "bindings_py")]
-#[gen_stub_pymethods]
-#[pymethods]
-impl BacktestConfig {
-    #[new]
-    #[pyo3(signature = (initial_capital=1000.0, process_orders_on_close=false))]
-    #[inline]
-    pub fn py_new(initial_capital: f64, process_orders_on_close: bool) -> Self {
-        Self::new(initial_capital, process_orders_on_close)
-    }
-
-    #[getter(initial_capital)]
-    #[inline]
-    pub fn py_initial_capital(&self) -> f64 {
-        self.initial_capital()
-    }
-
-    #[getter(process_orders_on_close)]
-    #[inline]
-    pub fn py_process_orders_on_close(&self) -> bool {
-        self.process_orders_on_close()
-    }
-}
-
-#[cfg(feature = "bindings_py")]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "Backtest", unsendable))]
 #[derive(Clone)]
 pub struct PyBacktest {
     py_ctx: PyCtx,
     bt: Rc<RefCell<Backtest>>,
+}
+
+#[cfg(feature = "bindings_py")]
+impl PyBacktest {
+    #[inline]
+    pub fn new(ctx: PyCtx, config: BacktestConfig) -> Self {
+        Self {
+            bt: Rc::new(RefCell::new(Backtest::new(ctx.clone().into(), config))),
+            py_ctx: ctx,
+        }
+    }
 }
 
 #[cfg(feature = "bindings_py")]
@@ -74,21 +61,29 @@ impl Into<Rc<RefCell<Backtest>>> for PyBacktest {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyBacktest {
-    #[pyo3(signature = (ctx, config=None))]
+    #[pyo3(signature = (ctx, initial_capital=1000.0, process_orders_on_close=false))]
     #[new]
     #[inline]
-    pub fn py_new(ctx: PyCtx, config: Option<BacktestConfig>) -> Self {
-        let config = config.unwrap_or(BacktestConfig::default());
+    pub fn py_new(ctx: PyCtx, initial_capital: f64, process_orders_on_close: bool) -> Self {
+        let mut config = BacktestConfig::default();
+        config.set_initial_capital(initial_capital);
+        config.set_process_orders_on_close(process_orders_on_close);
         Self {
             bt: Rc::new(RefCell::new(Backtest::new(ctx.clone().into(), config))),
             py_ctx: ctx,
         }
     }
 
-    #[getter(config)]
+    #[getter(initial_capital)]
     #[inline]
-    pub fn py_config(&self) -> BacktestConfig {
-        *self.bt.borrow().config()
+    pub fn py_initial_capital(&self) -> f64 {
+        self.bt.borrow().config().initial_capital()
+    }
+
+    #[getter(process_orders_on_close)]
+    #[inline]
+    pub fn py_process_orders_on_close(&self) -> bool {
+        self.bt.borrow().config().process_orders_on_close()
     }
 
     #[getter(ctx)]

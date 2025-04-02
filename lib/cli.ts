@@ -797,7 +797,6 @@ const main = async (): Promise<void> => {
           end?: string;
         },
       ) => {
-        throw new CliError(`Not implemented yet`);
         const startDate = opts.start ? new Date(opts.start) : undefined;
         const endDate = opts.end ? new Date(opts.end) : undefined;
 

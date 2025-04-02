@@ -8,7 +8,8 @@ import typing
 from enum import Enum, auto
 
 class Backtest:
-    config: BacktestConfig
+    initial_capital: builtins.float
+    process_orders_on_close: builtins.bool
     ctx: Ctx
     equity: builtins.float
     net_equity: builtins.float
@@ -38,7 +39,7 @@ class Backtest:
     win_rate: builtins.float
     profit_factor: builtins.float
     metrics: typing.Any
-    def __new__(cls,ctx:Ctx, config:BacktestConfig): ...
+    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False): ...
     def on_bar_open(self) -> None:
         ...
 
@@ -78,14 +79,9 @@ class Backtest:
     def print_metrics(self) -> None:
         ...
 
-    def print(self) -> None:
+    def print(self, plot:typing.Optional[tuple[builtins.int, builtins.int]]=(120, 60)) -> None:
         ...
 
-
-class BacktestConfig:
-    initial_capital: builtins.float
-    process_orders_on_close: builtins.bool
-    def __new__(cls,initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False): ...
 
 class Ctx:
     bar_index: builtins.int
@@ -180,6 +176,15 @@ class Ohlcv:
         """
         ...
 
+    def resample(self, timeframe:Timeframe, align_utc:builtins.bool=True) -> Ohlcv:
+        r"""
+        Resamples OHLCV bars into the specified timeframe.
+            If align_utc is true, bars are pinned to calendar-based UTC boundaries;
+            otherwise, a rolling time window is used.
+        `align_utc`: boolean. Default: true
+        """
+        ...
+
 
 class OhlcvBar:
     open_time: datetime.datetime
@@ -197,6 +202,9 @@ class OhlcvBar:
         ...
 
     def to_dict(self) -> typing.Any:
+        ...
+
+    def merge(self, other:OhlcvBar) -> OhlcvBar:
         ...
 
 
