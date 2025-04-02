@@ -28,16 +28,11 @@
 
 - Simple, yet powerful and fully typed API
 
-- Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results
+- **Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results**
 
-- Extremely fast backtesting with vectorization support
+- **Extremely fast backtesting with vectorization support**
 
-- CLI
-  - View/Export symbols
-  - View/Export OHLCV
-  - Compile Pine to Python/JavaScript
-
-- TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)
+- **TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)**
   - Accumulation/Distribution (ACCDIST)
   - Relative Strength Index (RSI)
   - Moving Average Convergence Divergence (MACD)
@@ -73,6 +68,11 @@
   - Vortex Indicator
   - Williams %R
 
+- CLI
+  - View/Export symbols
+  - View/Export OHLCV
+  - Compile Pine to Python/JavaScript
+  
 - OHLCV ops
   - Reading/Writing from CSV, Parquet
   - Resampling
