@@ -127,18 +127,28 @@ execute("wheel", (ctx) => {
   );
   return {
     command: [
-      "cp ../MANIFEST.in .",
-      "cp ../setup.py .",
-      "cp ../pyproject.toml .",
+      // "cp ../MANIFEST.in .",
+      // "cp ../setup.py .",
+      // "cp ../pyproject.toml .",
+      "copy ..\\MANIFEST.in .",
+      "copy ..\\setup.py .",
+      "copy ..\\pyproject.toml .",
       // copy from ../ctx.sandboxPath to here
-      // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN}')"`,
+      // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN.replaceAll(
+      //   "\n",
+      //   "\\n",
+      // ).replaceAll(`"`, `""`)}')"`,
       // `node -e "require('fs').writeFileSync('setup.py', '${GET_SETUP_PY(
       //   ctx,
-      // )}')"`,
-      // `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML}')"`,
+      // ).replaceAll(`"`, `""`)}.replaceAll("\n", "\\n")')"`,
+      // `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML.replaceAll(
+      //   "\n",
+      //   "\\n",
+      // ).replaceAll(`"`, `""`)}')"`,
       // `python setup.py bdist_wheel --plat-name win_amd64`,
       // macos arm
-      `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
+      `python setup.py bdist_wheel --plat-name win_amd64`,
+      // `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: [

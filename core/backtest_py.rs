@@ -57,6 +57,7 @@ impl BacktestConfig {
 #[cfg(feature = "bindings_py")]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "Backtest", unsendable))]
+#[derive(Clone)]
 pub struct PyBacktest {
     py_ctx: PyCtx,
     bt: Rc<RefCell<Backtest>>,

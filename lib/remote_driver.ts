@@ -26,6 +26,9 @@ export const findPythonPath = async (): Promise<string | undefined> => {
   let path = await which("python3");
   path ??= await which("python");
   return path;
+  // return await Promise.all([which("python3"), which("python")]).then((arr) =>
+  //   arr.find((r) => r != null),
+  // );
 };
 
 interface DriverContextConfig {
@@ -75,8 +78,11 @@ class DriverContext {
     private readonly http: AxiosInstance,
   ) {}
 
-  public async start(srcPaths: string[]): Promise<void> {
-    return new Promise<void>(async (_resolve, _reject) => {
+  public async start(
+    srcPaths: string[],
+  ): Promise<{ wheelPath?: string; ok?: boolean }> {
+    let wheelPath: string | undefined;
+    return new Promise(async (_resolve, _reject) => {
       const { checkOnly, verbose, qpcConfig, target, rootDir } = this.config;
       CheckpointTime.start(this.time);
 
@@ -89,10 +95,10 @@ class DriverContext {
         _reject(err);
       });
       this.stream.on("data", (e: compilerApi.StageEvent) => this.onStage(e));
-      this.stream.on("end", () => {
-        this.ora?.stop();
-        _resolve();
-      });
+      // this.stream.on("end", () => {
+      //   this.ora?.stop();
+      //   _resolve();
+      // });
 
       this.ora = ora(`Checking`).start();
       if (this.ok) {
@@ -164,7 +170,7 @@ class DriverContext {
             throw new Error(`Expected wheel file`);
           }
           CheckpointTime.start(this.wheelInstallTime);
-          const wheelPath = await this.onReceivedFile(wheelFile);
+          wheelPath = await this.onReceivedFile(wheelFile);
           this.ora = ora(`Installing ${relative(rootDir, wheelPath)}`).start();
           const pythonPath = await findPythonPath();
           if (pythonPath == null) {
@@ -218,7 +224,10 @@ class DriverContext {
       }
       CheckpointTime.end(this.time);
       this.logEnd();
-      _resolve();
+      _resolve({
+        wheelPath,
+        ok: this.ok,
+      });
     });
   }
 
@@ -379,7 +388,8 @@ export class RemoteDriver {
     return srcPaths.map((r) => basename(r, cwd));
   }
 
-  public async build({ target }: { target?: Target }): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  public async build({ target }: { target?: Target }) {
     const ctx = new DriverContext(
       {
         qpcConfig: this.qpcConfig,
@@ -394,7 +404,8 @@ export class RemoteDriver {
     return ctx.start(await this.collectSrcFiles());
   }
 
-  public async check(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  public async check() {
     const ctx = new DriverContext(
       {
         qpcConfig: this.qpcConfig,

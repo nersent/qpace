@@ -11,9 +11,10 @@ import { Command, Option } from "commander";
 
 import { tryParseInt } from "../base/node/number";
 import { deepMerge } from "../base/node/object";
+import { withoutExt } from "../base/node/path";
 
 import { EXAMPLES } from "./examples";
-import { RemoteDriver } from "./remote_driver";
+import { findPythonPath, RemoteDriver } from "./remote_driver";
 
 import { exec } from "~/base/node/exec";
 import { exists, readJson, watchPaths, writeJson } from "~/base/node/fs";
@@ -164,7 +165,7 @@ const initQpc = async ({
       config.python.package = pythonPackageName;
     }
     const overwriteConfig = await select({
-      message: `Do you want to default config?`,
+      message: `Do you want to overwrite config?`,
       choices: [
         {
           name: "no",
@@ -672,7 +673,11 @@ const main = async (): Promise<void> => {
             },
           );
         }
-        await driver.check();
+        const res = await driver.check();
+        if (!opts.watch && !res.ok) {
+          process.exitCode = 1;
+          return;
+        }
       },
     );
   program
@@ -726,11 +731,11 @@ const main = async (): Promise<void> => {
           qpcConfig.python.testWheel = false;
         }
         if (opts.target == null && !qpcConfig.emit) {
-          if (qpcConfig.python.bindings) {
-            opts.target = "python";
-          } else {
-            throw new CliError(`--target must be specified or --emit enabled`);
-          }
+          // if (qpcConfig.python.bindings) {
+          //   opts.target = "python";
+          // } else {
+          // }
+          throw new CliError(`--target must be specified or --emit enabled`);
         }
         const target = tryMapBuildTarget(opts.target as any);
         if (opts.target != null && target == null) {
@@ -757,10 +762,197 @@ const main = async (): Promise<void> => {
             },
           );
         }
-        await driver.build({ target });
+        const res = await driver.build({ target });
+        if (!opts.watch && !res.ok) {
+          process.exitCode = 1;
+          return;
+        }
       },
     );
+  program
+    .command("run")
+    .option("--cwd <path>", `Project root directory`)
+    .option("--config <path>", `Config file`)
+    .option("--verbose, -v", `Verbose output`)
+    .option("--plot", `Plot results`, true)
+    .option("--timeframe, -t <timeframe>", `Timeframe`, "1D")
+    .option("--force-skip-build", `Skip build`, false)
+    .option("--start", `Start date`)
+    .option("--end", `End date`)
+    .argument("<filename>")
+    .argument("<symbol>")
+    .action(
+      async (
+        filename: string,
+        symbol: string,
+        opts: {
+          cwd?: string;
+          config?: string;
+          dir?: string;
+          verbose?: boolean;
+          plot?: boolean;
+          timeframe: string;
+          forceSkipBuild?: boolean;
+          start?: string;
+          end?: string;
+        },
+      ) => {
+        throw new CliError(`Not implemented yet`);
+        const startDate = opts.start ? new Date(opts.start) : undefined;
+        const endDate = opts.end ? new Date(opts.end) : undefined;
 
+        console.log(chalk.yellowBright(`Warning: Experimental feature`));
+        if (!filename.endsWith(".pine")) {
+          throw new CliError(
+            `Can only run ${chalk.white.bold(
+              ".pine",
+            )} files, got ${chalk.yellowBright(basename(filename))}`,
+          );
+        }
+        const pythonPath = await findPythonPath();
+        if (pythonPath == null) {
+          throw new CliError(
+            `Python not found. Install python and or it to PATH`,
+          );
+        }
+        const pyqpace = await exec({
+          command: `${pythonPath} -m pip show qpace`,
+        });
+        if (pyqpace.exitCode !== 0) {
+          throw new CliError(
+            `Python package "qpace" not found. Install it using ${chalk.bold.white(
+              `"${pythonPath} -m pip install qpace --break-system-packages"`,
+            )}`,
+          );
+        }
+
+        const client = await loadClient();
+        const timeframe = qp.Timeframe.fromString(opts.timeframe);
+        const sym = await client.sym({
+          id: symbol,
+          tickerId: symbol,
+          timeframe,
+        });
+        if (sym == null) {
+          throw new CliError(
+            `Symbol ${symbol} not found. Use ${chalk.white.bold(
+              `"qpc sym"`,
+            )} to list available symbols`,
+          );
+        }
+
+        const { config: qpcConfig, configPath: qpcConfigPath } = await initQpc({
+          dir: opts.cwd,
+          configPath: opts.config,
+          prompt: false,
+        });
+        const target = tryMapBuildTarget("python");
+        if (target == null) {
+          throw new CliError(`Unsupported target`);
+        }
+
+        if (!qpcConfig.python?.bindings) {
+          throw new CliError(
+            `Python bindings are not enabled. Set ${chalk.bold.white(
+              `"python.bindings: true"`,
+            )} in ${chalk.bold.white(`"${qpcConfigPath}"`)}`,
+          );
+        }
+        if (!qpcConfig.python?.installWheel) {
+          throw new CliError(
+            `Set ${chalk.bold.white(
+              `"python.installWheel: true"`,
+            )} in ${chalk.bold.white(`"${qpcConfigPath}"`)}`,
+          );
+        }
+        const driver = new RemoteDriver(
+          {
+            client: client["compilerClient"],
+            qpcConfig,
+            rootDir: dirname(qpcConfigPath),
+            verbose: opts.verbose,
+            grpcMetadata: client["createGrpcMetadata"](),
+          },
+          client["http"],
+        );
+        const filePath = resolve(dirname(qpcConfigPath), filename);
+        const srcFiles = await driver.collectSrcFiles();
+        if (!srcFiles.some((r) => resolve(driver.rootDir, r) === filePath)) {
+          throw new CliError(
+            `File ${chalk.yellowBright(
+              filePath,
+            )} is not included in source files. Include it in ${chalk.bold.white(
+              `"${qpcConfigPath}"`,
+            )}`,
+          );
+        }
+        console.log(`${QPACE_BG_PREFIX}${chalk.green(filename)}`);
+        if (!opts.forceSkipBuild) {
+          const res = await driver.build({ target });
+          if (!res.ok) {
+            process.exitCode = 1;
+            return;
+          }
+          if (res.wheelPath == null) {
+            throw new CliError(`Python wheel not found`);
+          }
+        }
+        const pineTarget = `${withoutExt(basename(filePath))}`;
+
+        const py = `
+import sys
+import qpace as qp
+import matplotlib.pyplot as plt
+from datetime import datetime
+import ${qpcConfig.python?.package ?? ""} as pine
+client = qp.Client(api_key="${client["config"]["apiKey"]}")
+sym = client.sym(id="${sym.id}")
+ohlcv = client.ohlcv(sym, "${opts.timeframe}", pb=True)
+ctx = qp.Ctx(sym=sym, ohlcv=ohlcv)
+
+if pine.${pineTarget}.Script.Kind != "strategy":
+  raise Exception("Only strategies are supported at the moment")
+
+#script = pine.${pineTarget}.Script(ctx=ctx.fork())
+#script.collect()
+#bt = script.bt
+#print(bt.equity)
+bt = qp.Backtest(ctx.fork(), config=qp.BacktestConfig())
+for bar_index in bt:
+    if bar_index == 100:
+        bt.signal(qp.Signal.long())
+    if bar_index == 200:
+        bt.signal(qp.Signal.close_all())
+close: list[float] = ohlcv.close
+open_time: list[datetime] = ohlcv.open_time
+equity_list: list[float] = bt.equity_list
+net_equity_list: list[float] = bt.net_equity_list
+
+ema = qp.ta.ema(ctx.fork(), ohlcv.close, 90)
+
+# @TODO: Fix this
+equity_list = equity_list[0:len(close)]
+net_equity_list = net_equity_list[0:len(close)]
+ema = ema[0:len(close)]
+
+fig, (ax1, ax2) = plt.subplots(2, 1)
+ax1.plot(open_time, close, label="Close", color="black")
+ax1.plot(open_time, ema, label="EMA", color="orange")
+ax2.plot(open_time, equity_list, label="Equity", color="blue")
+ax2.plot(open_time, net_equity_list, label="Net Equity", color="red")
+ax1.legend()
+ax2.legend()
+plt.show()
+`.trim();
+        // console.log(py);
+        const pyBash = Buffer.from(py, "utf8").toString("base64");
+        // Avoid bash escaping issues
+        await exec({
+          command: `${pythonPath} -c "import base64; exec(base64.b64decode('${pyBash}').decode('utf-8'))"`,
+          io: true,
+        });
+      },
+    );
   program.addCommand(
     new Command("telemetry")
       .action(async () => {

@@ -8,7 +8,7 @@
 
 Get started at **<https://qpace.dev>**
 
-<a href="https://discord.gg/E4GBpN3SxT"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
+<a href="https://qpace.dev/discord"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
 
 ## Table of Contents
 
@@ -19,8 +19,6 @@ Get started at **<https://qpace.dev>**
 - [Pine from Python/JavaScript](#pine-from-python-javascript)
 
 - [Installation](#installation)
-
-- [Motivation](#motivation)
 
 - [Community](#community)
 
@@ -33,6 +31,8 @@ Get started at **<https://qpace.dev>**
 - **Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results**
 
 - **Extremely fast backtesting with vectorization support**
+
+- Beatiful UI for charts and experiments (soon™)
 
 - **TA indicators written in [Pine](/lib/content/ta.pine), compiled via [QPC](#pine-from-pythonjavascript)**
   - Accumulation/Distribution (ACCDIST)
@@ -74,23 +74,26 @@ Get started at **<https://qpace.dev>**
   - View/Export symbols
   - View/Export OHLCV
   - Compile Pine to Python/JavaScript
+  - Backtest/Export/Plot Pine (soon™)
 
-- OHLCV ops
+- OHLCV
   - Reading/Writing from CSV, Parquet
+  - Zipping/Unzipping
   - Resampling
     - Aggregation (rolling window or align to UTC) - `15m` -> `8h`, `1D`, `4D`, ...
-    - Tick Bars
-    - Dollar Bars
-    - Volume Bars
+    - Tick Bars (soon™)
+    - Dollar Bars (soon™)
+    - Volume Bars (soon™)
   
 - Performance metrics
   - Sharpe Ratio
   - Sortino Ratio
   - Omega Ratio
 
-- Parameter optimization
+- Parameter optimization (soon™)
   - Grid Search
   - Genetic Evolution
+  - Symbolic Regression
 
 ## Installation
 
@@ -110,6 +113,10 @@ npm install qpace
 
 QPC is specially designed compiler to translate any **Pine code into efficient Rust code that is then exposed to Python and JavaScript**, allowing you to run your favorite Pine scripts in the most efficient way possible from your favorite programming language.
 
-Check an example [here](/examples/pine).
+Check an example [here](/examples/pine). Get started at [https://qpace.dev/qpc](https://qpace.dev/qpc).
 
 ## Community
+
+Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology! Our Discord server is the perfect place to share ideas, ask questions, and collaborate with devs and traders.
+
+[Discord](https://qpace.dev/discord)

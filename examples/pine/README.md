@@ -2,7 +2,7 @@
 
 ### Prerequisites
 
-Please, ensure you have [Node.js](https://nodejs.org/) 18 or higher installed. You can check your Node.js version with:
+Ensure you have [Node.js](https://nodejs.org/) 18 or higher installed. You can check your Node.js version with:
 
 ```bash
 node -v
