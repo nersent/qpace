@@ -48,7 +48,7 @@ qpc init
 
 4. Check (optional)
 
-This step is optional, but it is recommended before building. It performs semantic, syntax, and type checks on your Pine code.
+This step is optional, but it is recommended before building. It performs fast semantic, syntax, and type checks on your Pine code.
 
 ```bash
 qpc check

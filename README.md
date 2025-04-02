@@ -6,6 +6,8 @@
 
 **qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
 
+Get started at **<https://qpace.dev>**
+
 <a href="https://discord.gg/E4GBpN3SxT"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
 
 ## Table of Contents
