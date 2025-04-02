@@ -32,7 +32,7 @@
 
 - **Extremely fast backtesting with vectorization support**
 
-- **TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)**
+- **TA indicators written in [Pine](/lib/content/ta.pine), compiled via [QPC](#pine-from-pythonjavascript)**
   - Accumulation/Distribution (ACCDIST)
   - Relative Strength Index (RSI)
   - Moving Average Convergence Divergence (MACD)
@@ -72,7 +72,7 @@
   - View/Export symbols
   - View/Export OHLCV
   - Compile Pine to Python/JavaScript
-  
+
 - OHLCV ops
   - Reading/Writing from CSV, Parquet
   - Resampling
