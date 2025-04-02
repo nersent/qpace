@@ -10,7 +10,9 @@
 
 ## Table of Contents
 
-- [Features and Examples](#features-and-examples)
+- [Features](#features)
+
+- [Examples](/examples)
 
 - [Pine from Python/JavaScript](#pine-from-python-javascript)
 
@@ -20,7 +22,7 @@
 
 - [Community](#community)
 
-## Features and Examples
+## Features
 
 - Bindings for Python and JavaScript (WebAssembly)
 
