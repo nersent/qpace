@@ -8,12 +8,26 @@ Please, ensure you have [Node.js](https://nodejs.org/) 18 or higher installed. Y
 node -v
 ```
 
+You may also need [Python](https://www.python.org/) 3.10 or higher installed. You can check your Python version with:
+
+```bash
+python3 --version
+```
+
 ### Running
 
-1. Install CLI
+1. Install
+
+CLI:
 
 ```bash
 npm install qpace --global
+```
+
+Python:
+
+```bash
+pip3 install qpace
 ```
 
 2. Authenticate
@@ -24,7 +38,7 @@ qPACE account is required to use the compiler. You can create it [here](https://
 qpace login
 ```
 
-3. Create new QPC project
+3. Create a new QPC project
 
 ```bash
 cd /path/to/your/project
@@ -45,19 +59,20 @@ qpc check
 Builds a fully usable Python wheel and installs it automatically.
 
 ```bash
+qpc build
+```
+
+or
+
+```bash
 qpc build --target python
 ```
 
-To use it from python, you need to import module, which name is located in your `.qpace.json` config file `python -> package`.
+6. Import
+
+To use it from Python, you need to import module, which name is located in your `.qpace.json` config file `python -> package`.
 
 For examle:
-
-`my_library.pine`
-
-```pine
-export add(float x, float y) =>
-    x + y
-```
 
 `.qpace.json`
 
@@ -67,6 +82,13 @@ export add(float x, float y) =>
     "package": "<PACKAGE_NAME>"
   }
 }
+```
+
+`my_library.pine`
+
+```pine
+export add(float x, float y) =>
+    x + y
 ```
 
 `main.py`
