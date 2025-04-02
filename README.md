@@ -108,7 +108,7 @@ npm install qpace
 
 ## Pine from Python/JavaScript
 
-QPC is specially designed compiler to translate any Pine code into efficient Rust code that is then exposed to Python and JavaScript, allowing you to run your favorite Pine scripts in the most efficient way possible.
+QPC is specially designed compiler to translate any **Pine code into efficient Rust code that is then exposed to Python and JavaScript**, allowing you to run your favorite Pine scripts in the most efficient way possible from your favorite programming language.
 
 Check an example [here](/examples/pine).
 
