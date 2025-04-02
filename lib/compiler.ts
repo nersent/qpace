@@ -8,6 +8,7 @@ export const TARGETS = [
   "python-x86_64-windows",
   "python-x86_64-macos",
   "python-arm64-macos",
+  "python-arm64-linux",
 ] as const;
 
 export type Target = typeof TARGETS[number];
@@ -126,7 +127,11 @@ export const getInitConfig = (): Config => {
   return {
     python: {
       package: `qpace_script_${md5(Date.now()).slice(0, 6)}`,
+      installWheel: true,
+      testWheel: true,
     },
+    buildDir: "build",
+    include: ["**/*.pine"],
   };
 };
 

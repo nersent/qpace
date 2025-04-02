@@ -14,6 +14,7 @@ message GetRequest {
   string timeframe = 2;
   optional uint32 limit = 3;
   optional uint32 offset = 4;
+  optional Order order = 5;
 }
 
 message GetResponse {
@@ -30,4 +31,9 @@ message OhlcvBar {
   double low = 5;
   double close = 6;
   double volume = 7;
+}
+
+enum Order {
+  ASC = 0;
+  DESC = 1;
 }

@@ -24,6 +24,11 @@ export class GetRequest extends jspb.Message {
     getOffset(): number | undefined;
     setOffset(value: number): GetRequest;
 
+    hasOrder(): boolean;
+    clearOrder(): void;
+    getOrder(): Order | undefined;
+    setOrder(value: Order): GetRequest;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetRequest.AsObject;
     static toObject(includeInstance: boolean, msg: GetRequest): GetRequest.AsObject;
@@ -40,6 +45,7 @@ export namespace GetRequest {
         timeframe: string,
         limit?: number,
         offset?: number,
+        order?: Order,
     }
 }
 
@@ -113,4 +119,9 @@ export namespace OhlcvBar {
         close: number,
         volume: number,
     }
+}
+
+export enum Order {
+    ASC = 0,
+    DESC = 1,
 }

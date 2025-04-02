@@ -20,6 +20,7 @@ message VersionResponse {
 message File {
   string path = 1;
   bytes data = 2;
+  optional string url = 3;
 }
 
 message BuildRequest {

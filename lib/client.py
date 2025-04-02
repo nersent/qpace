@@ -1,7 +1,7 @@
 from datetime import timezone
 import sys
 import grpc
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 import qpace_core as qp
 import json
 import requests
@@ -115,6 +115,7 @@ class Client:
         timeframe: Union[qp.Timeframe, str],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        order: Optional[Union[Literal["asc"], Literal["desc"]]] = None,
         pb: bool = False,
         **kwargs,
     ) -> qp.Ohlcv:
@@ -130,6 +131,7 @@ class Client:
                 timeframe=timeframe,
                 limit=limit,
                 offset=offset,
+                order=order,
                 **kwargs,
             )
             bars = [proto_to_ohlcv_bar(proto) for proto in res.bars]
@@ -157,6 +159,7 @@ class Client:
         timeframe: Union[qp.Timeframe, str],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        order: Optional[Union[Literal["asc"], Literal["desc"]]] = None,
         **kwargs,
     ) -> ohlcv_api.GetResponse:
         if not isinstance(sym, qp.Sym):
@@ -168,6 +171,7 @@ class Client:
             timeframe=str(timeframe),
             limit=limit,
             offset=offset,
+            order=ohlcv_api.Order.ASC if order == "asc" else ohlcv_api.Order.DESC,
         )
         res: ohlcv_api.GetResponse = self.ohlcv_api_client.Get(
             req, metadata=self._create_grpc_metadata()

@@ -4,18 +4,29 @@ import { basename, dirname, normalize, relative, resolve } from "path";
 
 import { ClientReadableStream } from "@grpc/grpc-js";
 import * as grpc from "@grpc/grpc-js";
+import { AxiosInstance } from "axios";
 import chalk from "chalk";
 import { glob } from "glob";
 import ora, { Ora } from "ora";
 
+import { downloadFileToPath } from "../base/node/network";
+
+import { CliError } from "./cli";
 import { Config, FileTag, Target } from "./compiler";
 import { CompilerApiClient } from "./proto/compiler_grpc_pb";
 import { BuildRequest } from "./proto/compiler_pb";
 import * as compilerApi from "./proto/compiler_pb";
 
-import { exec } from "~/base/node/exec";
-import { createDir } from "~/base/node/fs";
+import { exec, ExecResult } from "~/base/node/exec";
+import { createDir, exists } from "~/base/node/fs";
+import { which } from "~/base/node/os";
 import { prettifyTime } from "~/base/node/time";
+
+export const findPythonPath = async (): Promise<string | undefined> => {
+  let path = await which("python3");
+  path ??= await which("python");
+  return path;
+};
 
 interface DriverContextConfig {
   qpcConfig: Config;
@@ -43,6 +54,10 @@ namespace CheckpointTime {
   };
 }
 
+const deserializeLogs = (logs: string): string => {
+  return logs;
+};
+
 class DriverContext {
   private stream: ClientReadableStream<compilerApi.StageEvent> | undefined;
   private ora: Ora | undefined;
@@ -52,9 +67,13 @@ class DriverContext {
   private buildTime = CheckpointTime.def();
   private wheelInstallTime = CheckpointTime.def();
   private wheelTestTime = CheckpointTime.def();
+  private wheelDownloadTime = CheckpointTime.def();
   private ok = true;
 
-  constructor(private readonly config: DriverContextConfig) {}
+  constructor(
+    private readonly config: DriverContextConfig,
+    private readonly http: AxiosInstance,
+  ) {}
 
   public async start(srcPaths: string[]): Promise<void> {
     return new Promise<void>(async (_resolve, _reject) => {
@@ -70,6 +89,10 @@ class DriverContext {
         _reject(err);
       });
       this.stream.on("data", (e: compilerApi.StageEvent) => this.onStage(e));
+      this.stream.on("end", () => {
+        this.ora?.stop();
+        _resolve();
+      });
 
       this.ora = ora(`Checking`).start();
       if (this.ok) {
@@ -140,18 +163,25 @@ class DriverContext {
           if (wheelFile == null) {
             throw new Error(`Expected wheel file`);
           }
+          CheckpointTime.start(this.wheelInstallTime);
           const wheelPath = await this.onReceivedFile(wheelFile);
           this.ora = ora(`Installing ${relative(rootDir, wheelPath)}`).start();
-          CheckpointTime.start(this.wheelInstallTime);
+          const pythonPath = await findPythonPath();
+          if (pythonPath == null) {
+            throw new CliError(`Python is not installed`);
+          }
           const installWheelRes = await exec({
-            command: `pip install "${wheelPath}" --force-reinstall`,
+            command: `${pythonPath} -m pip install "${wheelPath}" --force-reinstall --break-system-packages`,
             io: verbose,
           });
           CheckpointTime.end(this.wheelInstallTime);
           this.ora.text = `${this.ora.text} (${prettifyTime(
             CheckpointTime.diff(this.wheelInstallTime),
           )})`;
-          if (installWheelRes.exitCode === 0) {
+          if (
+            installWheelRes.exitCode === 0 &&
+            !installWheelRes.stdout.includes("ERROR")
+          ) {
             this.ora.succeed();
           } else {
             this.ora.fail();
@@ -159,11 +189,11 @@ class DriverContext {
             process.stdout.write(installWheelRes.stdout);
             process.stderr.write(installWheelRes.stderr);
           }
-          if (qpcConfig.python.testWheel) {
+          if (this.ok && qpcConfig.python.testWheel) {
             this.ora = ora(`Testing python wheel`).start();
             CheckpointTime.start(this.wheelTestTime);
             const testWheelRes = await exec({
-              command: `python -c "import ${qpcConfig.python.package}`,
+              command: `${pythonPath} -c "import ${qpcConfig.python.package}"`,
               io: verbose,
             });
             CheckpointTime.end(this.wheelTestTime);
@@ -188,12 +218,13 @@ class DriverContext {
       }
       CheckpointTime.end(this.time);
       this.logEnd();
+      _resolve();
     });
   }
 
   private printMessage(message?: string): void {
-    console.log(resolve("xd.txt"));
-    if (message?.length) console.log(message);
+    if (!message?.length) return;
+    console.log(deserializeLogs(message));
   }
 
   private waitForStage(
@@ -269,14 +300,26 @@ class DriverContext {
 
   private async onReceivedFile(file: compilerApi.File): Promise<string> {
     const { verbose, rootDir } = this.config;
+    const normalizedPath = normalize(file.getPath());
     if (verbose) {
-      console.log(chalk.blackBright(`→ ${normalize(file.getPath())}`));
+      console.log(chalk.blackBright(`→ ${normalizedPath}`));
     }
     const path = resolve(rootDir, file.getPath());
-    const data = Buffer.from(file.getData_asU8());
-
     await createDir(dirname(path));
-    await writeFile(path, data);
+    if (file.hasUrl()) {
+      CheckpointTime.start(this.wheelDownloadTime);
+      this.ora = ora(`Downloading ${normalizedPath}`).start();
+      await downloadFileToPath(file.getUrl()!, path, this.http);
+      CheckpointTime.end(this.wheelDownloadTime);
+      this.ora.succeed(
+        `Downloading ${normalizedPath} (${prettifyTime(
+          CheckpointTime.diff(this.wheelDownloadTime),
+        )})`,
+      );
+    } else {
+      const data = Buffer.from(file.getData_asU8());
+      await writeFile(path, data);
+    }
 
     return path;
   }
@@ -314,7 +357,7 @@ export class RemoteDriver {
   public readonly verbose: boolean;
   private readonly grpcMetadata?: grpc.Metadata;
 
-  constructor(opts: RemoteDriverOpts) {
+  constructor(opts: RemoteDriverOpts, private readonly http: AxiosInstance) {
     this.qpcConfig = opts.qpcConfig;
     this.client = opts.client;
     this.rootDir = opts.rootDir;
@@ -337,26 +380,32 @@ export class RemoteDriver {
   }
 
   public async build({ target }: { target?: Target }): Promise<void> {
-    const ctx = new DriverContext({
-      qpcConfig: this.qpcConfig,
-      rootDir: this.rootDir,
-      client: this.client,
-      target,
-      verbose: this.verbose,
-      grpcMetadata: this.grpcMetadata,
-    });
+    const ctx = new DriverContext(
+      {
+        qpcConfig: this.qpcConfig,
+        rootDir: this.rootDir,
+        client: this.client,
+        target,
+        verbose: this.verbose,
+        grpcMetadata: this.grpcMetadata,
+      },
+      this.http,
+    );
     return ctx.start(await this.collectSrcFiles());
   }
 
   public async check(): Promise<void> {
-    const ctx = new DriverContext({
-      qpcConfig: this.qpcConfig,
-      checkOnly: true,
-      rootDir: this.rootDir,
-      client: this.client,
-      verbose: this.verbose,
-      grpcMetadata: this.grpcMetadata,
-    });
+    const ctx = new DriverContext(
+      {
+        qpcConfig: this.qpcConfig,
+        checkOnly: true,
+        rootDir: this.rootDir,
+        client: this.client,
+        verbose: this.verbose,
+        grpcMetadata: this.grpcMetadata,
+      },
+      this.http,
+    );
     return ctx.start(await this.collectSrcFiles());
   }
 }

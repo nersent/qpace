@@ -1,17 +1,12 @@
 <div align="center">
-  <img src="static/logo.svg" width="184">
+  <img src="static/banner.svg">
+</div>
 
 <br />
 
-<h1><b>qPACE</b></h1>
-
-<a href="https://discord.gg/E4GBpN3SxT"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
-
-</div>
-
 **qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
 
-![backtest summary](/static/backtest_summary.png)
+<a href="https://discord.gg/E4GBpN3SxT"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
 
 ## Table of Contents
 
@@ -27,19 +22,18 @@
 
 ## Features and Examples
 
-- Simple, yet powerful and fully-typed API
+- Bindings for Python and JavaScript (WebAssembly)
 
-- QPC - Pine compiler. Run Pine indicators/strategies from Python/JavaScript with accurate results.
+- Simple, yet powerful and fully typed API
+
+- Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results
 
 - Extremely fast backtesting with vectorization support
-
-- Yahoo Finance API integration
 
 - CLI
   - View/Export symbols
   - View/Export OHLCV
   - Compile Pine to Python/JavaScript
-  - Backtest Pine strategies
 
 - TA indicators written in [Pine](/content/ta.pine), compiled via [QPC](#pine-from-python)
   - Accumulation/Distribution (ACCDIST)
@@ -78,20 +72,17 @@
   - Williams %R
 
 - OHLCV ops
-  - Integration with our own API and Yahoo Finance API
-  - Loading
+  - Reading/Writing from CSV, Parquet
   - Resampling
     - Aggregation (rolling window or align to UTC) - `15m` -> `8h`, `1D`, `4D`, ...
     - Tick Bars
     - Dollar Bars
     - Volume Bars
-  - And More
   
 - Performance metrics
   - Sharpe Ratio
   - Sortino Ratio
   - Omega Ratio
-  - And More
 
 - Parameter optimization
   - Grid Search
@@ -114,5 +105,7 @@ npm install qpace
 ## Pine from Python/JavaScript
 
 QPC is specially designed compiler to translate any Pine code into efficient Rust code that is then exposed to Python and JavaScript, allowing you to run your favorite Pine scripts in the most efficient way possible.
+
+Check an example [here](/examples/pine).
 
 ## Community

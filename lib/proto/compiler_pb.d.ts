@@ -59,6 +59,11 @@ export class File extends jspb.Message {
     getData_asB64(): string;
     setData(value: Uint8Array | string): File;
 
+    hasUrl(): boolean;
+    clearUrl(): void;
+    getUrl(): string | undefined;
+    setUrl(value: string): File;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): File.AsObject;
     static toObject(includeInstance: boolean, msg: File): File.AsObject;
@@ -73,6 +78,7 @@ export namespace File {
     export type AsObject = {
         path: string,
         data: Uint8Array | string,
+        url?: string,
     }
 }
 

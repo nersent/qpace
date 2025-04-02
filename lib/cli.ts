@@ -1,22 +1,27 @@
 import { existsSync, FSWatcher, Stats } from "fs";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import os, { homedir } from "os";
-import { resolve } from "path";
+import { basename, dirname, resolve } from "path";
 
-import { input, confirm, select } from "@inquirer/prompts";
+import { input, confirm, select, checkbox } from "@inquirer/prompts";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import { watch } from "chokidar";
 import { Command, Option } from "commander";
 
+import { tryParseInt } from "../base/node/number";
+import { deepMerge } from "../base/node/object";
+
+import { EXAMPLES } from "./examples";
 import { RemoteDriver } from "./remote_driver";
 
 import { exec } from "~/base/node/exec";
-import { exists, readJson, writeJson } from "~/base/node/fs";
-import { isLinux, isMacOs, isWindows } from "~/base/node/os";
+import { exists, readJson, watchPaths, writeJson } from "~/base/node/fs";
+import { isLinux, isMacOs, isWindows, which } from "~/base/node/os";
 import * as qp from "~/lib";
+import { Client } from "~/lib";
 import {
-  Config,
+  Config as QpcConfig,
   getDefaultConfig,
   getInitConfig,
   mergeConfigs,
@@ -32,79 +37,118 @@ import {
   VerifyApiKeyResponse,
 } from "~/lib/internal";
 
-export interface UserConfig {
-  apiKey?: string;
-  telemetry?: boolean;
-}
+const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
+const QPACE_BG_PREFIX = `${chalk.hex("#000").bgHex("#7fee64").bold("qPACE")} `;
+// const QPACE_BG_PREFIX = `${chalk.bgGreen.black.bold("qPACE")} `;
+const EXAMPLES_DIR = resolve(__dirname, "examples");
 
-export const tryLoadUserConfig = async (): Promise<UserConfig | undefined> => {
-  const dir = resolve(homedir(), ".qpace");
-  const configPath = resolve(dir, "config.json");
-  if (await exists(configPath)) {
-    return await readJson(configPath);
-  }
-  return;
-};
-
-export const saveConfig = async (config: UserConfig): Promise<void> => {
-  const dir = resolve(homedir(), ".qpace");
-  if (!existsSync(dir)) await mkdir(dir, { recursive: true });
-  const configPath = resolve(dir, "config.json");
-  await writeJson(configPath, config, true);
-};
-
-const QPACE_BG_PREFIX = `${chalk.bgGreen.black.bold("qpace")}: `;
-
-class CliError extends Error {
+export class CliError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "CliError";
   }
 }
 
-const CWD_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
+const withHref = (href: string): string => {
+  return `${chalk.cyanBright(href)}`;
+};
 
-const loadConfig = async (dir: string): Promise<Config> => {
-  const configPath = resolve(dir, QPC_CONFIG_FILENAME);
-  if (!(await exists(configPath))) {
-    throw new Error(
-      `Config file not found at ${configPath}. Try running 'qpace init'`,
-    );
+interface UserConfig {
+  apiKey?: string;
+  telemetry?: boolean;
+}
+
+const readUserConfig = async (dir?: string): Promise<UserConfig> => {
+  dir ??= resolve(homedir(), ".qpace");
+  const configPath = resolve(dir, "config.json");
+  if (await exists(configPath)) {
+    return await readJson(configPath);
   }
-  let config = await readJson(configPath);
-  config = mergeConfigs(getDefaultConfig(), config);
+  return { telemetry: true };
+};
+
+const writeUserConfig = async (
+  config: UserConfig,
+  dir?: string,
+): Promise<void> => {
+  dir ??= resolve(homedir(), ".qpace");
+  if (!existsSync(dir)) await mkdir(dir, { recursive: true });
+  const configPath = resolve(dir, "config.json");
+  await writeJson(configPath, config, true);
+};
+
+const updateUserConfig = async (
+  modifiedConfig: UserConfig,
+  dir?: string,
+): Promise<UserConfig> => {
+  let config = await readUserConfig(dir);
+  config = deepMerge(config, modifiedConfig);
+  await writeUserConfig(config, dir);
   return config;
 };
 
-const loadOrCreateConfig = async (
-  dir: string,
-  _prompt = false,
-): Promise<Config> => {
-  const configPath = resolve(dir, QPC_CONFIG_FILENAME);
-  const hasConfig = await exists(configPath);
-  let config: Config | undefined;
-  if (!hasConfig || _prompt) {
-    if (_prompt && hasConfig) {
-      console.log(
-        chalk.yellowBright(
-          `Warning: Config file already exists at ${configPath}`,
-        ),
-      );
-      config = await loadConfig(dir);
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const initQpc = async ({
+  dir,
+  configPath,
+  prompt,
+  ignoreExisting,
+}: {
+  dir?: string;
+  configPath?: string;
+  prompt?: boolean;
+  ignoreExisting?: boolean;
+}) => {
+  dir = resolve(process.cwd(), dir ?? "");
+  if (configPath != null) configPath = resolve(dir, configPath);
+  if (dir != null && configPath != null && dir !== dirname(configPath)) {
+    throw new CliError(
+      `Config file ${configPath} must be in the same directory as cwd ${dir}`,
+    );
+  }
+  if (configPath == null) {
+    configPath = resolve(dir, QPC_CONFIG_FILENAME);
+  }
+  let config: QpcConfig | undefined;
+  if (await exists(configPath)) {
+    config = await readJson(configPath);
+  }
+  if (config == null && !prompt) {
+    throw new CliError(
+      `Project not found at ${chalk.yellowBright(
+        configPath,
+      )}\nTo setup a new project, use ${chalk.white.bold(`"qpc init"`)}`,
+    );
+  } else if (prompt) {
+    await mkdir(dir, { recursive: true });
+    const creatingNew = config == null;
+    if (config != null) {
+      if (ignoreExisting) {
+        return { config, configPath };
+      }
+      console.log(`${QPACE_BG_PREFIX}Project already exists at ${configPath}`);
+      const overwrite = await confirm({
+        message: "Do you want to overwrite existing project?",
+        default: true,
+      });
+      if (!overwrite) {
+        return { config, configPath };
+      }
     } else {
-      console.log(
-        chalk.yellowBright(
-          `Warning: Config file not found at ${configPath}. Creating a default config file.`,
-        ),
-      );
+      console.log(`${QPACE_BG_PREFIX}Creating new project.`);
       config = getInitConfig();
     }
     const usePython = await confirm({
       message: "Do you want to use Python?",
+      default: true,
     });
     if (usePython) {
+      config.python = {
+        ...config.python,
+        bindings: true,
+      };
       const pythonPackageName = await input({
-        message: "Enter python package name for your project",
+        message: "Enter python package name",
         default: config.python?.package ?? "qpace_artifact",
         required: false,
         validate: (x) => {
@@ -117,72 +161,307 @@ const loadOrCreateConfig = async (
           return true;
         },
       });
-      if (pythonPackageName != null) {
-        config.python ??= {};
-        config.python.package = pythonPackageName;
-      }
+      config.python.package = pythonPackageName;
     }
-    const examplePine = usePython
-      ? await select({
-          message: `Do you want to use an example?`,
-          default: "no",
+    const overwriteConfig = await select({
+      message: `Do you want to default config?`,
+      choices: [
+        {
+          name: "no",
+          value: false,
+        },
+        {
+          name: "yes",
+          value: true,
+        },
+      ],
+    });
+    if (overwriteConfig) {
+      if (usePython) {
+        config.python ??= {};
+        const installPythonWheel = await select({
+          message: `Should python wheel be automatically installed?`,
+          default: config.python?.installWheel,
           choices: [
             {
-              name: "no",
-              value: "no",
+              name: "yes",
+              value: true,
             },
             {
-              name: "EMA with matplotlib",
-              value: "ema_matplotlib",
+              name: "no",
+              value: false,
             },
           ],
-        })
-      : undefined;
-    if (examplePine != null && examplePine !== "no") {
-      if (examplePine === "ema_matplotlib") {
-        await writeFile(
-          resolve(dir, "indicator.pine"),
-          `
-library("indicator")
+        });
+        config.python.installWheel = installPythonWheel;
 
-export custom_ma(series<float> src, int length = 14) =>
-    ta.ema(src, length)
-        `.trim(),
+        if (installPythonWheel) {
+          const testPythonWheel = await select({
+            message: `Should installed python wheel be automatically tested?`,
+            default: config.python?.testWheel,
+            choices: [
+              {
+                name: "yes",
+                value: true,
+              },
+              {
+                name: "no",
+                value: false,
+              },
+            ],
+          });
+          config.python.testWheel = testPythonWheel;
+        }
+
+        const buildDir = await input({
+          message: "Enter build directory",
+          default: config.buildDir ?? "build",
+          required: false,
+          validate: (x) => {
+            if (x.trim().length === 0) {
+              return "Build directory is required";
+            }
+            return true;
+          },
+        });
+        config.buildDir = buildDir;
+      }
+    }
+    const useExample = await select({
+      message: `Do you want to setup an example?`,
+      default: creatingNew,
+      choices: [
+        {
+          name: "yes",
+          value: true,
+        },
+        {
+          name: "no",
+          value: false,
+        },
+      ],
+    });
+    if (useExample) {
+      const exampleIds = await checkbox({
+        message: "Select examples",
+        choices: EXAMPLES.map((r) => ({
+          value: r.id,
+          name: r.name,
+        })),
+      });
+      for (const exampleId of exampleIds) {
+        const exampleDir = resolve(EXAMPLES_DIR, exampleId);
+        const srcFiles = await readdir(exampleDir).then((files) =>
+          files.map((r) => resolve(exampleDir, r)),
         );
-        await writeFile(
-          resolve(dir, "main.py"),
-          `
-import matplotlib.pyplot as plt
-import qpace as qp
-import ${config.python?.package ?? ""} as pine
-
-client = qp.Client(api_key="ENTER_YOUR_API_KEY")
-ctx = client.ctx("BITSTAMP:BTCUSD", "1D", pb=True)
-ohlcv = ctx.ohlcv
-
-rsi = qp.ta.rsi(ctx.fork(), ohlcv.close)
-ma = pine.indicator.custom_ma(ctx.fork(), src=ohlcv.close, length=14)
-plt.plot(ohlcv.open_time, ohlcv.close, label="Close", color="black")
-plt.plot(ohlcv.open_time, ma, label="Custom MA", color="red")
-plt.legend()
-plt.show()
-
-        `.trim(),
-        );
+        for (const srcFile of srcFiles) {
+          const srcPath = resolve(exampleDir, srcFile);
+          let destPath = resolve(dir, basename(srcFile));
+          if (existsSync(destPath)) {
+            const overwrite = await confirm({
+              message: `File ${destPath} already exists. Do you want to overwrite it?`,
+              default: true,
+            });
+            if (!overwrite) {
+              destPath = resolve(dir, `${Date.now()}_${srcFile}`);
+            }
+          }
+          let content = await readFile(srcPath, "utf8");
+          content = content.replaceAll(
+            "__QPC_PYTHON_PACKAGE__",
+            config.python?.package ?? "",
+          );
+          await writeFile(destPath, content, "utf8");
+        }
       }
     }
     await writeJson(configPath, config, true);
-    console.log(chalk.greenBright(`qPACE project intialized successfully!`));
-    if (usePython) {
+    if (creatingNew) {
+      console.log(`${QPACE_BG_PREFIX}Project created at ${configPath}`);
       console.log(
-        `To build the project, use: "qpc build --target python", then "python main.py"`,
+        chalk.yellowBright(
+          `\nTo check for errors, run:\n${chalk.blue.bold(`qpc check`)}`,
+        ),
+      );
+      console.log(
+        chalk.yellowBright(
+          `\nTo build the project, run:\n${chalk.blue.bold(`qpc build`)}`,
+        ),
+      );
+      if (usePython) {
+        console.log(
+          chalk.yellowBright(
+            `\nTo use pine from python, you need to import using:\n${chalk.blue.bold(
+              `import ${config.python?.package ?? ""} as pine`,
+            )}`,
+          ),
+        );
+      }
+      console.log(
+        `\nSee more at ${withHref(`https://qpace.dev/docs/qpc-project`)}`,
+      );
+    } else {
+      console.log(`${QPACE_BG_PREFIX}Project modified at ${configPath}`);
+    }
+  }
+  config ??= {};
+  return { config, configPath };
+};
+
+const validateApiKey = async ({
+  apiKey,
+  verbose,
+  client,
+}: {
+  apiKey: string;
+  verbose?: boolean;
+  client?: Client;
+}): Promise<VerifyApiKeyResponse | undefined> => {
+  client ??= new Client({ apiKey });
+  await updateClientInfo(client);
+  client["init"]();
+  try {
+    const { data } = await client["http"].get<
+      VerifyApiKeyResponse,
+      AxiosResponse<VerifyApiKeyResponse>,
+      VerifyApiKeyRequest
+    >(`/api_keys/verify/${client["config"]["apiKey"]}`);
+    if (verbose) {
+      console.log(
+        `${QPACE_BG_PREFIX}Logged in as ${chalk.yellowBright(data.user?.name)}`,
       );
     }
-
-    return config;
+    return data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response?.status === 403) {
+      if (verbose) {
+        throw new CliError("Invalid API key. Try authenticating again.");
+      }
+      return;
+    }
+    throw e;
   }
-  return await loadConfig(dir);
 };
+
+const promptApiKey = async (): Promise<string> => {
+  console.log(`${QPACE_BG_PREFIX}Logging into qpace.dev`);
+  console.log(
+    `${QPACE_BG_PREFIX}You can find your API key in your browser here: ${chalk.cyanBright(
+      `https://qpace.dev/auth`,
+    )}`,
+  );
+  console.log(
+    `${QPACE_BG_PREFIX}Paste an API key here and press enter, or press ctrl+c to quit`,
+  );
+  const apiKey = await input({
+    message: "Enter your API key",
+    transformer: (apiKey) => apiKey?.trim(),
+    validate: async (apiKey) => {
+      if (!apiKey.length) {
+        return "API key is required";
+      }
+      if ((await validateApiKey({ apiKey })) != null) {
+        return true;
+      }
+      return "API key is invalid";
+    },
+  });
+  await validateApiKey({ apiKey, verbose: true });
+  await updateUserConfig({ apiKey });
+  return apiKey;
+};
+
+const loadApiKey = async (): Promise<string> => {
+  const userConfig = await readUserConfig();
+  const apiKey = process.env[ENV_API_KEY] ?? userConfig.apiKey;
+  if (apiKey == null) {
+    return await promptApiKey();
+  }
+  return apiKey;
+};
+
+const loadClient = async (): Promise<Client> => {
+  const apiKey = await loadApiKey();
+  const client = new Client({
+    apiKey,
+    apiBase: process.env[ENV_REST_ENDPOINT],
+    grpcApiBase: process.env[ENV_GRPC_ENDPOINT],
+  });
+  return client;
+};
+
+const promptTelemetry = async (enabled?: boolean): Promise<void> => {
+  if (enabled != null) {
+    await updateUserConfig({ telemetry: enabled });
+  }
+  const userConfig = await readUserConfig();
+  console.log(
+    `${QPACE_BG_PREFIX}Telemetry is ${chalk.white.bold(
+      userConfig?.telemetry ? "enabled" : "disabled",
+    )}\n`,
+  );
+  if (userConfig?.telemetry) {
+    console.log(
+      `Telemetry is completely anonymous and optional.\nThank you for for participating!`,
+    );
+  } else {
+    console.log(
+      `You have disabled anonymous telemetry.\nNo data will be collected from your machine.`,
+    );
+  }
+  console.log(`\nLearn more at: ${chalk.cyan(`https://qpace.dev/telemetry`)}`);
+};
+
+const updateClientInfo = async (
+  client: qp.Client,
+  userConfig?: UserConfig,
+): Promise<void> => {
+  userConfig ??= await readUserConfig();
+  if (!userConfig.telemetry) return;
+  client["clientInfo"] ??= {};
+  client["clientInfo"]["platform"] = os.platform()?.trim();
+  client["clientInfo"]["arch"] = os.arch()?.trim();
+  client["clientInfo"]["cpus"] = os.cpus().length;
+  client["clientInfo"]["osRelease"] = os.release()?.trim();
+  client["clientInfo"]["memory"] = os.totalmem();
+  client["clientInfo"]["cpu"] = os.cpus()[0].model?.trim();
+  await Promise.all(
+    [
+      ["npm", "npm --version"],
+      ["pnpm", "pnpm --version"],
+      ["yarn", "yarn --version"],
+      ["python", "python --version"],
+      ["python3", "python3 --version"],
+      ["pip", "pip --version"],
+      ["pip3", "pip3 --version"],
+      ["rustc", "rustc --version"],
+      ["cargo", "cargo --version"],
+    ].map(async ([key, command]) => {
+      const { stdout } = await exec({
+        command,
+      });
+      client["clientInfo"]![key] = stdout;
+    }),
+  );
+  client["init"]();
+};
+
+const handleException = (e: Error): void => {
+  if (e instanceof Error && e.name === "ExitPromptError") {
+    return;
+  }
+  if (e instanceof CliError) {
+    console.log(chalk.redBright(e.message));
+    process.exit(1);
+  }
+  throw e;
+};
+
+const DATA_FORMAT_CHOICES = ["table", "table-mini", "json", "csv"] as const;
+type DataFormat = typeof DATA_FORMAT_CHOICES[number];
+
+const ORDER_CHOICES = ["asc", "desc"] as const;
+type Order = typeof ORDER_CHOICES[number];
 
 const BUILD_TARGETS = [...TARGETS, "python"] as const;
 type BuildTarget = typeof BUILD_TARGETS[number];
@@ -207,236 +486,14 @@ const tryMapBuildTarget = (buildTarget: BuildTarget): Target | undefined => {
   return;
 };
 
-const DATA_FORMAT_CHOICES = ["json", "csv", "table"] as const;
-type DataFormat = typeof DATA_FORMAT_CHOICES[number];
-
-const ORDER_CHOICES = ["asc", "desc"] as const;
-type Order = typeof ORDER_CHOICES[number];
-
-class Cli {
-  private _client?: qp.Client;
-  public userConfig: UserConfig = {};
-  private apiKey: string | undefined;
-
-  public async init(): Promise<void> {
-    this.userConfig = await this.loadConfig();
-    this.apiKey = process.env[ENV_API_KEY];
-    this.apiKey ??= this.userConfig.apiKey;
-  }
-
-  public get telemetry(): boolean {
-    return this.userConfig.telemetry ?? true;
-  }
-
-  public setApiKey(apiKey: string, userConfig?: boolean): void {
-    this.apiKey = apiKey;
-    if (userConfig) {
-      this.userConfig.apiKey = apiKey;
-    }
-  }
-
-  public async loadConfig(): Promise<UserConfig> {
-    const userConfig = await tryLoadUserConfig();
-    if (userConfig == null) {
-      this.userConfig = {};
-      await this.saveConfig();
-    } else {
-      this.userConfig = userConfig;
-    }
-    return this.userConfig;
-  }
-
-  public async saveConfig(): Promise<void> {
-    await saveConfig(this.userConfig);
-  }
-
-  public tryGetClient(): qp.Client | undefined {
-    if (this._client != null) return this._client;
-    const apiKey = this.apiKey;
-    if (apiKey != null) {
-      const apiBase = process.env[ENV_REST_ENDPOINT];
-      const grpcApiBase = process.env[ENV_GRPC_ENDPOINT];
-      this._client = new qp.Client({
-        apiKey,
-        apiBase,
-        grpcApiBase,
-      });
-    }
-    return this._client;
-  }
-
-  public getClient(): qp.Client {
-    const client = this.tryGetClient();
-    if (client == null) {
-      throw new CliError("No API key");
-    }
-    return client;
-  }
-
-  public async maybePromptApiKey(
-    apiKey?: string,
-    force?: boolean,
-    canRelogin?: boolean,
-  ): Promise<void> {
-    apiKey ??= this.userConfig.apiKey;
-    if (apiKey == null) {
-      force = true;
-    }
-
-    let inputApiKey: string | undefined;
-    if (apiKey == null || force) {
-      console.log(`${QPACE_BG_PREFIX}Logging into qpace.dev`);
-      console.log(
-        `${QPACE_BG_PREFIX}You can find your API key in your browser here: ${chalk.cyanBright(
-          `https://qpace.dev/auth`,
-        )}`,
-      );
-      console.log(
-        `${QPACE_BG_PREFIX}Paste an API key here and press enter, or press ctrl+c to quit`,
-      );
-      inputApiKey = await input({
-        message: "Enter your API key",
-        validate: (x) => (x.trim().length > 0 ? true : "API key is required"),
-      });
-      this.setApiKey(inputApiKey, true);
-    } else {
-      this.setApiKey(apiKey);
-    }
-    this._client = undefined;
-
-    try {
-      const client = this.getClient();
-      if (inputApiKey != null) {
-        await this._initClientInfo(client);
-      }
-      const {
-        data: { user },
-      } = await client["http"].get<
-        VerifyApiKeyResponse,
-        AxiosResponse<VerifyApiKeyResponse>,
-        VerifyApiKeyRequest
-      >(`/api_keys/verify/${this.apiKey}`);
-      if (inputApiKey != null) {
-        console.log(
-          `${QPACE_BG_PREFIX}Logged in as ${chalk.yellowBright(
-            user?.name,
-          )}. Use ${chalk.white.bold(
-            `\`qpace login --force\``,
-          )} to force relogin.`,
-        );
-      }
-      if (inputApiKey != null) {
-        await this.saveConfig();
-      }
-    } catch (e) {
-      if (axios.isAxiosError(e) && e.response?.status === 403) {
-        if (canRelogin) {
-          await this.maybePromptApiKey(inputApiKey, true, false);
-        }
-        throw new CliError("Invalid API key. Try authenticating again.");
-      }
-      throw e;
-    }
-  }
-
-  public async handleTelemetry(enabled?: boolean): Promise<void> {
-    if (enabled != null) {
-      this.userConfig.telemetry = enabled;
-      await this.saveConfig();
-    }
-    console.log(
-      `${QPACE_BG_PREFIX}Telemetry is ${chalk.white.bold(
-        this.telemetry ? "enabled" : "disabled",
-      )}\n`,
-    );
-    if (this.telemetry) {
-      console.log(
-        `qpace telemetry is completely anonymous and optional.\nThank you for for participating!`,
-      );
-    } else {
-      console.log(
-        `You have disabled anonymous telemetry.\nNo data will be collected from your machine.`,
-      );
-    }
-    console.log(
-      `\nLearn more at: ${chalk.cyan(`https://qpace.dev/telemetry`)}`,
-    );
-  }
-
-  private async _initClientInfo(client: qp.Client): Promise<void> {
-    if (!this.telemetry) return;
-    client["clientInfo"] ??= {};
-    client["clientInfo"]["platform"] = os.platform();
-    client["clientInfo"]["arch"] = os.arch();
-    client["clientInfo"]["cpus"] = os.cpus().length;
-    client["clientInfo"]["osRelease"] = os.release();
-    client["clientInfo"]["memory"] = os.totalmem();
-    client["clientInfo"]["cpu"] = os.cpus()[0].model;
-    await Promise.all(
-      [
-        ["npm", "npm --version"],
-        ["pnpm", "pnpm --version"],
-        ["yarn", "yarn --version"],
-        ["python", "python --version"],
-        ["python3", "python3 --version"],
-        ["pip", "pip --version"],
-        ["pip3", "pip3 --version"],
-        ["rustc", "rustc --version"],
-        ["cargo", "cargo --version"],
-      ].map(async ([key, command]) => {
-        const { stdout } = await exec({
-          command,
-        });
-        client["clientInfo"]![key] = stdout;
-      }),
-    );
-    client["init"]();
-  }
-}
-
-const handleException = (e: Error): void => {
-  if (e instanceof CliError) {
-    console.log(chalk.redBright.bold(e.message));
-    process.exit(1);
-  }
-  throw e;
-};
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const watchPaths = async (
-  {
-    included,
-    excluded = [],
-    delay = 500,
-  }: { included: string[]; excluded?: string[]; delay?: number },
-  onChange: (filename: string) => Promise<void>,
-) => {
-  let watcher: FSWatcher | undefined;
-  let runTimeout: NodeJS.Timeout | undefined;
-
-  watcher?.close();
-  watcher = watch(included, {
-    ignored: excluded,
-    followSymlinks: true,
-    ignoreInitial: true,
-  });
-  watcher.on("change", (filename: string, stats: Stats) => {
-    clearTimeout(runTimeout);
-    runTimeout = setTimeout(() => {
-      onChange(filename);
-    }, delay);
-  });
-
-  return { cancel: (): void => watcher?.close() };
-};
-
 const main = async (): Promise<void> => {
   process.on("unhandledRejection", (reason, promise) => {
     handleException(reason as Error);
   });
+  process.on("uncaughtException", (reason) => {
+    handleException(reason as Error);
+  });
 
-  const cli = new Cli();
-  await cli.init();
   const program = new Command();
   program.option("-v, --version", "Show version").action(async () => {
     console.table({
@@ -444,147 +501,51 @@ const main = async (): Promise<void> => {
       qpaceCore: qp.getCoreVersion(),
     });
   });
-  // program.version(`qpace_core = ${qp.getVersion()}`);
   program
     .command("login")
     .argument("[api key]")
     .action(async (apiKey: string | undefined) => {
-      await cli.maybePromptApiKey(apiKey, apiKey == null, true);
+      if (apiKey != null) {
+        await validateApiKey({ apiKey, verbose: true });
+        await updateUserConfig({ apiKey });
+        return;
+      }
+      await promptApiKey();
     });
   program
     .command("init")
     .option("--cwd <path>", `Project root directory`)
     .action(async (opts: { cwd?: string }) => {
-      await cli.maybePromptApiKey();
-      const client = cli.getClient();
-      const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
-      await mkdir(rootDir, { recursive: true });
-      const qpcConfig = await loadOrCreateConfig(rootDir, true);
-    });
-  program
-    .command("build")
-    .addOption(
-      new Option("--target <target>", `Target platform`).choices(BUILD_TARGETS),
-    )
-    .option("--config <path>", `Config file`)
-    .option("--emit", `Emits compiled files. Default: "config.emit"`)
-    .option("--emit-dir <path>", `Output directory. Default: "config.emitDir"`)
-    .option("--dir <path>", `Output directory. Default: "config.buildDir"`)
-    .option(
-      "--install-wheel",
-      `Installs generated python wheel artifact. Default: "config.python.installWheel"`,
-    )
-    .option(
-      "--skip-wheel-test",
-      `Skips testing generated python wheel artifact`,
-      false,
-    )
-    .option("--cwd <path>", `Project root directory`)
-    .option("--verbose, -v", `Verbose output`)
-    .option("--watch, -w", `Rebuild on file changes`, false)
-    .action(
-      async (opts: {
-        cwd?: string;
-        emit?: boolean;
-        target?: BuildTarget;
-        emitDir?: string;
-        dir?: string;
-        installWheel?: boolean;
-        verbose?: boolean;
-        watch?: boolean;
-        skipWheelTest?: boolean;
-      }) => {
-        await cli.maybePromptApiKey();
-        const client = cli.getClient();
-        const rootDir =
-          opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
-        const qpcConfig = await loadOrCreateConfig(rootDir);
-        qpcConfig.emitDir = opts.emitDir ?? qpcConfig.emitDir;
-        qpcConfig.emit = opts.emit ?? qpcConfig.emit;
-        qpcConfig.python ??= {};
-        qpcConfig.python.installWheel =
-          opts.installWheel ?? qpcConfig.python.installWheel;
-        qpcConfig.python.testWheel =
-          qpcConfig.python.testWheel && !opts.skipWheelTest;
-        qpcConfig.buildDir = opts.dir ?? qpcConfig.buildDir;
-
-        const target = tryMapBuildTarget(opts.target as any);
-        if (opts.target != null && target == null) {
-          throw new CliError(`Unsupported target: ${opts.target}`);
-        }
-        if (target == null && !qpcConfig.emit) {
-          throw new CliError(`--target must be specified or --emit enabled`);
-        }
-
-        const driver = new RemoteDriver({
-          client: client["compilerClient"],
-          qpcConfig,
-          rootDir,
-          verbose: opts.verbose,
-          grpcMetadata: client["createGrpcMetadata"](),
-        });
-        await driver.build({ target });
-        if (opts.watch) {
-          watchPaths(
-            { included: await driver.collectSrcFiles() },
-            async (path) => {
-              console.log(chalk.blackBright(`${path}`));
-              await driver.build({ target });
-            },
-          );
-        }
-      },
-    );
-  program
-    .command("check")
-    .option("--config", `Config file`)
-    .option("--cwd <path>", `Project root directory`)
-    .option("--watch, -w", `Recheck on file changes`, false)
-    .action(async (opts: { cwd?: string; watch?: boolean }) => {
-      await cli.maybePromptApiKey();
-      const client = cli.getClient();
-      const rootDir = opts.cwd != null ? resolve(CWD_PATH, opts.cwd) : CWD_PATH;
-      const qpcConfig = await loadOrCreateConfig(rootDir);
-      const driver = new RemoteDriver({
-        client: client["compilerClient"],
-        qpcConfig,
-        rootDir,
-        grpcMetadata: client["createGrpcMetadata"](),
+      await initQpc({
+        dir: resolve(CWD_PATH, opts.cwd ?? process.cwd()),
+        prompt: true,
       });
-      await driver.check();
-      if (opts.watch) {
-        watchPaths(
-          { included: await driver.collectSrcFiles() },
-          async (path) => {
-            console.log(chalk.blackBright(`${path}`));
-            await driver.check();
-          },
-        );
-      }
     });
   program
     .command("symbol")
     .alias("sym")
-    .option("--full", `Full info`)
-    .option("--limit <limit>", `Limit`, "10")
+    .option("--limit <limit>", `Limit`, "50")
     .option(
       "--timeframe, -t <timeframe>",
-      `Returned symbols have OHLCV available with provided timeframe`,
+      `If provided, symbols are expected to have OHLCV available at that timeframe`,
+    )
+    .addOption(
+      new Option("--format, -f <format>", `Data format`)
+        .choices(DATA_FORMAT_CHOICES)
+        .default("table-mini"),
     )
     .argument("[patterns...]")
     .action(
       async (
         patterns: string[],
         opts: {
-          format: DataFormat;
           limit: string;
-          full?: boolean;
           timeframe?: string;
+          format: DataFormat;
         },
       ) => {
+        const client = await loadClient();
         const limit = parseInt(opts.limit);
-        await cli.maybePromptApiKey();
-        const client = cli.getClient();
         const syms: qp.Sym[] = [];
         const timeframe: qp.Timeframe | undefined = opts.timeframe
           ? qp.Timeframe.fromString(opts.timeframe)
@@ -605,12 +566,20 @@ const main = async (): Promise<void> => {
         const items = syms.map((sym) => ({
           ...sym.toJSON(),
         }));
-        console.table(
-          items,
-          opts.full
-            ? undefined
-            : ["ticker_id", "base_currency", "currency", "prefix"],
-        );
+        if (opts.format === "table-mini") {
+          console.table(items, [
+            "ticker_id",
+            "base_currency",
+            "currency",
+            "prefix",
+          ]);
+        } else if (opts.format === "table") {
+          console.table(items);
+        } else if (opts.format === "json") {
+          console.log(items);
+        } else {
+          throw new CliError(`Unsupported data format: ${opts.format}`);
+        }
       },
     );
   program
@@ -618,74 +587,193 @@ const main = async (): Promise<void> => {
     .alias("price")
     .option("--timeframe, -t <timeframe>", `Timeframe`, "1D")
     .option("--limit <limit>", `Bars limit`, "30")
+    .option("--offset <offset>", "Bar offset", "0")
     .addOption(
       new Option("--order, -o <order>", `Order`)
         .choices(ORDER_CHOICES)
-        .default("desc"),
+        .default("asc"),
+    )
+    .addOption(
+      new Option("--format, -f <format>", `Data format`)
+        .choices(DATA_FORMAT_CHOICES)
+        .default("pretty"),
     )
     .argument("<patterns...>")
     .action(
       async (
         patterns: string[],
-        opts: { timeframe?: string; limit?: string; order?: Order },
+        opts: {
+          timeframe: string;
+          offset?: string;
+          limit?: string;
+          order: Order;
+          format: DataFormat;
+        },
       ) => {
-        await cli.maybePromptApiKey();
-        const timeframe =
-          (opts.timeframe != null
-            ? qp.Timeframe.fromString(opts.timeframe)
-            : undefined) ?? qp.Timeframe.fromString("1D");
-        const client = cli.getClient();
-        const syms: qp.Sym[] = [];
+        const client = await loadClient();
         let items: any[] = [];
         for (const pattern of patterns) {
           const sym = await client.sym({ tickerId: pattern });
-          if (syms.find((r) => r.id === sym.id)) continue;
-          const ohlcv = await client.ohlcv(sym, timeframe, { pb: true });
-          let _items = ohlcv.bars.map((r) => ({
+          const ohlcv = await client.ohlcv(
+            sym,
+            qp.Timeframe.fromString(opts.timeframe),
+            {
+              pb: true,
+              order: opts.order,
+              limit: tryParseInt(opts.limit),
+              offset: tryParseInt(opts.offset),
+            },
+          );
+          const _items = ohlcv.bars.map((r) => ({
             tickerId: sym.tickerId,
             ...r.toJSON(),
           }));
-          if (opts.order === "asc") {
-            _items.sort((a, b) => a.openTime - b.openTime);
-          } else {
-            _items.sort((a, b) => b.openTime - a.openTime);
-          }
-          if (opts.limit != null) {
-            _items = _items.slice(0, parseInt(opts.limit));
-          }
           items.push(..._items);
         }
-        // {
-        //   const sym = qp.Sym.fromJSON({
-        //     id: "adbc7c0a-edc1-4995-afb5-6dabd7f6670c",
-        //   });
-        //   const ohlcv = await client.ohlcv(sym, timeframe);
-        //   const _items = ohlcv.bars.map((r) => ({
-        //     tickerId: sym.tickerId,
-        //     ...r.toJSON(),
-        //   }));
-        //   items.push(..._items);
-        // }
         if (items.length === 0) {
           throw new CliError("No bars found");
         }
-
-        console.table(items);
+        if (opts.format === "table") {
+          console.table(items);
+        } else {
+          throw new CliError(`Unsupported data format: ${opts.format}`);
+        }
       },
     );
+  program
+    .command("check")
+    .option("--cwd <path>", `Project root directory`)
+    .option("--config <path>", `Config file`)
+    .option("--watch, -w", `Recheck on file changes`, false)
+    .action(
+      async (opts: { cwd?: string; config?: string; watch?: boolean }) => {
+        const client = await loadClient();
+        const { config: qpcConfig, configPath: qpcConfigPath } = await initQpc({
+          dir: opts.cwd,
+          configPath: opts.config,
+          prompt: false,
+        });
+        const driver = new RemoteDriver(
+          {
+            client: client["compilerClient"],
+            qpcConfig,
+            rootDir: dirname(qpcConfigPath),
+            grpcMetadata: client["createGrpcMetadata"](),
+          },
+          client["http"],
+        );
+        if (opts.watch) {
+          console.log(`${QPACE_BG_PREFIX}Watching for file changes`);
+          watchPaths(
+            { included: await driver.collectSrcFiles() },
+            async (path) => {
+              console.log(chalk.blackBright(`${path}`));
+              await driver.check();
+            },
+          );
+        }
+        await driver.check();
+      },
+    );
+  program
+    .command("build")
+    .addOption(
+      new Option("--target <target>", `Target platform`).choices(BUILD_TARGETS),
+    )
+    .option("--cwd <path>", `Project root directory`)
+    .option("--config <path>", `Config file`)
+    .option("--emit", `Emits compiled files. Default: "config.emit"`)
+    .option("--emit-dir <path>", `Output directory. Default: "config.emitDir"`)
+    .option("--dir <path>", `Output directory. Default: "config.buildDir"`)
+    .option(
+      "--skip-wheel-install",
+      `Skips installing python wheel artifact. "config.python.installWheel"`,
+    )
+    .option(
+      "--skip-wheel-test",
+      `Skips testing python wheel artifact. "config.python.testWheel"`,
+      false,
+    )
+    .option("--verbose, -v", `Verbose output`)
+    .option("--watch, -w", `Rebuild on file changes`, false)
+    .action(
+      async (opts: {
+        cwd?: string;
+        config?: string;
+        emit?: boolean;
+        target?: BuildTarget;
+        emitDir?: string;
+        dir?: string;
+        verbose?: boolean;
+        watch?: boolean;
+        skipWheelTest?: boolean;
+        skipWheelInstall?: boolean;
+      }) => {
+        const client = await loadClient();
+        const { config: qpcConfig, configPath: qpcConfigPath } = await initQpc({
+          dir: opts.cwd,
+          configPath: opts.config,
+          prompt: false,
+        });
+        qpcConfig.python ??= {};
+        qpcConfig.emitDir = opts.emitDir ?? qpcConfig.emitDir;
+        qpcConfig.emit = opts.emit ?? qpcConfig.emit;
+        qpcConfig.buildDir = opts.dir ?? qpcConfig.buildDir;
+        if (opts.skipWheelInstall) {
+          qpcConfig.python.installWheel = false;
+        }
+        if (opts.skipWheelTest) {
+          qpcConfig.python.testWheel = false;
+        }
+        if (opts.target == null && !qpcConfig.emit) {
+          if (qpcConfig.python.bindings) {
+            opts.target = "python";
+          } else {
+            throw new CliError(`--target must be specified or --emit enabled`);
+          }
+        }
+        const target = tryMapBuildTarget(opts.target as any);
+        if (opts.target != null && target == null) {
+          throw new CliError(`Unsupported target: ${opts.target}`);
+        }
+
+        const driver = new RemoteDriver(
+          {
+            client: client["compilerClient"],
+            qpcConfig,
+            rootDir: dirname(qpcConfigPath),
+            verbose: opts.verbose,
+            grpcMetadata: client["createGrpcMetadata"](),
+          },
+          client["http"],
+        );
+        if (opts.watch) {
+          console.log(`${QPACE_BG_PREFIX}Watching for file changes`);
+          watchPaths(
+            { included: await driver.collectSrcFiles() },
+            async (path) => {
+              console.log(chalk.blackBright(`${path}`));
+              await driver.build({ target });
+            },
+          );
+        }
+        await driver.build({ target });
+      },
+    );
+
   program.addCommand(
     new Command("telemetry")
-      .action(() => {
-        cli.handleTelemetry();
+      .action(async () => {
+        await promptTelemetry();
       })
       .addCommand(
         new Command("enable").action(async () => {
-          await cli.handleTelemetry(true);
+          await promptTelemetry(true);
         }),
       )
       .addCommand(
         new Command("disable").action(async () => {
-          await cli.handleTelemetry(false);
+          await promptTelemetry(false);
         }),
       ),
   );

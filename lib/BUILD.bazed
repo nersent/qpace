@@ -10,9 +10,19 @@ fileSet("ts_proto", {
   srcs: [glob("proto/*.{ts,js}")],
 });
 
+fileSet("examples", {
+  srcs: [glob("examples/**/*.pine"), glob("examples/**/*.py")],
+});
+
 tsLibrary("wasm", {
-  srcs: ["client.ts", "compiler.ts", "index.ts", "internal.ts"],
-  deps: [":ts_proto", "//core:wasm", "//:package_json"],
+  srcs: [
+    "client.ts",
+    "compiler.ts",
+    "index.ts",
+    "internal.ts",
+    "examples/index.ts",
+  ],
+  deps: [":ts_proto", "//core:wasm", "//:package_json", ":examples"],
   compiler: "tsc",
 });
 
@@ -185,4 +195,3 @@ nodeMainWrapper(`cli_main`, {
 
 // export TWINE_USERNAME=
 // export TWINE_PASSWORD=
-

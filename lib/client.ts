@@ -32,7 +32,14 @@ interface SymFilter {
 
 type SymOpts = SymFilter & { limit?: number; offset?: number };
 
-type OhlcvOpts = { limit?: number; offset?: number; pb?: boolean };
+type Order = "asc" | "desc";
+
+type OhlcvOpts = {
+  limit?: number;
+  offset?: number;
+  pb?: boolean;
+  order?: Order;
+};
 
 export class Client {
   private http!: AxiosInstance;
@@ -51,7 +58,7 @@ export class Client {
 
   private init(): void {
     const apiBase = this.config.apiBase ?? DEFAULT_REST_ENDPOINT;
-    const grpApiBase = this.config.grpcApiBase ?? DEFAULT_GRPC_ENDPOINT;
+    const grpcApiBase = this.config.grpcApiBase ?? DEFAULT_GRPC_ENDPOINT;
     this.http = axios.create({
       baseURL: apiBase,
       withCredentials: true,
@@ -61,21 +68,23 @@ export class Client {
         "x-info": JSON.stringify(this.clientInfo),
       },
     });
-    // grpc.ChannelCredentials.createInsecure()
     const grpcCredentials =
-      this.config.grpcCredentials ?? grpc.ChannelCredentials.createSsl();
+      this.config.grpcCredentials ??
+      (grpcApiBase.startsWith("0.0.0.0")
+        ? grpc.ChannelCredentials.createInsecure()
+        : grpc.ChannelCredentials.createSsl());
     const grpcOptions: grpc.ClientOptions = {
       "grpc.max_receive_message_length": -1,
       "grpc.max_send_message_length": -1,
     };
 
     this.compilerClient = new CompilerApiClient(
-      grpApiBase,
+      grpcApiBase,
       grpcCredentials,
       grpcOptions,
     );
     this.ohlcvClient = new OhlcvApiClient(
-      grpApiBase,
+      grpcApiBase,
       grpcCredentials,
       grpcOptions,
     );
@@ -166,6 +175,11 @@ export class Client {
     req.setTimeframe(timeframe.toString());
     if (opts?.limit != null) req.setLimit(opts.limit);
     if (opts?.offset != null) req.setOffset(opts.offset);
+    if (opts?.order === "asc") {
+      req.setOrder(ohlcvApi.Order.ASC);
+    } else if (opts?.order === "desc") {
+      req.setOrder(ohlcvApi.Order.DESC);
+    }
     const res = await new Promise<ohlcvApi.GetResponse>((_resolve, _reject) => {
       this.ohlcvClient.get(req, this.createGrpcMetadata(), (err, res) => {
         if (err) return _reject(err);

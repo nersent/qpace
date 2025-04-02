@@ -20,12 +20,14 @@ class VersionResponse(_message.Message):
     def __init__(self, version: _Optional[str] = ..., build_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class File(_message.Message):
-    __slots__ = ("path", "data")
+    __slots__ = ("path", "data", "url")
     PATH_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
     path: str
     data: bytes
-    def __init__(self, path: _Optional[str] = ..., data: _Optional[bytes] = ...) -> None: ...
+    url: str
+    def __init__(self, path: _Optional[str] = ..., data: _Optional[bytes] = ..., url: _Optional[str] = ...) -> None: ...
 
 class BuildRequest(_message.Message):
     __slots__ = ("qpc_config", "target", "check_only", "files")
