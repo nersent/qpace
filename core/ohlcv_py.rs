@@ -426,9 +426,9 @@ impl PyOhlcv {
         self.push(bar);
     }
 
-    #[pyo3(name = "add_many")]
+    #[pyo3(name = "add_list")]
     #[inline]
-    pub fn py_add_many(&mut self, bars: Vec<OhlcvBar>) {
+    pub fn py_add_list(&mut self, bars: Vec<OhlcvBar>) {
         self.push_many(&bars);
     }
 

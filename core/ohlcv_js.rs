@@ -407,9 +407,9 @@ impl JsOhlcv {
         self.push(bar);
     }
 
-    #[wasm_bindgen(js_name = "addMany")]
+    #[wasm_bindgen(js_name = "addList")]
     #[inline]
-    pub fn js_add_many(&mut self, bars: Vec<OhlcvBar>) {
+    pub fn js_add_list(&mut self, bars: Vec<OhlcvBar>) {
         self.push_many(&bars);
     }
 

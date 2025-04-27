@@ -68,10 +68,7 @@ impl PyBacktest {
         let mut config = BacktestConfig::default();
         config.set_initial_capital(initial_capital);
         config.set_process_orders_on_close(process_orders_on_close);
-        Self {
-            bt: Rc::new(RefCell::new(Backtest::new(ctx.clone().into(), config))),
-            py_ctx: ctx,
-        }
+        Self::new(ctx, config)
     }
 
     #[getter(initial_capital)]

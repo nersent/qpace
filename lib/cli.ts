@@ -286,7 +286,9 @@ const initQpc = async ({
       );
       console.log(
         chalk.yellowBright(
-          `\nTo build the project, run:\n${chalk.blue.bold(`qpc build`)}`,
+          `\nTo build the project, run:\n${chalk.blue.bold(
+            `qpc build --target python`,
+          )}`,
         ),
       );
       if (usePython) {

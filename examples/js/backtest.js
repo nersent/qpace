@@ -8,18 +8,19 @@ const client = new qp.Client({
 {
   const sym = qp.Sym.btc_usd();
   const ohlcv = new qp.Ohlcv();
-  const ctx = new qp.Context(sym, ohlcv);
-  const btConfig = new qp.BacktestConfig();
-  btConfig.initialCapital = 1000.0;
-  btConfig.processOrdersOnClose = false;
-  const bt = new qp.Backtest(ctx, btConfig);
+  const ctx = new qp.Ctx(sym, ohlcv);
+  const bt = new qp.Backtest(
+    ctx,
+    /* initial capital */ 1000.0,
+    /* process orders on close */ false,
+  );
 }
 
 // Fetching
 {
   const ctx = await client.ctx("BITSTAMP:BTCUSD", "1D");
-  const bt = new qp.Backtest(ctx.fork(), btConfig);
-  consle.log(
+  const bt = new qp.Backtest(ctx.fork());
+  console.log(
     bt.ctx.timeframe.toString(),
     bt.ctx.sym.tickerId,
     bt.ctx.ohlcv.length,
@@ -37,12 +38,12 @@ const client = new qp.Client({
 {
   while (bt.ctx.next() != null) {
     bt.onBarOpen();
-    // if `bt.config.processOrdersOnClose` is false, orders are processed here
+    // if `bt.processOrdersOnClose` is false, orders are processed here
     {
       // your signals here
     }
     bt.onBarClose();
-    // if `bt.config.processOrdersOnClose` is true, orders are processed here
+    // if `bt.processOrdersOnClose` is true, orders are processed here
   }
 }
 

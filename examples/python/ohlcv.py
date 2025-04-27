@@ -101,4 +101,4 @@ if True:
 if True:
     ohlcv = qp.Ohlcv()
     ohlcv.add(qp.OhlcvBar())
-    ohlcv.add_many([qp.OhlcvBar(), qp.OhlcvBar()])
+    ohlcv.add_list([qp.OhlcvBar(), qp.OhlcvBar()])

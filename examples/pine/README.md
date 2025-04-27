@@ -59,12 +59,6 @@ qpc check
 Builds a fully usable Python wheel and installs it automatically.
 
 ```bash
-qpc build
-```
-
-or
-
-```bash
 qpc build --target python
 ```
 

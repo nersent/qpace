@@ -7,13 +7,12 @@ if True:
     sym = qp.Sym.btc_usd()
     ohlcv = qp.Ohlcv()
     ctx = qp.Ctx(ohlcv=ohlcv, sym=sym)
-    bt_config = qp.BacktestConfig(initial_capital=1000.0, process_orders_on_close=False)
-    bt = qp.Backtest(ctx, bt_config)
+    bt = qp.Backtest(ctx, initial_capital=1000.0, process_orders_on_close=False)
 
 # Fetching
 if True:
     ctx = client.ctx("BITSTAMP:BTCUSD", timeframe=qp.Timeframe.Days(1))
-    bt = qp.Backtest(ctx, bt_config)
+    bt = qp.Backtest(ctx)
     print(str(bt.ctx.timeframe), bt.ctx.sym.ticker_id, len(bt.ctx.ohlcv))
 
 # Iterating over bars
@@ -25,12 +24,12 @@ if True:
 if True:
     for bar_index in bt.ctx:
         bt.on_bar_open()
-        # if `bt.config.processOrdersOnClose` is false, orders are processed here
+        # if `bt.process_orders_on_close` is false, orders are processed here
         if True:
             # your signals here
             pass
         bt.on_bar_close()
-        # if `bt.config.processOrdersOnClose` is true, orders are processed here
+        # if `bt.process_orders_on_close` is true, orders are processed here
 
 # Iterating over bars with signals
 if True:

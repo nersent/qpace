@@ -28,54 +28,20 @@ extern "C" {
 }
 
 #[cfg(feature = "bindings_wasm")]
-#[wasm_bindgen(js_class=BacktestConfig)]
-impl BacktestConfig {
-    #[wasm_bindgen(constructor)]
-    #[inline]
-    pub fn js_new() -> Self {
-        Self::default()
-    }
-
-    #[wasm_bindgen(getter = initialCapital)]
-    #[inline]
-    pub fn js_initial_capital(&self) -> f64 {
-        self.initial_capital()
-    }
-
-    #[wasm_bindgen(setter = initialCapital)]
-    #[inline]
-    pub fn js_set_initial_capital(&mut self, initial_capital: f64) {
-        self.set_initial_capital(initial_capital)
-    }
-
-    #[wasm_bindgen(getter = processOrdersOnClose)]
-    #[inline]
-    pub fn js_process_orders_on_close(&self) -> bool {
-        self.process_orders_on_close()
-    }
-
-    #[wasm_bindgen(setter = processOrdersOnClose)]
-    #[inline]
-    pub fn js_set_process_orders_on_close(&mut self, process_orders_on_close: bool) {
-        self.set_process_orders_on_close(process_orders_on_close)
-    }
-}
-
-#[cfg(feature = "bindings_wasm")]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "Backtest"))]
-pub struct JsBacktest {
-    js_ctx: JsCtx,
-    bt: Rc<RefCell<Backtest>>,
-}
-
-#[cfg(feature = "bindings_wasm")]
 impl JsBacktest {
-    pub fn new(js_ctx: JsCtx, config: BacktestConfig) -> Self {
+    #[inline]
+    pub fn new(ctx: PyCtx, config: BacktestConfig) -> Self {
         Self {
             bt: Rc::new(RefCell::new(Backtest::new(js_ctx.clone().into(), config))),
             js_ctx,
         }
     }
+}
+#[cfg(feature = "bindings_wasm")]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "Backtest"))]
+pub struct JsBacktest {
+    js_ctx: JsCtx,
+    bt: Rc<RefCell<Backtest>>,
 }
 
 #[cfg(feature = "bindings_wasm")]
@@ -90,8 +56,31 @@ impl Into<Rc<RefCell<Backtest>>> for JsBacktest {
 impl JsBacktest {
     #[wasm_bindgen(constructor)]
     #[inline]
-    pub fn js_new(ctx: JsCtx, config: BacktestConfig) -> Self {
+    pub fn js_new(
+        js_ctx: JsCtx,
+        initial_capital: Option<f64>,
+        process_orders_on_close: Option<bool>,
+    ) -> Self {
+        let mut config = BacktestConfig::default();
+        if let Some(initial_capital) = initial_capital {
+            config.set_initial_capital(initial_capital);
+        }
+        if let Some(process_orders_on_close) = process_orders_on_close {
+            config.set_process_orders_on_close(process_orders_on_close);
+        }
         Self::new(ctx, config)
+    }
+
+    #[wasm_bindgen(getter = initialCapital)]
+    #[inline]
+    pub fn js_initial_capital(&self) -> f64 {
+        self.bt.borrow().config().initial_capital()
+    }
+
+    #[wasm_bindgen(getter = processOrdersOnClose)]
+    #[inline]
+    pub fn js_process_orders_on_close(&self) -> bool {
+        self.bt.borrow().config().process_orders_on_close()
     }
 
     #[wasm_bindgen(getter = ctx)]
@@ -119,12 +108,6 @@ impl JsBacktest {
     #[inline]
     pub fn js_on_bar_close(&mut self) {
         self.bt.borrow_mut().on_bar_close();
-    }
-
-    #[wasm_bindgen(getter = config)]
-    #[inline]
-    pub fn is_config(&self) -> BacktestConfig {
-        *self.bt.borrow().config()
     }
 
     #[wasm_bindgen(getter = equity)]
