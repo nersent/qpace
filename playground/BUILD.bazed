@@ -9,7 +9,7 @@ maturin("rs_py", {
   deps: [":rs"],
   scope: "pace_playground_lib",
   workspace: WORKSPACE,
-  args: `--interpreter python3.10 --release --skip-auditwheel`,
+  args: `--interpreter python3.12 --release --skip-auditwheel`,
 });
 
 fileSet("py_src", {

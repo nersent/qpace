@@ -27,16 +27,17 @@ extern "C" {
     pub fn js_console_log(s: &str);
 }
 
-#[cfg(feature = "bindings_wasm")]
-impl JsBacktest {
-    #[inline]
-    pub fn new(ctx: PyCtx, config: BacktestConfig) -> Self {
-        Self {
-            bt: Rc::new(RefCell::new(Backtest::new(js_ctx.clone().into(), config))),
-            js_ctx,
-        }
-    }
-}
+// #[cfg(feature = "bindings_wasm")]
+// impl JsBacktest {
+//     #[inline]
+//     pub fn new(ctx: JsCtx, config: BacktestConfig) -> Self {
+//         Self {
+//             bt: Rc::new(RefCell::new(Backtest::new(ctx.clone().into(), config))),
+//             ctx,
+//         }
+//     }
+// }
+
 #[cfg(feature = "bindings_wasm")]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "Backtest"))]
 pub struct JsBacktest {
@@ -54,22 +55,22 @@ impl Into<Rc<RefCell<Backtest>>> for JsBacktest {
 #[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class=Backtest)]
 impl JsBacktest {
-    #[wasm_bindgen(constructor)]
-    #[inline]
-    pub fn js_new(
-        js_ctx: JsCtx,
-        initial_capital: Option<f64>,
-        process_orders_on_close: Option<bool>,
-    ) -> Self {
-        let mut config = BacktestConfig::default();
-        if let Some(initial_capital) = initial_capital {
-            config.set_initial_capital(initial_capital);
-        }
-        if let Some(process_orders_on_close) = process_orders_on_close {
-            config.set_process_orders_on_close(process_orders_on_close);
-        }
-        Self::new(ctx, config)
-    }
+    // #[wasm_bindgen(constructor)]
+    // #[inline]
+    // pub fn js_new(
+    //     ctx: JsCtx,
+    //     initial_capital: Option<f64>,
+    //     process_orders_on_close: Option<bool>,
+    // ) -> Self {
+    //     let mut config = BacktestConfig::default();
+    //     if let Some(initial_capital) = initial_capital {
+    //         config.set_initial_capital(initial_capital);
+    //     }
+    //     if let Some(process_orders_on_close) = process_orders_on_close {
+    //         config.set_process_orders_on_close(process_orders_on_close);
+    //     }
+    //     Self::new(ctx, config)
+    // }
 
     #[wasm_bindgen(getter = initialCapital)]
     #[inline]

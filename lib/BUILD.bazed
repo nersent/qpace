@@ -175,7 +175,7 @@ execute("npm_link", (ctx) => ({
 
 execute("npm_publish", (ctx) => ({
   // echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js
-  command: `node -e "const fs = require('fs'); const path = require('path').resolve('./cli.bazed.js'); fs.writeFileSync(path, '#!/usr/bin/env node\\n' + fs.readFileSync(path, 'utf8'), 'utf8');" && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force`, //  --dry-run
+  command: `node -e "const fs = require('fs'); const path = require('path').resolve('./cli.bazed.js'); fs.writeFileSync(path, '#!/usr/bin/env node\\n' + fs.readFileSync(path, 'utf8'), 'utf8');" && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force --dry-run`, //  --dry-run
   copyDeps: true,
   deps: [
     ":wasm",

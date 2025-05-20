@@ -40,7 +40,7 @@ maturin("maturin", {
   deps: [":src"],
   scope: "qpace_core",
   workspace: WORKSPACE,
-  args: `--interpreter python3.10 --release --skip-auditwheel --features "bindings_py"`,
+  args: `--interpreter python3.12 --release --skip-auditwheel --features "bindings_py"`,
 });
 
 fileSet("core", {

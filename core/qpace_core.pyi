@@ -153,7 +153,7 @@ class Ohlcv:
     def add(self, bar:OhlcvBar) -> None:
         ...
 
-    def add_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
+    def add_list(self, bars:typing.Sequence[OhlcvBar]) -> None:
         ...
 
     def __str__(self) -> builtins.str:

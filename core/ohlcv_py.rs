@@ -473,6 +473,8 @@ impl PyOhlcv {
         let timeframe: Timeframe = timeframe.into();
         let ohlcv = self.inner.read().unwrap().clone();
         let resampled = ohlcv.resample(timeframe, align_utc);
-        resampled.into()
+        let mut resampled: Self = resampled.into();
+        resampled.py_set_timeframe(timeframe.into());
+        return resampled;
     }
 }

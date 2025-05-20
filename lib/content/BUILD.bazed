@@ -17,7 +17,7 @@ maturin("maturin", {
   deps: [":src"],
   scope: "qpace_content",
   workspace: WORKSPACE,
-  args: `--interpreter python3.10 --release --skip-auditwheel`,
+  args: `--interpreter python3.12 --release --skip-auditwheel`,
 });
 
 fileSet("content", {
