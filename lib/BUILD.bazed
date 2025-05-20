@@ -127,12 +127,12 @@ execute("wheel", (ctx) => {
   );
   return {
     command: [
-      // "cp ../MANIFEST.in .",
-      // "cp ../setup.py .",
-      // "cp ../pyproject.toml .",
-      "copy ..\\MANIFEST.in .",
-      "copy ..\\setup.py .",
-      "copy ..\\pyproject.toml .",
+      "cp ../MANIFEST.in .",
+      "cp ../setup.py .",
+      "cp ../pyproject.toml .",
+      // "copy ..\\MANIFEST.in .",
+      // "copy ..\\setup.py .",
+      // "copy ..\\pyproject.toml .",
       // copy from ../ctx.sandboxPath to here
       // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN.replaceAll(
       //   "\n",
