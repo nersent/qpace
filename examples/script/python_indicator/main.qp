@@ -1,6 +1,0 @@
-import ta from "ta.qp"
-
-#[bindings]
-pub fn my_indicator(x: series<float>, length: int): float {
-  ta.rsi(x, length)
-}

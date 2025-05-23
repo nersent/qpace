@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package ohlcv;
+
+service OhlcvApi {
+  rpc Get(GetRequest) returns (GetResponse);
+}
+
+message GetRequest {
+  string sym_id = 1;
+  string timeframe = 2;
+  optional uint32 limit = 3;
+  optional uint32 offset = 4;
+  optional Order order = 5;
+}
+
+message GetResponse {
+  repeated OhlcvBar bars = 1;
+  uint32 total = 2; // total number of bars available for that symbol and timeframe
+  uint32 remaining = 3; // number of bars remaining to be fetched
+}
+
+message OhlcvBar {
+  google.protobuf.Timestamp open_time = 1;
+  google.protobuf.Timestamp close_time = 2;
+  double open = 3;
+  double high = 4;
+  double low = 5;
+  double close = 6;
+  double volume = 7;
+}
+
+enum Order {
+  ASC = 0;
+  DESC = 1;
+}

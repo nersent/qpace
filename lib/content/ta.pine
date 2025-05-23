@@ -1,0 +1,230 @@
+// qPACE
+// Wrapper around stdlib ta functions
+library("ta")
+
+// https://github.com/TA-Lib/ta-lib-python
+
+export accdist(): float =>
+    ta.accdist
+
+export cum(series<float> src): float =>
+    ta.cum(src)
+
+export change(series<float> src): float =>
+    ta.change(src)
+
+export barssince(series<bool> condition): int =>
+    ta.barssince(condition)
+
+export roc(series<float> src, int length = 14): float =>
+    ta.roc(src, length)
+
+export crossover(series<float> source1, series<float> source2): bool =>
+    ta.crossover(source1, source2)
+
+export crossunder(series<float> source1, series<float> source2): bool =>
+    ta.crossunder(source1, source2)
+
+export cross(series<float> source1, series<float> source2): bool =>
+    ta.cross(source1, source2)
+
+export highestbars(series<float> src, int length = 14): int =>
+    ta.highestbars(src, length)
+
+export lowestbars(series<float> src, int length = 14): int =>
+    ta.lowestbars(src, length)
+
+export highest(series<float> src, int length = 14): float =>
+    ta.highest(src, length)
+
+export lowest(series<float> src, int length = 14): float =>
+    ta.lowest(src, length)
+
+export swma(series<float> src): float =>
+    ta.swma(src)
+
+export sma(series<float> src, int length = 14): float =>
+    ta.sma(src, length)
+
+// @TODO: weight default param
+export ema(series<float> src, int length = 14): float =>
+    ta.ema(src, length)
+
+export rma(series<float> src, int length = 14): float =>
+    ta.rma(src, length)
+
+export wma(series<float> src, int length = 14): float =>
+    ta.wma(src, length)
+
+export lwma(series<float> src, int length = 14): float =>
+    ta.lwma(src, length)
+
+export hma(series<float> src, int length = 14): float =>
+    ta.hma(src, length)
+
+export vwma(series<float> src, int length = 14): float =>
+    ta.vwma(src, length)
+
+export dev(series<float> src, int length = 14): float =>
+    ta.dev(src, length)
+
+export tr(bool handle_na = true): float =>
+    ta.tr(handle_na)
+
+export atr(int length = 14): float =>
+    ta.atr(length)
+
+export rsi(series<float> src, int length = 14): float =>
+    ta.rsi(src, length)
+
+export cci(series<float> src, int length = 14): float =>
+    ta.cci(src, length)
+
+// @TODO: default param
+// export stdev(series<float> src, int length, bool biased = true): float =>
+//     ta.stdev(src, length, biased)
+
+export aroon(int length = 14) =>
+    ta.aroon(length)
+
+export supertrend(series<float> src, float factor, int atr_period) =>
+    ta.supertrend(src, factor, atr_period)
+
+export awesome_oscillator(series<float> src, int slow_length = 5, int fast_length = 34): float =>
+    ao = ta.sma(src, fast_length) - ta.sma(src, slow_length)
+    diff = ao - ao[1]
+    diff
+
+export balance_of_power(): float =>
+    (close - open) / (high - low)
+
+export bollinger_bands_pct_b(series<float> src, int length = 20, float mult = 2.0): float =>
+    basis = ta.sma(src, length)
+    dev = mult * ta.stdev(src, length)
+    upper = basis + dev
+    lower = basis - dev
+    bbr = (src - lower)/(upper - lower)
+    bbr
+
+export bollinger_bands_width(series<float> src, int length = 20, float mult = 2.0): float =>
+    basis = ta.sma(src, length)
+    dev = mult * ta.stdev(src, length)
+    upper = basis + dev
+    lower = basis - dev
+    bbw = ((upper - lower) / basis) * 100
+    bbw
+
+export bollinger_bands(series<float> src, int length = 20, float mult = 2.0) =>
+    basis = ta.sma(src, length)
+    dev = mult * ta.stdev(src, length)
+    upper = basis + dev
+    lower = basis - dev
+    [upper, lower]
+
+export chaikin_money_flow(int length = 20): float =>
+    var cumVol = 0.
+    cumVol += nz(volume)
+    ad = close==high and close==low or high==low ? 0 : ((2*close-low-high)/(high-low))*volume
+    mf = math.sum(ad, length) / math.sum(volume, length)
+    mf
+
+export chande_kroll_stop(int atr_length = 10, float atr_coeff = 1.0, int stop_length = 9) =>
+    p = atr_length
+    x = atr_coeff
+    q = stop_length
+    first_high_stop = ta.highest(high, p) - x * ta.atr(p)
+    first_low_stop = ta.lowest(low, p) + x * ta.atr(p)
+    stop_short = ta.highest(first_high_stop, q)
+    stop_long = ta.lowest(first_low_stop, q)
+    [stop_short, stop_long]
+
+export choppiness_index(int length = 14): float =>
+    100 * math.log10(math.sum(ta.atr(1), length) / (ta.highest(length) - ta.lowest(length))) / math.log10(length)
+
+// @TODO: ta.percentrank
+// connors_rsi_updown(series<float> s) =>
+// 	isEqual = s == s[1]
+// 	isGrowing = s > s[1]
+// 	ud = 0.0
+// 	ud := isEqual ? 0 : isGrowing ? (nz(ud[1]) <= 0 ? 1 : nz(ud[1])+1) : (nz(ud[1]) >= 0 ? -1 : nz(ud[1])-1)
+// 	ud
+
+// export connors_rsi(series<float> src, int rsi_length = 3, int up_down_length = 2, int roc_length = 100) =>
+//     rsi = ta.rsi(src, lenrsi)
+//     updownrsi = ta.rsi(updown(src), lenupdown)
+//     percentrank = ta.percentrank(ta.roc(src, 1), lenroc)
+//     crsi = math.avg(rsi, updownrsi, percentrank)
+//     crsi
+
+// Coppock Curve
+export coppock_curve(series<float> src, int wma_length = 10, int long_roc_length = 14, int short_roc_length = 11): float =>
+    ta.wma(ta.roc(src, long_roc_length) + ta.roc(src, short_roc_length), wma_length)
+
+// @TODO: Directional Movement Index
+
+export donchian_channel(series<float> src, int length = 20) =>
+    lower = ta.lowest(length)
+    upper = ta.highest(length)
+    basis = math.avg(upper, lower)
+    [upper, lower, basis]
+
+export macd(series<float> src, int short_length = 12, int long_length = 26): float =>
+    macd = ta.ema(src, short_length) - ta.ema(src, long_length)
+    macd
+
+export price_oscillator(series<float> src, int short_length = 12, int long_length = 26): float =>
+    short = ta.ema(src, short_length)
+    long = ta.ema(src, long_length)
+    po = (short - long) / long * 100
+    po
+
+export relative_vigor_index(int length = 14): float =>
+    math.sum(ta.swma(close-open), length)/math.sum(ta.swma(high-low),length)
+
+export relative_volatility_index(series<float> src, int length = 14): float =>
+    stddev = ta.stdev(src, length)
+    upper = ta.ema(ta.change(src) <= 0 ? 0 : stddev, length)
+    lower = ta.ema(ta.change(src) > 0 ? 0 : stddev, length)
+    rvi = upper / (upper + lower) * 100
+    rvi
+
+// @TODO: implement ta.stoch
+// export stochastic_rsi(series<float> src, int length = 14, int rsi_length = 14, int k = 3, int d = 3): float =>
+//     rsi = ta.rsi(src, rsi_length)
+//     k = ta.sma(ta.stoch(rsi, rsi_length, length), k)
+//     d = ta.sma(k, d)
+//     [k, d]
+
+__ultimate_oscillator_average__(float bp, float tr_, int length) =>
+    math.sum(bp, length) / math.sum(tr_, length)
+
+export ultimate_oscillator(int fast_length = 7, int medium_length = 14, int slow_length = 28): float =>
+    high_ = math.max(high, close[1])
+    low_ = math.min(low, close[1])
+    bp = close - low_
+    tr_ = high_ - low_
+    avg7 = __ultimate_oscillator_average__(bp, tr_, fast_length)
+    avg14 = __ultimate_oscillator_average__(bp, tr_, medium_length)
+    avg28 = __ultimate_oscillator_average__(bp, tr_, slow_length)
+    out = 100 * (4*avg7 + 2*avg14 + avg28)/7
+    out
+
+export volume_oscillator(int short_length = 5, int long_length = 10): float =>
+    short = ta.ema(volume, short_length)
+    long = ta.ema(volume, long_length)
+    vo = (short - long) / long * 100
+    vo
+
+export vortex_indicator(int length = 14) =>
+    VMP = math.sum(math.abs(high -low[1]), length )
+    VMM = math.sum(math.abs(low - high[1]), length )
+    STR = math.sum(ta.atr(1), length )
+    VIP = VMP / STR
+    VIM = VMM / STR
+    [VIP, VIM]
+
+export williams_pct_r(series<float> src, int length = 14): float =>
+    max = ta.highest(length)
+    min = ta.lowest(length)
+    wpctr = 100 * (src - max) / (max - min)
+    wpctr

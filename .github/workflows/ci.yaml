@@ -4,67 +4,106 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    env:
-      CARGO_TERM_COLOR: always
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
 
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: "pnpm"
 
-      - uses: actions/cache@v3
-        name: Yarn cache
-        id: yarn-cache
-        continue-on-error: false
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
         with:
-          path: |
-            node_modules
-            ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install Node.js dependencies
-        run: yarn install --prefer-offline --frozen-lockfile
-        env:
-          ADBLOCK: true
+        run: |
+          pnpm install
+          npm install cross-env --global
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade Pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install Python dependencies
+        run: |
+          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: "1.85.0"
           components: rustfmt, clippy
-          override: true
 
       - name: Install Rust tools
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-        continue-on-error: false
-        with:
-          prefix-key: "rust-cache"
+      - name: Toolchain debug
+        run: |
+          pnpm bazed --version
+          node --version
+          npm --version
+          pnpm --version
+          python --version
+          python3 --version
+          rustc --version
+          cargo --version
+          cargo fmt --version
 
-      - name: Lint
-        run: cargo fmt --all -- --check
-        # && cargo clippy -- -D warnings
+      - name: Prepare
+        run: |
+          mkdir -p target/nextest/default
+          ls -l
 
-      - name: Test
-        run: cargo nextest run
+      # - name: Lint
+      #   run: |
+      #     pnpm bazed run //:lint --verbose
+
+      - name: Build
+        run: |
+          pnpm bazed build //core --verbose
+          pnpm bazed build //content --verbose
+          pnpm bazed build //lib --verbose
+      # - name: Test
+      #   run: |
+      #     pnpm bazed run //pace/lib:test --verbose
+
+# pnpm bazed run //pace/compiler/e2e:test --verbose

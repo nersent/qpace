@@ -1,0 +1,17 @@
+node_modules
+build
+tsconfig.tsbuildinfo
+out
+.eslintrc.js
+wandb
+target
+third_party
+archive
+generated
+bazel-stratis3
+bazel-out
+external
+bazel-testlogs
+.next
+.nx
+target

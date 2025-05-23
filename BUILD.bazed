@@ -1,0 +1,3 @@
+fileSet("package_json", {
+  srcs: ["package.json", "README.md", "LICENSE.md"],
+});

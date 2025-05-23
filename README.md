@@ -1,218 +1,122 @@
 <div align="center">
-  <img src="static/logo.svg" width="184">
+  <img src="static/banner.svg">
+</div>
 
 <br />
 
-<h1><b>PACE</b></h1>
+**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
 
-<a href="https://nersent.com"><img src="https://cdn.nersent.com/public/badges/made_by_nersent.svg" alt="Made by Nersent" /></a>
-<a href="https://nersent.com"><img src="https://cdn.nersent.com/public/badges/stage_in_dev.svg" alt="In development" /></a>
-<a href="https://discord.gg/P7Vn4VX"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
+Get started at **<https://qpace.dev>**
 
-</div>
+<a href="https://qpace.dev/discord"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord" /></a>
 
-**PACE**: Technical analysis library written in Rust, designed to be compatible with PineScript.
+## Table of Contents
 
-Fast, zero runtime cost and memory-safe, but with very high learning curve.
+- [Features](#features)
 
-The core feature of Pace is incremental architecture, which allows O(1) constant-time updates of indicators, making it ideal for time-sensitive low-frequency live trading.
+- [Examples](/examples)
 
-> Note: This library is in an early development stage. Expect breaking changes.
+- [Pine from Python/JavaScript](#pine-from-python-javascript)
 
-## PineScript
+- [Installation](#installation)
 
-All Pace components and indicators have been tested against PineScript, ensuring the same results and easy migration.
-
-See [migration from PineScript](/docs/pinescript_migration.md)
+- [Community](#community)
 
 ## Features
 
-- Results of TA functions same as in PineScript
+- Bindings for Python and JavaScript (WebAssembly)
 
-- Strategy metrics from TradingView
+- Simple, yet powerful and fully typed API
 
-  ![tradingview_strategy_overview](/static/strategy_overview_tradingview.png)
+- **Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results**
 
-  ![pace_strategy_overview](/static/strategy_overview_pace.png)
+- **Extremely fast backtesting with vectorization support**
 
-  ![pace_strategy_performance](/static/strategy_performance_pace.png)
+- Beatiful UI for charts and experiments (soon™)
 
-- Simple testing utilities
-
-- Support for [Polars](https://github.com/pola-rs/polars) library
-
-- Risk indicators
-
-  - Sharpe ratio
-  - Sortino ratio
-  - Omega ratio
-  - Max Drawdown
-  - Max Run-up
-
-- Default technical indicators and strategies from TradingView
-
+- **TA indicators written in [Pine](/lib/content/ta.pine), compiled via [QPC](#pine-from-pythonjavascript)**
+  - Accumulation/Distribution (ACCDIST)
+  - Relative Strength Index (RSI)
+  - Moving Average Convergence Divergence (MACD)
+  - Bollinger Bands (BB, BB %b, BB width)
+  - Stochastic Oscillator
+  - Average True Range (ATR)
+  - True Range (TR)
+  - Exponential Moving Average (EMA)
+  - Simple Moving Average (SMA)
+  - Relative Moving Average (RMA)
+  - Volume Weighted Moving Average (VWMA)
+  - Linear Weighted Moving Average (LWMA)
+  - Symmetrically Weighted Moving Average (SWMA)
+  - Hull Moving Average (HMA)
+  - Choppiness Index (CHOP)
+  - Chande Kroll Stop (CKS)
   - Aroon
-  - Average True Range
-  - Awesome Oscillator
-  - Balance of Power
-  - Bollinger Bands %B
-  - Bollinger Bands Width
-  - Chaikin Money Flow
-  - Chande Kroll Stop
-  - Choppiness Index
-  - Commodity Channel Index
-  - Connors Relative Strength Index
+  - Commodity Channel Index (CCI)
+  - Cross/Over/Under
+  - Highest/Lowest/Bars
+  - Change
+  - Cumulative (CUM)
+  - Bars Since
+  - Rate of Chance (ROC)
+  - Super Trend
+  - Chaikin Money Flow (CMF)
   - Coppock Curve
-  - Cross
-  - Deviation
-  - Directional Movement Index
   - Donchian Channels
-  - Exponential Moving Average
-  - Highest Bars
-  - Lowest Bars
-  - Lowest Bars
-  - MACD
-  - Percent Rank
   - Price Oscillator
-  - Rate of Change
-  - Relative Strength Index
-  - Relative Vigor Index
-  - Relative Volatility Index
-  - Simple Moving Averageq
-  - Standard Deviation
-  - Stoch Relative Strength Index
-  - Stochastic
-  - Sum
-  - Symmetrically Weighted Moving Average
-  - True Range
+  - Relative Vigor Index (RVGI)
+  - Relative Volatility Index (RVI)
   - Ultimate Oscillator
-  - Volume Oscillator
   - Vortex Indicator
-  - Weighted Moving Average
   - Williams %R
 
-## Roadmap
+- CLI
+  - View/Export symbols
+  - View/Export OHLCV
+  - Compile Pine to Python/JavaScript
+  - Backtest/Export/Plot Pine (soon™)
 
-- [ ] Python bindings
-- [ ] Improve performance
-- [ ] Release stable version
-- [ ] Additionaly support vectorized calculations
-- [ ] Implement Pace -> PineScript strategy exporter
-- [ ] Implement more TradingView strategy tab metrics
-- [ ] Implement exact TradingView sharpe/sortino
-- [ ] Basic chart plotting capabilities
-- [ ] Support custom fill order size
-- [ ] Implement more risk metrics
-- [ ] Parameter optimization
-- [ ] Add more benchmarks
-- [ ] [Probabilistic Sharpe Ratio](https://quantdare.com/probabilistic-sharpe-ratio/)
+- OHLCV
+  - Reading/Writing from CSV, Parquet
+  - Zipping/Unzipping
+  - Resampling
+    - Aggregation (rolling window or align to UTC) - `15m` -> `8h`, `1D`, `4D`, ...
+    - Tick Bars (soon™)
+    - Dollar Bars (soon™)
+    - Volume Bars (soon™)
+  
+- Performance metrics
+  - Sharpe Ratio
+  - Sortino Ratio
+  - Omega Ratio
 
-## Getting Started
-
-You can use already configured [boilerplate project](https://github.com/nersent/pace-starter) with an example indicator and strategy.
-
-## Examples
-
-See already implemented indicators and strategies [here](pace/src/content).
+- Parameter optimization (soon™)
+  - Grid Search
+  - Genetic Evolution
+  - Symbolic Regression
 
 ## Installation
 
+### Python
+
 ```bash
-cargo add nersent_pace
-cargo add polars
+pip install qpace
 ```
 
-## Documentation
+### JavaScript
 
-Visit [docs](/docs/readme.md) to view the full documentation.
+```bash
+npm install qpace
+```
 
-## Motivation
+## Pine from Python/JavaScript
 
-1. State-of-the art
+QPC is specially designed compiler to translate any **Pine code into efficient Rust code that is then exposed to Python and JavaScript**, allowing you to run your favorite Pine scripts in the most efficient way possible from your favorite programming language.
 
-   One of the SOTA technical analysis libraries is the industry golden standard [talib](https://ta-lib.org/), which is written in C and is tailored towards vector calculations. The problem with talib is that it's old (started in 1999) and unmaintained. Adding new features without sacrificing the performance is a great challenge and requires C expertise.
+Check an example [here](/examples/pine). Get started at [https://qpace.dev/qpc](https://qpace.dev/qpc).
 
-2. PineScript
+## Community
 
-   No TA lib tries to be compatible with PineScript, which is the most popular way of creating trading strategies. This is crucial as the majority of trading strategies are written in PineScript. Users are limited by TradingView capabilities as there is no way to efficiently optimize strategy parameters.
+Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology! Our Discord server is the perfect place to share ideas, ask questions, and collaborate with devs and traders.
 
-3. Architecture
-
-   There are different ways of calculating technical analysis indicators such as:
-
-   a. Plain loop
-
-   For each indicator, a loop is performed over the entire dataset. This is the most straightforward way of calculating indicators. It is easy to implement, but it is very slow and memory inefficient.
-
-   b. Vectorization
-
-   For each indicator, a loop is performed over the entire dataset, but the loop is vectorized, meaning CPU instructions are executed in parallel, leading to a significant performance boost. talib is an example of this approach. Vectorization is the best for batch processing, but it is hard to implement and maintain, as any new feature requires to be vectorized as well, which is not always possible. Also, if you want to compute multiple indicators, you have to perform multiple loops.
-
-   c. GPU
-
-   Similar to vectorization, but the calculations are performed on GPU, which is even faster than CPU. It is even harder to implement and maintain than vectorization. Keeping in mind, that there are tools and libraries that don't require you to write custom GPU kernels such as cupy/PyTorch, GPU TA still comes with it's own set of problems. It requires you to have GPU supporting software like CUDA and VRAM large enough. Also copying data from CPU to GPU and back is a performance bottleneck, which may be problematic sometimes.
-
-   d. Incremental
-
-   There is only one main loop, which iterates over the entire dataset. For every loop tick, each indicator is updated in constant O(1) time. This is the best approach if you care about computation delay, as it is fast and memory efficient. In the most cases, it's the easiest way to implement new features. Also, PineScript is incremental by design, so it's easy to port PineScript code to similar architecture.
-
-   Incremental architecture, has it's drawback - it is slower than vectorization, but not that much. For **1M** bars and `SMA(14)` the difference between Pace and talib is **2ms**.
-
-   See [benchmarks](#benchmarks) section below for more details.
-
-## Benchmarks
-
-We performed multiple benchmarks for popular indicators across different technical analysis libraries:
-
-- [TA-Lib](https://github.com/TA-Lib/ta-lib-python)
-- [Pandas TA](https://github.com/twopirllc/pandas-ta)
-- [TALIpp](https://github.com/nardew/talipp)
-- [FinTA](https://github.com/peerchemist/finta)
-- [spectre](https://github.com/Heerozh/spectre)
-- [TA](https://github.com/bukosabino/ta)
-- <https://tulipindicators.org/>
-- <https://kernc.github.io/backtesting.py/>
-
-### Details
-
-- AMD Ryzen 5 3600
-- 16GB RAM
-- RTX 2060 Super 8GB VRAM
-- Windows 11
-- Rustc 1.67.0
-- Python 3.9
-- Pace benchmark uses [mimalloc allocator](https://github.com/purpleprotocol/mimalloc_rust) and has been compiled with [cargo pgo](https://github.com/Kobzol/cargo-pgo)
-
-### Interpretation
-
-- talib is the fastest library across all benchmarks, thanks to vectorization
-- Pace is the second fastest library, despite not being designed towards vector calculations
-- On smaller datasets, the gap between talib and Pace is not significant
-- Pandas and Numpy have both their own runtime overhead
-- It's not worth to do technical analysis on GPU for smaller datasets
-
-### Mean time (ms)
-
-> Note: The less the better
-
-**Linear scale**:
-
-![1k_bars_log10](/static/benchmarks/1000_mean_time.png)
-
-![1m_bars_log10](/static/benchmarks/1000000_mean_time.png)
-
-**Logarithmic scale**:
-
-![1k_bars_log10](/static/benchmarks/1000_mean_time_log10.png)
-
-![1m_bars_log10](/static/benchmarks/1000000_mean_time_log10.png)
-
-### Mean time difference compared to Pace (ms)
-
-> Note: The more the better
-
-**Linear scale**:
-
-![1k_bars_log10](/static/benchmarks/1000_time_diff.png)
-
-![1m_bars_log10](/static/benchmarks/1000000_time_diff.png)
+[Discord](https://qpace.dev/discord)
