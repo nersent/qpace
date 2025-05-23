@@ -109,6 +109,8 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(utils::round_to_min_tick, m)?)?;
     m.add_function(wrap_pyfunction!(utils::order_size, m)?)?;
     m.add_function(wrap_pyfunction!(utils::order_size_for_equity_pct, m)?)?;
+    m.add_function(wrap_pyfunction!(utils::sharpe_ratio_from_equity, m)?)?;
+    m.add_function(wrap_pyfunction!(utils::sortino_ratio_from_equity, m)?)?;
     Ok(())
 }
 

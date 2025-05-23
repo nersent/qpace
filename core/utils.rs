@@ -197,7 +197,7 @@ pub fn pct_change(current: f64, previous: f64) -> f64 {
 }
 
 #[inline]
-pub fn returns(equity: &[f64], pad: bool) -> Vec<f64> {
+pub fn returns(equity: &[f64], first_nan: bool) -> Vec<f64> {
     let mut returns: Vec<f64> = equity
         .windows(2)
         .map(|w| {
@@ -206,7 +206,7 @@ pub fn returns(equity: &[f64], pad: bool) -> Vec<f64> {
             (current - previous) / previous
         })
         .collect();
-    if pad {
+    if first_nan {
         returns.insert(0, f64::NAN);
     }
     return returns;

@@ -127,12 +127,12 @@ execute("wheel", (ctx) => {
   );
   return {
     command: [
-      "cp ../MANIFEST.in .",
-      "cp ../setup.py .",
-      "cp ../pyproject.toml .",
-      // "copy ..\\MANIFEST.in .",
-      // "copy ..\\setup.py .",
-      // "copy ..\\pyproject.toml .",
+      // "cp ../MANIFEST.in .",
+      // "cp ../setup.py .",
+      // "cp ../pyproject.toml .",
+      "copy ..\\MANIFEST.in .",
+      "copy ..\\setup.py .",
+      "copy ..\\pyproject.toml .",
       // copy from ../ctx.sandboxPath to here
       // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN.replaceAll(
       //   "\n",
@@ -147,9 +147,9 @@ execute("wheel", (ctx) => {
       // ).replaceAll(`"`, `""`)}')"`,
       // `python setup.py bdist_wheel --plat-name win_amd64`,
       // macos arm
-      // `python setup.py bdist_wheel --plat-name win_amd64`,
+      `python setup.py bdist_wheel --plat-name win_amd64`,
       // `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
-      `python setup.py bdist_wheel --plat-name linux_x86_64`,
+      // `python setup.py bdist_wheel --plat-name linux_x86_64`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: [
