@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  bazed: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
+  bazed: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
   '@nersent/bazed': link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
 
 importers:
@@ -25,8 +25,8 @@ importers:
         specifier: ^0.27.2
         version: 0.27.2
       bazed:
-        specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
-        version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
+        specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
+        version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -76,6 +76,9 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
     devDependencies:
+      '@napi-rs/cli':
+        specifier: ^2.18.4
+        version: 2.18.4
       '@nersent/bazed':
         specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
         version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
@@ -591,6 +594,11 @@ packages:
   '@mole-inc/bin-wrapper@8.0.1':
     resolution: {integrity: sha512-sTGoeZnjI8N4KS+sW2AN95gDBErhAguvkw/tWdCjeM8bvxpz5lqrnd0vOJABA1A+Ic3zED7PYoLP/RANLgVotA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  '@napi-rs/cli@2.18.4':
+    resolution: {integrity: sha512-SgJeA4df9DE2iAEpr3M2H0OKl/yjtg1BnRI5/JyowS71tUWhrfSu2LT0V3vlHET+g1hBVlrO60PmEXwUEKp8Mg==}
+    engines: {node: '>= 10'}
+    hasBin: true
 
   '@napi-rs/nice-android-arm-eabi@1.0.1':
     resolution: {integrity: sha512-5qpvOu5IGwDo7MEKVqqyAxF90I6aLj4n07OzpARdgDRfz8UbBztTByBp0RC59r3J1Ij8uzYi6jI7r5Lws7nn6w==}
@@ -4205,6 +4213,8 @@ snapshots:
       filenamify: 5.1.1
       got: 11.8.6
       os-filter-obj: 2.0.0
+
+  '@napi-rs/cli@2.18.4': {}
 
   '@napi-rs/nice-android-arm-eabi@1.0.1':
     optional: true

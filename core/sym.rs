@@ -1,4 +1,4 @@
-use crate::utils::{round_contracts, round_to_min_tick, validate_contracts};
+use std::{any::Any, collections::HashMap};
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
@@ -8,87 +8,119 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;
 }}
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "SymIcon"))]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "SymIcon"))]
-#[derive(Debug, Clone)]
-pub struct SymIcon {
-    url: String,
-    mime_type: String,
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "json", serde(try_from = "String", into = "String"))]
+pub enum SymKind {
+    Stock,
+    Future,
+    Option,
+    Forex,
+    Crypto,
+    Unknown,
+    Other(String),
 }
 
-impl Default for SymIcon {
+impl Default for SymKind {
     #[inline]
     fn default() -> Self {
-        Self {
-            url: String::new(),
-            mime_type: String::new(),
+        SymKind::Unknown
+    }
+}
+
+impl Into<String> for &SymKind {
+    #[inline]
+    fn into(self) -> String {
+        match self {
+            SymKind::Stock => "stock".to_string(),
+            SymKind::Future => "future".to_string(),
+            SymKind::Option => "option".to_string(),
+            SymKind::Forex => "forex".to_string(),
+            SymKind::Crypto => "crypto".to_string(),
+            SymKind::Unknown => "unknown".to_string(),
+            SymKind::Other(s) => s.clone(),
         }
     }
 }
 
-impl SymIcon {
+impl Into<String> for SymKind {
     #[inline]
-    pub fn url(&self) -> &str {
-        &self.url
-    }
-
-    #[inline]
-    pub fn set_url(&mut self, url: String) -> &mut Self {
-        self.url = url;
-        self
-    }
-
-    #[inline]
-    pub fn mime_type(&self) -> &str {
-        &self.mime_type
-    }
-
-    #[inline]
-    pub fn set_mime_type(&mut self, mime_type: String) -> &mut Self {
-        self.mime_type = mime_type;
-        self
+    fn into(self) -> String {
+        (&self).into()
     }
 }
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "Sym"))]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "Sym"))]
+impl From<String> for SymKind {
+    #[inline]
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "stock" => SymKind::Stock,
+            "future" => SymKind::Future,
+            "option" => SymKind::Option,
+            "forex" => SymKind::Forex,
+            "crypto" => SymKind::Crypto,
+            "unknown" => SymKind::Unknown,
+            _ => SymKind::Other(value),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Sym {
-    min_tick: f64,
-    min_qty: f64,
     id: Option<String>,
     ticker_id: Option<String>,
+    kind: SymKind,
+    min_tick: f64,
+    min_qty: f64,
     prefix: Option<String>,
     currency: Option<String>,
     base_currency: Option<String>,
     ticker: Option<String>,
     country: Option<String>,
-    icons: Vec<SymIcon>,
-    kind: Option<String>,
     price_scale: f64,
     point_value: f64,
+    metadata: Option<String>,
+}
+
+impl PartialEq for Sym {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        if self.id.is_none() || other.id.is_none() {
+            return false;
+        }
+        self.id == other.id
+    }
 }
 
 impl Default for Sym {
     #[inline]
     fn default() -> Self {
         Self {
-            min_tick: f64::NAN,
-            min_qty: f64::NAN,
             id: None,
             ticker_id: None,
+            kind: SymKind::default(),
+            min_tick: f64::NAN,
+            min_qty: f64::NAN,
             prefix: None,
             currency: None,
             base_currency: None,
             ticker: None,
             country: None,
-            icons: vec![],
-            kind: None,
             price_scale: f64::NAN,
             point_value: f64::NAN,
+            metadata: None,
         }
+    }
+}
+
+impl Into<String> for &Sym {
+    #[inline]
+    fn into(self) -> String {
+        format!(
+            "Sym(ticker_id={:?}, id={:?}, kind={:?})",
+            self.ticker_id, self.id, self.kind
+        )
     }
 }
 
@@ -99,9 +131,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_id(&mut self, id: Option<String>) -> &mut Self {
+    pub fn set_id(&mut self, id: Option<String>) {
         self.id = id;
-        self
     }
 
     #[inline]
@@ -110,9 +141,18 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_ticker_id(&mut self, ticker_id: Option<String>) -> &mut Self {
+    pub fn set_ticker_id(&mut self, ticker_id: Option<String>) {
         self.ticker_id = ticker_id;
-        self
+    }
+
+    #[inline]
+    pub fn kind(&self) -> &SymKind {
+        &self.kind
+    }
+
+    #[inline]
+    pub fn set_kind(&mut self, kind: SymKind) {
+        self.kind = kind;
     }
 
     #[inline]
@@ -121,9 +161,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_min_tick(&mut self, min_tick: f64) -> &mut Self {
+    pub fn set_min_tick(&mut self, min_tick: f64) {
         self.min_tick = min_tick;
-        self
     }
 
     #[inline]
@@ -132,9 +171,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_min_qty(&mut self, min_qty: f64) -> &mut Self {
+    pub fn set_min_qty(&mut self, min_qty: f64) {
         self.min_qty = min_qty;
-        self
     }
 
     #[inline]
@@ -143,9 +181,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_prefix(&mut self, prefix: Option<String>) -> &mut Self {
+    pub fn set_prefix(&mut self, prefix: Option<String>) {
         self.prefix = prefix;
-        self
     }
 
     #[inline]
@@ -154,9 +191,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_currency(&mut self, currency: Option<String>) -> &mut Self {
+    pub fn set_currency(&mut self, currency: Option<String>) {
         self.currency = currency;
-        self
     }
 
     #[inline]
@@ -165,9 +201,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_base_currency(&mut self, base_currency: Option<String>) -> &mut Self {
+    pub fn set_base_currency(&mut self, base_currency: Option<String>) {
         self.base_currency = base_currency;
-        self
     }
 
     #[inline]
@@ -176,9 +211,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_ticker(&mut self, ticker: Option<String>) -> &mut Self {
+    pub fn set_ticker(&mut self, ticker: Option<String>) {
         self.ticker = ticker;
-        self
     }
 
     #[inline]
@@ -187,31 +221,8 @@ impl Sym {
     }
 
     #[inline]
-    pub fn set_country(&mut self, country: Option<String>) -> &mut Self {
+    pub fn set_country(&mut self, country: Option<String>) {
         self.country = country;
-        self
-    }
-
-    #[inline]
-    pub fn icons(&self) -> &Vec<SymIcon> {
-        &self.icons
-    }
-
-    #[inline]
-    pub fn set_icons(&mut self, icons: Vec<SymIcon>) -> &mut Self {
-        self.icons = icons;
-        self
-    }
-
-    #[inline]
-    pub fn kind(&self) -> Option<&str> {
-        self.kind.as_deref()
-    }
-
-    #[inline]
-    pub fn set_kind(&mut self, kind: Option<String>) -> &mut Self {
-        self.kind = kind;
-        self
     }
 
     #[inline]
@@ -237,25 +248,29 @@ impl Sym {
     }
 
     #[inline]
-    pub fn round_to_min_tick(&self, value: f64) -> f64 {
-        round_to_min_tick(value, self.min_tick)
+    pub fn metadata(&self) -> Option<&str> {
+        self.metadata.as_deref()
     }
 
     #[inline]
-    pub fn validate_contracts(&self, size: f64) -> bool {
-        return validate_contracts(size, self.min_qty);
-    }
-
-    #[inline]
-    pub fn round_contracts(&self, size: f64) -> f64 {
-        return round_contracts(size, self.min_qty);
+    pub fn set_metadata(&mut self, metadata: Option<String>) {
+        self.metadata = metadata;
     }
 
     #[inline]
     pub fn btc_usd() -> Self {
         Self {
+            id: Some("QPACE__BITSTAMP:BTCUSD".to_string()),
+            ticker_id: Some("BITSTAMP:BTCUSD".to_string()),
             min_tick: 1.0,
             min_qty: 0.000001,
+            prefix: Some("BITSTAMP".to_string()),
+            currency: Some("USD".to_string()),
+            base_currency: Some("BTC".to_string()),
+            ticker: Some("BTCUSD".to_string()),
+            kind: SymKind::Crypto,
+            price_scale: 1.0,
+            point_value: 1.0,
             ..Default::default()
         }
     }
@@ -263,8 +278,17 @@ impl Sym {
     #[inline]
     pub fn eth_usd() -> Self {
         Self {
+            id: Some("QPACE__BITSTAMP:ETHUSD".to_string()),
+            ticker_id: Some("BITSTAMP:ETHUSD".to_string()),
             min_tick: 0.1,
             min_qty: 0.0001,
+            prefix: Some("BITSTAMP".to_string()),
+            currency: Some("USD".to_string()),
+            base_currency: Some("ETH".to_string()),
+            ticker: Some("ETHUSD".to_string()),
+            kind: SymKind::Crypto,
+            price_scale: 10.0,
+            point_value: 1.0,
             ..Default::default()
         }
     }
@@ -272,8 +296,35 @@ impl Sym {
     #[inline]
     pub fn sol_usd() -> Self {
         Self {
+            id: Some("QPACE__BINANCE:SOLUSD".to_string()),
+            ticker_id: Some("BINANCE:SOLUSD".to_string()),
             min_tick: 0.01,
-            min_qty: 0.0001,
+            min_qty: 0.001,
+            prefix: Some("BINANCE".to_string()),
+            currency: Some("USD".to_string()),
+            base_currency: Some("SOL".to_string()),
+            ticker: Some("SOLUSD".to_string()),
+            kind: SymKind::Crypto,
+            price_scale: 100.0,
+            point_value: 1.0,
+            ..Default::default()
+        }
+    }
+
+    #[inline]
+    pub fn doge_usd() -> Self {
+        Self {
+            id: Some("QPACE__BINANCE:DOGEUSD".to_string()),
+            ticker_id: Some("BINANCE:DOGEUSD".to_string()),
+            min_tick: 0.0001,
+            min_qty: 0.001,
+            prefix: Some("BINANCE".to_string()),
+            currency: Some("USD".to_string()),
+            base_currency: Some("DOGE".to_string()),
+            ticker: Some("DOGEUSD".to_string()),
+            kind: SymKind::Crypto,
+            price_scale: 10000.0,
+            point_value: 1.0,
             ..Default::default()
         }
     }

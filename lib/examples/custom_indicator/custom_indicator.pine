@@ -1,4 +1,0 @@
-library("my custom indicator")
-
-export ma(series<float> src, int slow_length = 30, int fast_length = 14) =>
-    ta.rsi(src, slow_length) - ta.rsi(src, fast_length)

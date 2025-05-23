@@ -1,13 +1,15 @@
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
+  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods}};
+  use pyo3::exceptions::PyValueError;
 }}
 use crate::timeframe::Timeframe;
+use chrono::Duration;
 
 #[cfg(feature = "bindings_py")]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "Timeframe"))]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PyTimeframe {
     inner: Timeframe,
 }
@@ -51,6 +53,12 @@ impl PyTimeframe {
     #[inline]
     pub fn py_from_str(timeframe: String) -> Self {
         Timeframe::from(timeframe).into()
+    }
+
+    #[pyo3(name = "__repr__")]
+    #[inline]
+    pub fn py_repr(&self) -> String {
+        format!("{:?}", self.inner)
     }
 
     #[staticmethod]
@@ -126,87 +134,81 @@ impl PyTimeframe {
     #[getter(years)]
     #[inline]
     pub fn py_years(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Years(value) => Some(value),
-            _ => None,
-        }
+        self.inner.years()
     }
 
     #[getter(months)]
     #[inline]
     pub fn py_months(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Months(value) => Some(value),
-            _ => None,
-        }
+        self.inner.months()
     }
 
     #[getter(weeks)]
     #[inline]
     pub fn py_weeks(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Weeks(value) => Some(value),
-            _ => None,
-        }
+        self.inner.weeks()
     }
 
     #[getter(days)]
     #[inline]
     pub fn py_days(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Days(value) => Some(value),
-            _ => None,
-        }
+        self.inner.days()
     }
 
     #[getter(hours)]
     #[inline]
     pub fn py_hours(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Hours(value) => Some(value),
-            _ => None,
-        }
+        self.inner.hours()
     }
 
     #[getter(minutes)]
     #[inline]
     pub fn py_minutes(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Minutes(value) => Some(value),
-            _ => None,
-        }
+        self.inner.minutes()
     }
 
     #[getter(seconds)]
     #[inline]
     pub fn py_seconds(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Seconds(value) => Some(value),
-            _ => None,
-        }
+        self.inner.seconds()
     }
 
     #[getter(ticks)]
     #[inline]
     pub fn py_ticks(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Ticks(value) => Some(value),
-            _ => None,
-        }
+        self.inner.ticks()
     }
 
     #[getter(ranges)]
     #[inline]
     pub fn py_ranges(&self) -> Option<usize> {
-        match self.inner {
-            Timeframe::Ranges(value) => Some(value),
-            _ => None,
-        }
+        self.inner.ranges()
     }
 
     #[getter(unknown)]
     #[inline]
     pub fn py_unknown(&self) -> bool {
-        matches!(self.inner, Timeframe::Unknown())
+        self.inner.unknown()
+    }
+
+    #[getter(duration)]
+    #[inline]
+    pub fn py_duration(&self) -> PyResult<Duration> {
+        let duration = TryInto::<Duration>::try_into(self.inner);
+        match duration {
+            Ok(dur) => Ok(dur),
+            Err(_) => Err(PyValueError::new_err("Invalid timeframe")),
+        }
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "from_duration")]
+    #[inline]
+    pub fn py_from_duration(duration: Duration) -> PyResult<Self> {
+        let timeframe = TryInto::<Timeframe>::try_into(duration);
+        match timeframe {
+            Ok(tf) => Ok(tf.into()),
+            Err(_) => Err(PyValueError::new_err("Invalid duration")),
+        }
     }
 }

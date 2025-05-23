@@ -3,186 +3,82 @@
 
 import builtins
 import datetime
-import pandas
 import typing
-from enum import Enum, auto
-
-class Backtest:
-    initial_capital: builtins.float
-    process_orders_on_close: builtins.bool
-    ctx: Ctx
-    equity: builtins.float
-    net_equity: builtins.float
-    equity_list: builtins.list[builtins.float]
-    net_equity_list: builtins.list[builtins.float]
-    equity_returns: builtins.list[builtins.float]
-    net_equity_returns: builtins.list[builtins.float]
-    pnl_list: builtins.list[builtins.float]
-    open_profit: builtins.float
-    net_profit: builtins.float
-    gross_profit: builtins.float
-    gross_loss: builtins.float
-    winning_trades: builtins.int
-    losing_trades: builtins.int
-    position_size: builtins.float
-    open_trades: builtins.list[Trade]
-    closed_trades: builtins.list[Trade]
-    trades: builtins.list[Trade]
-    open_longs: builtins.int
-    open_shorts: builtins.int
-    closed_longs: builtins.int
-    closed_shorts: builtins.int
-    total_longs: builtins.int
-    total_shorts: builtins.int
-    total_trades: builtins.int
-    instrument_price: builtins.float
-    win_rate: builtins.float
-    profit_factor: builtins.float
-    metrics: typing.Any
-    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False): ...
-    def on_bar_open(self) -> None:
-        ...
-
-    def on_bar_close(self) -> None:
-        ...
-
-    def signal(self, signal:Signal) -> None:
-        ...
-
-    def signal_batch(self, signals:typing.Sequence[typing.Optional[Signal]]) -> None:
-        r"""
-        Processes multiple signals at once. `signals` must be aligned with all bars. `signals: [bar_index_0_signal, bar_index_1_signal, ...]`.
-        """
-        ...
-
-    def signal_batch_dict(self, signals:typing.Mapping[builtins.int, Signal]) -> None:
-        r"""
-        Processes multiple signals at once. `signals: [bar_index, Signal]`.
-        """
-        ...
-
-    def skip(self, bars:typing.Optional[builtins.int]=None, bar_index:typing.Optional[builtins.int]=None) -> None:
-        ...
-
-    def to_pine(self) -> builtins.str:
-        ...
-
-    def __len__(self) -> builtins.int:
-        ...
-
-    def __next__(self) -> builtins.int:
-        ...
-
-    def __iter__(self) -> Backtest:
-        ...
-
-    def print_metrics(self) -> None:
-        ...
-
-    def print(self, plot:typing.Optional[tuple[builtins.int, builtins.int]]=(120, 60)) -> None:
-        ...
-
-
-class Ctx:
-    bar_index: builtins.int
-    bar: OhlcvBar
-    is_initialized: builtins.bool
-    sym: Sym
-    timeframe: Timeframe
-    ohlcv: Ohlcv
-    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None): ...
-    def fork(self) -> Ctx:
-        r"""
-        Creates a new instance starting from first bar. Reuses same OHLCV and symbol.
-        """
-        ...
-
-    def reset(self) -> None:
-        r"""
-        Resets the context to the first bar and marks it as uninitialized.
-        """
-        ...
-
-    def next(self) -> typing.Optional[builtins.int]:
-        ...
-
-    def __len__(self) -> builtins.int:
-        ...
-
-    def __next__(self) -> builtins.int:
-        ...
-
-    def __iter__(self) -> Ctx:
-        ...
-
 
 class Ohlcv:
-    r"""
-    Multi-thread mutable OHLCV dataframe. Uses `Arc<RwLock<Ohlcv>>` internally.
-    """
     timeframe: Timeframe
-    bars: builtins.list[OhlcvBar]
-    open: builtins.list[builtins.float]
-    high: builtins.list[builtins.float]
-    low: builtins.list[builtins.float]
-    close: builtins.list[builtins.float]
-    volume: builtins.list[builtins.float]
-    open_time: builtins.list[datetime.datetime]
-    close_time: builtins.list[datetime.datetime]
     def __new__(cls,): ...
     @staticmethod
     def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
+        ...
+
+    def py_set_timeframe(self, timeframe:Timeframe) -> None:
+        ...
+
+    def __getitem__(self, index:builtins.int) -> typing.Optional[OhlcvBar]:
+        ...
+
+    def __len__(self) -> builtins.int:
+        ...
+
+    def slice(self, slice:slice) -> builtins.list[OhlcvBar]:
+        ...
+
+    def copy(self) -> Ohlcv:
+        ...
+
+    def extend(self, other:Ohlcv) -> None:
+        ...
+
+    def head(self, n:builtins.int) -> builtins.list[OhlcvBar]:
+        ...
+
+    def tail(self, n:builtins.int) -> builtins.list[OhlcvBar]:
+        ...
+
+    def resample(self, timeframe:Timeframe, align_utc:builtins.bool) -> Ohlcv:
+        ...
+
+    def sort(self, ascending:builtins.bool) -> None:
+        ...
+
+    def clear(self) -> None:
+        ...
+
+    def pop(self) -> typing.Optional[OhlcvBar]:
+        ...
+
+    def shift(self) -> typing.Optional[OhlcvBar]:
+        ...
+
+    def push(self, bar:OhlcvBar) -> None:
+        ...
+
+    def push_many(self, bars:typing.Sequence[OhlcvBar]) -> None:
         ...
 
     @staticmethod
     def from_pandas(df:typing.Any) -> Ohlcv:
         ...
 
-    def py_set_timeframe(self, timeframe:Timeframe) -> None:
-        ...
-
-    def slice(self, slice:slice) -> builtins.list[OhlcvBar]:
-        ...
-
-    def __getitem__(self, index:builtins.int) -> OhlcvBar:
-        ...
-
-    def __len__(self) -> builtins.int:
-        ...
-
-    def add(self, bar:OhlcvBar) -> None:
-        ...
-
-    def add_list(self, bars:typing.Sequence[OhlcvBar]) -> None:
-        ...
-
-    def __str__(self) -> builtins.str:
-        ...
-
-    def to_pandas(self) -> pandas.DataFrame:
+    def to_pandas(self) -> typing.Any:
         ...
 
     @staticmethod
-    def read_csv(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
-        r"""
-        `time_unit: 's' | 'ms'`
-        """
+    def read_csv(path:builtins.str) -> Ohlcv:
         ...
 
     @staticmethod
-    def read_parquet(path:builtins.str, time_unit:builtins.str='s') -> Ohlcv:
-        r"""
-        `time_unit: 's' | 'ms'`
-        """
+    def read_parquet(path:builtins.str) -> Ohlcv:
         ...
 
-    def resample(self, timeframe:Timeframe, align_utc:builtins.bool=True) -> Ohlcv:
-        r"""
-        Resamples OHLCV bars into the specified timeframe.
-            If align_utc is true, bars are pinned to calendar-based UTC boundaries;
-            otherwise, a rolling time window is used.
-        `align_utc`: boolean. Default: true
-        """
+    def write_csv(self, path:builtins.str) -> None:
+        ...
+
+    def write_parquet(self, path:builtins.str) -> None:
+        ...
+
+    def sanity_check(self) -> tuple[builtins.bool, builtins.list[builtins.str]]:
         ...
 
 
@@ -194,63 +90,49 @@ class OhlcvBar:
     low: builtins.float
     close: builtins.float
     volume: builtins.float
-    hl2: builtins.float
-    hlc3: builtins.float
-    hlcc4: builtins.float
     def __new__(cls,open_time:typing.Optional[datetime.datetime]=None, close_time:typing.Optional[datetime.datetime]=None, open:typing.Optional[builtins.float]=None, high:typing.Optional[builtins.float]=None, low:typing.Optional[builtins.float]=None, close:typing.Optional[builtins.float]=None, volume:typing.Optional[builtins.float]=None): ...
     def __str__(self) -> builtins.str:
         ...
 
-    def to_dict(self) -> typing.Any:
+    def __repr__(self) -> builtins.str:
+        ...
+
+    def py_set_open_time(self, open_time:datetime.datetime) -> None:
+        ...
+
+    def py_set_close_time(self, close_time:datetime.datetime) -> None:
+        ...
+
+    def py_set_open(self, open:builtins.float) -> None:
+        ...
+
+    def py_set_high(self, high:builtins.float) -> None:
+        ...
+
+    def py_set_low(self, low:builtins.float) -> None:
+        ...
+
+    def py_set_close(self, close:builtins.float) -> None:
+        ...
+
+    def py_set_volume(self, volume:builtins.float) -> None:
         ...
 
     def merge(self, other:OhlcvBar) -> OhlcvBar:
         ...
 
-
-class Order:
-    ...
-
-class OrderBook:
-    ...
-
-class OrderConfig:
-    ...
-
-class Signal:
-    kind: SignalKind
-    id: typing.Optional[builtins.str]
-    def py_set_id(self, id:typing.Optional[builtins.str]) -> None:
+    def to_dict(self) -> typing.Any:
         ...
 
     @staticmethod
-    def hold() -> Signal:
-        ...
-
-    @staticmethod
-    def size(size:builtins.float) -> Signal:
-        ...
-
-    @staticmethod
-    def equity_pct(equity_pct:builtins.float) -> Signal:
-        ...
-
-    @staticmethod
-    def close_all() -> Signal:
-        ...
-
-    @staticmethod
-    def long() -> Signal:
-        ...
-
-    @staticmethod
-    def short() -> Signal:
+    def from_dict(obj:typing.Any) -> OhlcvBar:
         ...
 
 
 class Sym:
     id: typing.Optional[builtins.str]
     ticker_id: typing.Optional[builtins.str]
+    kind: SymKind
     min_tick: builtins.float
     min_qty: builtins.float
     prefix: typing.Optional[builtins.str]
@@ -258,15 +140,23 @@ class Sym:
     base_currency: typing.Optional[builtins.str]
     ticker: typing.Optional[builtins.str]
     country: typing.Optional[builtins.str]
-    kind: typing.Optional[builtins.str]
     price_scale: builtins.float
     point_value: builtins.float
-    icons: builtins.list[SymIcon]
+    metadata: typing.Optional[builtins.str]
     def __new__(cls,): ...
+    def __str__(self) -> builtins.str:
+        ...
+
+    def __repr__(self) -> builtins.str:
+        ...
+
     def py_set_id(self, id:typing.Optional[builtins.str]) -> None:
         ...
 
     def py_set_ticker_id(self, ticker_id:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_kind(self, kind:SymKind) -> None:
         ...
 
     def py_set_min_tick(self, min_tick:builtins.float) -> None:
@@ -290,16 +180,20 @@ class Sym:
     def py_set_country(self, country:typing.Optional[builtins.str]) -> None:
         ...
 
-    def py_set_kind(self, kind:typing.Optional[builtins.str]) -> None:
-        ...
-
     def py_set_price_scale(self, price_scale:builtins.float) -> None:
         ...
 
     def py_set_point_value(self, point_value:builtins.float) -> None:
         ...
 
-    def py_set_icons(self, icons:typing.Sequence[SymIcon]) -> None:
+    def py_set_metadata(self, metadata:typing.Optional[builtins.str]) -> None:
+        ...
+
+    @staticmethod
+    def from_dict(dict:typing.Any) -> Sym:
+        ...
+
+    def to_dict(self) -> typing.Any:
         ...
 
     @staticmethod
@@ -314,29 +208,48 @@ class Sym:
     def sol_usd() -> Sym:
         ...
 
-    def to_dict(self) -> typing.Any:
+    @staticmethod
+    def doge_usd() -> Sym:
+        ...
+
+
+class SymKind:
+    def __str__(self) -> builtins.str:
+        ...
+
+    def __repr__(self) -> builtins.str:
         ...
 
     @staticmethod
-    def from_dict(dict:typing.Any) -> Sym:
-        ...
-
-
-class SymIcon:
-    url: builtins.str
-    mime_type: builtins.str
-    def __new__(cls,): ...
-    def py_set_url(self, url:builtins.str) -> None:
-        ...
-
-    def py_set_mime_type(self, mime_type:builtins.str) -> None:
-        ...
-
-    def to_dict(self) -> typing.Any:
+    def from_str(kind:builtins.str) -> SymKind:
         ...
 
     @staticmethod
-    def from_dict(dict:typing.Any) -> SymIcon:
+    def Stock() -> SymKind:
+        ...
+
+    @staticmethod
+    def Future() -> SymKind:
+        ...
+
+    @staticmethod
+    def Option() -> SymKind:
+        ...
+
+    @staticmethod
+    def Forex() -> SymKind:
+        ...
+
+    @staticmethod
+    def Crypto() -> SymKind:
+        ...
+
+    @staticmethod
+    def Unknown() -> SymKind:
+        ...
+
+    @staticmethod
+    def Other(kind:builtins.str) -> SymKind:
         ...
 
 
@@ -351,11 +264,15 @@ class Timeframe:
     ticks: typing.Optional[builtins.int]
     ranges: typing.Optional[builtins.int]
     unknown: builtins.bool
+    duration: datetime.timedelta
     def __str__(self) -> builtins.str:
         ...
 
     @staticmethod
     def from_str(timeframe:builtins.str) -> Timeframe:
+        ...
+
+    def __repr__(self) -> builtins.str:
         ...
 
     @staticmethod
@@ -398,43 +315,12 @@ class Timeframe:
     def Unknown() -> Timeframe:
         ...
 
-
-class Trade:
-    size: builtins.float
-    entry: typing.Optional[TradeEvent]
-    exit: typing.Optional[TradeEvent]
-    pnl: builtins.float
-    direction: TradeDirection
-    is_active: builtins.bool
-    is_closed: builtins.bool
-    def to_dict(self) -> typing.Any:
+    @staticmethod
+    def from_duration(duration:datetime.timedelta) -> Timeframe:
         ...
 
-
-class TradeEvent:
-    id: typing.Optional[builtins.str]
-    order_bar_index: builtins.int
-    fill_bar_index: builtins.int
-    price: builtins.float
-    comment: typing.Optional[builtins.str]
-    def to_dict(self) -> typing.Any:
-        ...
-
-
-class SignalKind(Enum):
-    Size = auto()
-    EquityPct = auto()
-    Hold = auto()
-    CloseAll = auto()
-
-class TradeDirection(Enum):
-    Long = auto()
-    Short = auto()
 
 def accuracy(tp_count:builtins.float, fp_count:builtins.float, fn_count:builtins.float, tn_count:builtins.float) -> builtins.float:
-    r"""
-    https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/
-    """
     ...
 
 def avg_losing_trade(gross_loss:builtins.float, losing_trades:builtins.int) -> builtins.float:
@@ -449,13 +335,16 @@ def avg_win_loss_ratio(avg_winning_trade:builtins.float, avg_losing_trade:builti
 def avg_winning_trade(gross_profit:builtins.float, winning_trades:builtins.int) -> builtins.float:
     ...
 
-def expectancy(pnl_series:typing.Sequence[builtins.float]) -> builtins.float:
+def expectancy(pnl:typing.Sequence[builtins.float]) -> builtins.float:
     ...
 
 def expectancy_score(expectancy:builtins.float, opportunity_bars:builtins.float) -> builtins.float:
     ...
 
-def get_core_version() -> builtins.str:
+def f1(precision:builtins.float, recall:builtins.float) -> builtins.float:
+    ...
+
+def get_version() -> builtins.str:
     ...
 
 def gross_loss_pct(gross_loss:builtins.float, initial_capital:builtins.float) -> builtins.float:
@@ -464,31 +353,10 @@ def gross_loss_pct(gross_loss:builtins.float, initial_capital:builtins.float) ->
 def gross_profit_pct(gross_profit:builtins.float, initial_capital:builtins.float) -> builtins.float:
     ...
 
-def hl2(high:builtins.float, low:builtins.float) -> builtins.float:
-    ...
-
-def hlc3(high:builtins.float, low:builtins.float, close:builtins.float) -> builtins.float:
-    ...
-
-def hlcc4(high:builtins.float, low:builtins.float, close:builtins.float) -> builtins.float:
-    ...
-
-def kelly_criterion(win_prob:builtins.float, profit_factor:builtins.float) -> builtins.float:
-    r"""
-    https://python.plainenglish.io/the-kelly-criterion-maximizing-returns-through-optimal-betting-32781a768ffb
-    """
-    ...
-
 def long_net_profit_pct(long_net_profit:builtins.float, initial_capital:builtins.float) -> builtins.float:
     ...
 
 def long_net_profit_ratio(long_net_profit:builtins.float, short_net_profit:builtins.float) -> builtins.float:
-    ...
-
-def max_drawdown_pct(max_dd:builtins.float, net_equity_max:builtins.float) -> builtins.float:
-    ...
-
-def max_run_up_pct(max_run_up:builtins.float, bar_equity_max:builtins.float) -> builtins.float:
     ...
 
 def net_profit_pct(net_profit:builtins.float, initial_capital:builtins.float) -> builtins.float:
@@ -497,69 +365,25 @@ def net_profit_pct(net_profit:builtins.float, initial_capital:builtins.float) ->
 def omega_ratio(positive_returns_sum:builtins.float, negative_returns_sum:builtins.float, risk_free_rate:builtins.float) -> builtins.float:
     ...
 
-def order_size(equity_pct:builtins.float, equity:builtins.float, exchange_rate:builtins.float, instrument_price:builtins.float, point_value:builtins.float) -> builtins.float:
-    r"""
-    
-    the calculated order size, rounded down to the smallest trade quantity. For stocks, futures, CFDs, and forex that minimum quantity is 1. For Bitcoin (BTCUSD) it's 0.000001 and Ethereum (ETHUSD) uses 0.0001.
-    
-    # Parameters
-    
-    * `equity_pct` - A `f64` representing the percentage of the current strategy equity to invest in each order. This percentage is derived from either the `default_qty_value` setting or the manual 'Order size' option within the strategy's settings window.
-    
-    * `equity` - A `f64` representing the strategy's current equity. This is the sum of the initial capital, closed net profit, and open position profit. Note that this includes unrealized profits/losses, which may affect the calculated order size if the open position's result changes significantly when it's closed.
-    
-    * `exchange_rate` - A `f64` used for currency conversion, if necessary. If the strategy currency and the instrument currency are the same, this should be 1. Otherwise, provide the conversion rate between the two currencies.
-    
-    * `instrument_price` - A `f64` representing the last available price at the time the order is generated. This is typically the close price of the bar on which the order is generated, unless using options like 'Recalculate After Order Filled' or 'Recalculate On Every Tick', which may use a different price within the bar.
-    
-    * `point_value` - A `f64` that denotes the currency amount of one full point of price movement for the instrument. For example, it is 1 for stocks and 20 for the E-mini Nasdaq 100 futures.
-    
-    # Returns
-    
-    Returns a `f64` representing the calculated order size, rounded down to the smallest trade quantity based on the instrument type.
-    """
-    ...
-
-def order_size_for_equity_pct(equity_pct:builtins.float, equity:builtins.float, current_position:builtins.float, instrument_price:builtins.float, point_value:builtins.float, exchange_rate:builtins.float) -> builtins.float:
-    ...
-
-def pct_change(current:builtins.float, previous:builtins.float) -> builtins.float:
+def omega_ratio_from_returns(returns:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
     ...
 
 def pnl(qty:builtins.float, entry_price:builtins.float, current_price:builtins.float) -> builtins.float:
     ...
 
+def precision(tp_count:builtins.float, fp_count:builtins.float) -> builtins.float:
+    ...
+
 def profit_factor(gross_profit:builtins.float, gross_loss:builtins.float) -> builtins.float:
     ...
 
-def returns(equity:typing.Sequence[builtins.float], pad:builtins.bool=False) -> builtins.list[builtins.float]:
-    r"""
-    
-    Calculates returns from equity (% change)
-    Returns without first item, because it would be NAN.
-    Example: [1.0, 2.0] -> [2.0] // 200%
-    """
-    ...
-
-def round_contracts(size:builtins.float, min_qty:builtins.float) -> builtins.float:
-    r"""
-    Rounds `size` to the nearest multiple of the minimum order quantity.
-    """
-    ...
-
-def round_to_min_tick(value:builtins.float, min_tick:builtins.float) -> builtins.float:
-    ...
-
-def sensitivity(tp_count:builtins.float, fp_count:builtins.float) -> builtins.float:
-    r"""
-    https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/
-    """
+def recall(tp_count:builtins.float, fn_count:builtins.float) -> builtins.float:
     ...
 
 def sharpe_ratio(mean_returns:builtins.float, std_returns:builtins.float, risk_free_rate:builtins.float) -> builtins.float:
     ...
 
-def sharpe_ratio_from_equity(equity:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
+def sharpe_ratio_from_returns(returns:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
     ...
 
 def short_net_profit_pct(short_net_profit:builtins.float, initial_capital:builtins.float) -> builtins.float:
@@ -568,24 +392,9 @@ def short_net_profit_pct(short_net_profit:builtins.float, initial_capital:builti
 def sortino_ratio(mean_returns:builtins.float, negative_returns_stdev:builtins.float, risk_free_rate:builtins.float) -> builtins.float:
     ...
 
-def sortino_ratio_from_equity(equity:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
-    ...
-
-def specificity(fp_count:builtins.float, tn_count:builtins.float) -> builtins.float:
-    r"""
-    https://pmc.ncbi.nlm.nih.gov/articles/PMC4614595/
-    """
-    ...
-
-def validate_contracts(size:builtins.float, min_qty:builtins.float) -> builtins.bool:
-    r"""
-    Checks if `size` is a valid order quantity by comparing it to the minimum order quantity.
-    """
+def sortino_ratio_from_returns(returns:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
     ...
 
 def win_rate(profitable_trades:builtins.int, total_trades:builtins.int) -> builtins.float:
-    ...
-
-def zip_ohlcv_bars(open_time:typing.Optional[typing.Sequence[typing.Optional[datetime.datetime]]]=None, close_time:typing.Optional[typing.Sequence[typing.Optional[datetime.datetime]]]=None, open:typing.Optional[typing.Sequence[builtins.float]]=None, high:typing.Optional[typing.Sequence[builtins.float]]=None, low:typing.Optional[typing.Sequence[builtins.float]]=None, close:typing.Optional[typing.Sequence[builtins.float]]=None, volume:typing.Optional[typing.Sequence[builtins.float]]=None) -> builtins.list[OhlcvBar]:
     ...
 

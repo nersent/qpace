@@ -19,7 +19,7 @@ path = "pyi.rs"
 
 [features]
 # default = []
-default = ["polars"]
+default = ["polars", "bindings_wasm", "bindings_node", "json"]
 # default = ["bindings_wasm"]
 # default = ["bindings_py", "bindings_wasm", "console_error_panic_hook"]
 bindings_py = [
@@ -32,13 +32,15 @@ bindings_py = [
   "textplots",
 ]
 bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook"]
+bindings_node = ["napi", "napi-derive"]
+json = ["serde", "serde_json"]
 # polars_utils = ["polars"]
 
 [dependencies]
 chrono = { version = "0.4.39", features = ["serde", "wasmbind"] }
 cfg-if = "1.0.0"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
 env_logger = { version = "0.11", optional = true }
 polars = { version = "0.32", features = ["parquet", "lazy"], optional = true }
 itertools = "0.12"
@@ -63,6 +65,8 @@ pyo3 = { version = "0.23", optional = true, features = [
 pyo3-ffi = { version = "0.23", optional = true }
 pyo3-stub-gen = { version = "0.7", optional = true }
 pyo3-stub-gen-derive = { version = "0.7", optional = true }
+napi = { version = "2", optional = true }
+napi-derive = { version = "2", features = ["type-def"], optional = true }
 # cfg-if = { workspace = true }
 # chrono = { workspace = true }
 # serde = { workspace = true }

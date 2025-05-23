@@ -1,16 +1,10 @@
+use std::fmt;
+
 use chrono::Duration;
 
-use crate::utils::{round_contracts, round_to_min_tick, validate_contracts};
-
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
-  use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
-}}
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
-  use wasm_bindgen::prelude::*;
-}}
-
 #[derive(Debug, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "json", serde(try_from = "String", into = "String"))]
 pub enum Timeframe {
     Years(usize),
     Months(usize),
@@ -31,7 +25,7 @@ impl Default for Timeframe {
     }
 }
 
-impl Into<String> for Timeframe {
+impl Into<String> for &Timeframe {
     #[inline]
     fn into(self) -> String {
         return match self {
@@ -46,6 +40,19 @@ impl Into<String> for Timeframe {
             Timeframe::Ranges(value) => format!("{}R", value),
             Timeframe::Unknown() => String::from("?"),
         };
+    }
+}
+
+impl Into<String> for Timeframe {
+    #[inline]
+    fn into(self) -> String {
+        (&self).into()
+    }
+}
+
+impl fmt::Display for Timeframe {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&Into::<String>::into(self))
     }
 }
 
@@ -100,5 +107,117 @@ impl TryInto<Duration> for Timeframe {
             Timeframe::Seconds(value) => Ok(Duration::seconds(value as i64)),
             _ => Err("Unknown timeframe".to_string()),
         };
+    }
+}
+
+impl TryInto<Timeframe> for Duration {
+    type Error = String;
+
+    #[inline]
+    fn try_into(self) -> Result<Timeframe, Self::Error> {
+        let seconds = self.num_seconds();
+        let minutes = self.num_minutes();
+        let hours = self.num_hours();
+        let days = self.num_days();
+        let weeks = self.num_weeks();
+        let months = (self.num_days() / 30) as usize;
+        let years = (self.num_days() / 365) as usize;
+
+        if years > 0 {
+            return Ok(Timeframe::Years(years));
+        } else if months > 0 {
+            return Ok(Timeframe::Months(months));
+        } else if weeks > 0 {
+            return Ok(Timeframe::Weeks(weeks as usize));
+        } else if days > 0 {
+            return Ok(Timeframe::Days(days as usize));
+        } else if hours > 0 {
+            return Ok(Timeframe::Hours(hours as usize));
+        } else if minutes > 0 {
+            return Ok(Timeframe::Minutes(minutes as usize));
+        } else if seconds > 0 {
+            return Ok(Timeframe::Seconds(seconds as usize));
+        }
+
+        Err("Unknown timeframe".to_string())
+    }
+}
+
+impl Timeframe {
+    #[inline]
+    pub fn years(&self) -> Option<usize> {
+        match self {
+            Timeframe::Years(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn months(&self) -> Option<usize> {
+        match self {
+            Timeframe::Months(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn weeks(&self) -> Option<usize> {
+        match self {
+            Timeframe::Weeks(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn days(&self) -> Option<usize> {
+        match self {
+            Timeframe::Days(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn hours(&self) -> Option<usize> {
+        match self {
+            Timeframe::Hours(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn minutes(&self) -> Option<usize> {
+        match self {
+            Timeframe::Minutes(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn seconds(&self) -> Option<usize> {
+        match self {
+            Timeframe::Seconds(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn ticks(&self) -> Option<usize> {
+        match self {
+            Timeframe::Ticks(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn ranges(&self) -> Option<usize> {
+        match self {
+            Timeframe::Ranges(value) => Some(*value),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn unknown(&self) -> bool {
+        matches!(self, Timeframe::Unknown())
     }
 }
