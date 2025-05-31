@@ -28,6 +28,12 @@ pub struct PyCtx {
     ohlcv: PyOhlcv,
 }
 
+impl Into<Rc<RefCell<Ctx>>> for PyCtx {
+    fn into(self) -> Rc<RefCell<Ctx>> {
+        self.inner
+    }
+}
+
 impl PyCtx {
     #[inline]
     pub fn copy(&self) -> Self {

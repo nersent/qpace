@@ -16,6 +16,12 @@ pub struct WasmCtx {
     ohlcv: WasmOhlcv,
 }
 
+impl Into<Rc<RefCell<Ctx>>> for WasmCtx {
+    fn into(self) -> Rc<RefCell<Ctx>> {
+        self.inner
+    }
+}
+
 impl WasmCtx {
     #[inline]
     pub fn copy(&self) -> Self {

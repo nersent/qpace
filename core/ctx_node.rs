@@ -19,6 +19,12 @@ pub struct NodeCtx {
     ohlcv: NodeOhlcv,
 }
 
+impl Into<Rc<RefCell<Ctx>>> for NodeCtx {
+    fn into(self) -> Rc<RefCell<Ctx>> {
+        self.inner
+    }
+}
+
 impl NodeCtx {
     #[inline]
     pub fn copy(&self) -> Self {
