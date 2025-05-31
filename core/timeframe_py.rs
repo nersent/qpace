@@ -1,20 +1,16 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
-  use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods}};
-  use pyo3::exceptions::PyValueError;
-}}
 use crate::timeframe::Timeframe;
 use chrono::Duration;
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
-#[cfg(feature = "bindings_py")]
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "Timeframe"))]
+#[gen_stub_pyclass]
+#[pyclass(name = "Timeframe")]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PyTimeframe {
     inner: Timeframe,
 }
 
-#[cfg(feature = "bindings_py")]
 impl Default for PyTimeframe {
     #[inline]
     fn default() -> Self {
@@ -22,7 +18,6 @@ impl Default for PyTimeframe {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl Into<Timeframe> for PyTimeframe {
     #[inline]
     fn into(self) -> Timeframe {
@@ -30,7 +25,6 @@ impl Into<Timeframe> for PyTimeframe {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl From<Timeframe> for PyTimeframe {
     #[inline]
     fn from(inner: Timeframe) -> Self {
@@ -38,7 +32,6 @@ impl From<Timeframe> for PyTimeframe {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyTimeframe {

@@ -1,31 +1,25 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-    use napi::{Error, Result, Status};
-    use napi_derive::napi;
-}}
 use crate::timeframe::Timeframe;
 use chrono::Duration;
+use napi::{Error, Result, Status};
+use napi_derive::napi;
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 pub struct NodeTimeframe {
     inner: Timeframe,
 }
 
-#[cfg(feature = "bindings_node")]
 impl From<Timeframe> for NodeTimeframe {
     fn from(inner: Timeframe) -> Self {
         NodeTimeframe { inner }
     }
 }
 
-#[cfg(feature = "bindings_node")]
-impl Into<Timeframe> for NodeTimeframe {
+impl Into<Timeframe> for &NodeTimeframe {
     fn into(self) -> Timeframe {
         self.inner
     }
 }
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 impl NodeTimeframe {
     #[napi(js_name = toString)]

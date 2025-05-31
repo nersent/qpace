@@ -8,15 +8,16 @@ https://github.com/nersent/qpace
 Date: 2025-03-09T12:06:05.343Z
 */
 
-use std::ops::{AddAssign, SubAssign};
 use core::f64;
-use std::{cell::RefCell, rc::Rc};
-use std::marker::PhantomData;
-use pyo3::prelude::*;
-use std::cell::{Ref, RefMut};
-use qpace_core::ctx::Ctx;
-use qpace_core::backtest::Backtest;
 use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::*;
+use qpace_core::backtest::Backtest;
+use qpace_core::ctx::Ctx;
+use qpace_core::ohlcv::{hl2, hlc3, hlcc4};
+use std::cell::{Ref, RefMut};
+use std::marker::PhantomData;
+use std::ops::{AddAssign, SubAssign};
+use std::{cell::RefCell, rc::Rc};
 
 pub struct PineCtx {
     pub ctx: Rc<RefCell<Ctx>>,
@@ -26,10 +27,7 @@ pub struct PineCtx {
 impl PineCtx {
     #[inline]
     pub fn new(ctx: Rc<RefCell<Ctx>>) -> PineCtx {
-        return PineCtx {
-            ctx,
-            bt: None,
-        };
+        return PineCtx { ctx, bt: None };
     }
 
     #[inline]
@@ -60,8 +58,6 @@ impl Default for bool {
         return false;
     }
 }
-
-
 
 #[derive(Debug, Clone, Copy)]
 pub struct PineFloat(pub f64);
@@ -188,7 +184,6 @@ impl FromPyObject<'_> for PineFloat {
         return Err(PyErr::new::<PyTypeError, _>("Invalid type, expected float"));
     }
 }
-    
 
 #[derive(Debug, Clone, Copy)]
 pub struct PineInt(pub Option<i64>);
@@ -220,7 +215,6 @@ impl std::cmp::PartialOrd for PineInt {
         return self.0.partial_cmp(&other.0);
     }
 }
-
 
 impl std::ops::Add for PineInt {
     type Output = PineInt;
@@ -381,7 +375,6 @@ impl std::convert::Into<Option<i64>> for PineInt {
         return self.0;
     }
 }
-    
 
 #[derive(Debug, Clone, Copy)]
 pub struct PineBool(pub Option<bool>);
@@ -413,7 +406,6 @@ impl std::cmp::PartialOrd for PineBool {
         return self.0.partial_cmp(&other.0);
     }
 }
-
 
 impl std::ops::BitAnd for PineBool {
     type Output = bool;
@@ -501,7 +493,6 @@ impl FromPyObject<'_> for PineBool {
         return Err(PyErr::new::<PyTypeError, _>("Invalid type, expected bool"));
     }
 }
-    
 
 #[derive(Debug, Clone)]
 pub struct PineString(pub Option<String>);
@@ -533,7 +524,6 @@ impl std::cmp::PartialOrd for PineString {
         return self.0.partial_cmp(&other.0);
     }
 }
-
 
 impl std::convert::From<&str> for PineString {
     #[inline]
@@ -571,10 +561,11 @@ impl FromPyObject<'_> for PineString {
         if ob.is_none() {
             return Ok(PineString(None));
         }
-        return Err(PyErr::new::<PyTypeError, _>("Invalid type, expected string"));
+        return Err(PyErr::new::<PyTypeError, _>(
+            "Invalid type, expected string",
+        ));
     }
 }
-    
 
 #[derive(Debug, Clone, Copy)]
 pub struct PineNa;
@@ -608,7 +599,6 @@ impl FromPyObject<'_> for PineNa {
         return Err(PyErr::new::<PyTypeError, _>("Invalid type, expected None"));
     }
 }
-    
 
 #[derive(Debug, Clone)]
 pub struct PineObject<T> {
@@ -635,13 +625,12 @@ impl<T> std::convert::From<T> for PineObject<T> {
         };
     }
 }
-    
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct PineColor {
     pub r: u8,
     pub g: u8,
-    pub b: u8,  
+    pub b: u8,
     pub a: u8,
 }
 
@@ -658,21 +647,20 @@ impl PineColor {
 impl std::convert::From<(u8, u8, u8, u8)> for PineColor {
     #[inline]
     fn from(x: (u8, u8, u8, u8)) -> PineColor {
-        return PineColor { r: x.0, g: x.1, b: x.2, a: x.3 };
+        return PineColor {
+            r: x.0,
+            g: x.1,
+            b: x.2,
+            a: x.3,
+        };
     }
 }
 
-    
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct PinePlot {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct PinePlot {
-}
-      
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct PineHline {
-}
-        
+pub struct PineHline {}
 
 #[derive(Debug, Clone)]
 pub enum PineAny {
@@ -695,10 +683,10 @@ impl std::ops::Add for PineAny {
             // implicit
             (PineAny::PineInt(a), PineAny::PineFloat(b)) => {
                 PineFloat::from(*a + (*b).into()).into()
-            },
+            }
             (PineAny::PineFloat(a), PineAny::PineInt(b)) => {
                 PineFloat::from(*a + (*b).into()).into()
-            },
+            }
             _ => panic!("Invalid \"+\" op {:?} {:?}", self, other),
         }
     }
@@ -715,10 +703,10 @@ impl std::ops::Sub for PineAny {
             // implicit
             (PineAny::PineInt(a), PineAny::PineFloat(b)) => {
                 PineFloat::from(*a - (*b).into()).into()
-            },
+            }
             (PineAny::PineFloat(a), PineAny::PineInt(b)) => {
                 PineFloat::from(*a - (*b).into()).into()
-            },
+            }
             _ => panic!("Invalid \"-\" op {:?} {:?}", self, other),
         }
     }
@@ -755,10 +743,10 @@ impl std::ops::Div for PineAny {
             // implicit
             (PineAny::PineInt(a), PineAny::PineFloat(b)) => {
                 PineFloat::from(*a / (*b).into()).into()
-            },
+            }
             (PineAny::PineFloat(a), PineAny::PineInt(b)) => {
                 PineFloat::from(*a / (*b).into()).into()
-            },
+            }
             _ => panic!("Invalid \"/\" op {:?} {:?}", self, other),
         }
     }
@@ -854,7 +842,6 @@ impl IntoPy<PyObject> for PineAny {
         }
     }
 }
-  
 
 impl std::convert::From<PineFloat> for PineInt {
     #[inline]
@@ -1060,7 +1047,6 @@ impl<T> Na for Option<T> {
         return self.is_none();
     }
 }
-    
 
 trait PineSeriesGetter<T> {
     fn get(values: &[T]) -> T;
@@ -1194,7 +1180,6 @@ where
     }
 }
 
-
 pub struct OhlcvSeries {
     ctx: Rc<RefCell<Ctx>>,
     pub open: PineSeries<PineFloat>,
@@ -1220,7 +1205,7 @@ impl OhlcvSeries {
             hlc3: PineSeries::new(),
             hlcc4: PineSeries::new(),
         };
-    } 
+    }
 }
 
 impl OhlcvSeries {
@@ -1241,9 +1226,11 @@ impl OhlcvSeries {
         self.low.set(bar.low().into());
         self.close.set(bar.close().into());
         self.volume.set(bar.volume().into());
-        self.hl2.set(bar.hl2().into());
-        self.hlc3.set(bar.hlc3().into());
-        self.hlcc4.set(bar.hlcc4().into());
+        self.hl2.set(hl2(bar.high(), bar.low()).into());
+        self.hlc3
+            .set(hlc3(bar.high(), bar.low(), bar.close()).into());
+        self.hlcc4
+            .set(hlcc4(bar.high(), bar.low(), bar.close()).into());
     }
 
     pub fn from_name(&self, name: &str) -> Option<&PineSeries<PineFloat>> {

@@ -1,32 +1,26 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-  use napi::{Error, Result, Status};
-  use napi_derive::napi;
-  use napi::bindgen_prelude::*;
-}}
 use crate::sym::{Sym, SymKind};
+use napi::bindgen_prelude::*;
+use napi::{Error, Result, Status};
+use napi_derive::napi;
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 #[derive(Debug, Clone)]
 pub struct NodeSymKind {
     inner: SymKind,
 }
 
-#[cfg(feature = "bindings_node")]
 impl From<SymKind> for NodeSymKind {
     fn from(inner: SymKind) -> Self {
         NodeSymKind { inner }
     }
 }
 
-#[cfg(feature = "bindings_node")]
 impl Into<SymKind> for NodeSymKind {
     fn into(self) -> SymKind {
         self.inner
     }
 }
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 impl NodeSymKind {
     #[napi(js_name = toString)]
@@ -80,37 +74,37 @@ impl NodeSymKind {
     }
 }
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 #[derive(Debug, Clone)]
 pub struct NodeSym {
     inner: Sym,
 }
 
-#[cfg(feature = "bindings_node")]
 impl Default for NodeSym {
     fn default() -> Self {
         Sym::default().into()
     }
 }
 
-#[cfg(feature = "bindings_node")]
 impl From<Sym> for NodeSym {
     fn from(inner: Sym) -> Self {
         NodeSym { inner }
     }
 }
 
-#[cfg(feature = "bindings_node")]
 impl Into<Sym> for NodeSym {
     fn into(self) -> Sym {
         self.inner
     }
 }
 
-#[cfg(feature = "bindings_node")]
 #[napi]
 impl NodeSym {
+    #[napi(constructor)]
+    pub fn new() -> Self {
+        Sym::default().into()
+    }
+
     #[napi(js_name = toString)]
     pub fn node_to_string(&self) -> String {
         (&self.inner).into()
@@ -245,22 +239,22 @@ impl NodeSym {
         self.inner.set_metadata(v);
     }
 
-    #[napi(js_name = btcUsd)]
+    #[napi(js_name = BTC_USD)]
     pub fn node_btc_usd() -> Self {
         Sym::btc_usd().into()
     }
 
-    #[napi(js_name = ethUsd)]
+    #[napi(js_name = ETH_USD)]
     pub fn node_eth_usd() -> Self {
         Sym::eth_usd().into()
     }
 
-    #[napi(js_name = solUsd)]
+    #[napi(js_name = SOL_USD)]
     pub fn node_sol_usd() -> Self {
         Sym::sol_usd().into()
     }
 
-    #[napi(js_name = dogeUsd)]
+    #[napi(js_name = DOGE_USD)]
     pub fn node_doge_usd() -> Self {
         Sym::doge_usd().into()
     }

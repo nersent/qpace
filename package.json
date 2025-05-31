@@ -2,25 +2,27 @@
   "name": "qpace",
   "version": "0.0.1-dev.11",
   "bin": {
-    "qpace": "lib/cli.bazed.js",
-    "qpc": "lib/cli.bazed.js"
+    "qpace": "cli/main.bazed.js",
+    "qpc": "cli/main.bazed.js"
   },
   "files": [
     "base",
     "core",
-    "lib"
+    "lib",
+    "cli"
   ],
-  "main": "lib/index.js",
+  "main": "lib/node/index.js",
+  "browser": {
+    "./lib/web/index.js": "./lib/web/index.js"
+  },
   "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "require": "./lib/index.js",
-      "default": "./lib/index.js"
+    "./node": {
+      "import": "./lib/node/index.js",
+      "require": "./lib/node/index.js"
     },
-    "./lib/proto/*": {
-      "require": "./lib/proto/*.js",
-      "default": "./lib/proto/*.js",
-      "types": "./lib/proto/*.d.ts"
+    "./web": {
+      "import": "./lib/web/index.js",
+      "require": "./lib/web/common.js"
     },
     "./package.json": "./package.json"
   },
@@ -28,6 +30,12 @@
     "*": {
       ".": [
         "lib/index.d.ts"
+      ],
+      "./lib/node": [
+        "lib/node/index.d.ts"
+      ],
+      "./lib/web": [
+        "lib/web/index.d.ts"
       ],
       "lib/proto": [
         "lib/proto/compiler_grpc_pb.d.ts",

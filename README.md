@@ -4,7 +4,7 @@
 
 <br />
 
-**qPACE**: The Technical Analysis framework for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
+**qPACE**: The quant SDK for Python and JavaScript, written in Rust, designed to be extremely fast. Everything you need in one place - from research to production.
 
 Get started at **<https://qpace.dev>**
 
@@ -24,9 +24,9 @@ Get started at **<https://qpace.dev>**
 
 ## Features
 
-- Bindings for Python and JavaScript (WebAssembly)
+- Bindings for Python, JavaScript (WebAssembly) and Node.js (NAPI)
 
-- Simple, yet powerful and fully typed API
+- Simple, powerful and fully typed API
 
 - **Pine compiler - run your indicators/strategies from Python/JavaScript with accurate results**
 

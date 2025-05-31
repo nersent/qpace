@@ -1,17 +1,23 @@
+#[cfg(feature = "bindings_node")]
+#[macro_use]
+extern crate napi_derive;
+
 extern crate num_traits;
+
 #[macro_use]
 extern crate num_derive;
 
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-#[macro_use]
-extern crate napi_derive;
-}}
-
+pub mod backtest;
+pub mod ctx;
+pub mod legacy;
 pub mod metrics;
 pub mod ohlcv;
+pub mod orderbook;
+pub mod signal;
 pub mod stats;
 pub mod sym;
 pub mod timeframe;
+pub mod trade;
 pub mod utils;
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
@@ -29,30 +35,64 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   pub mod stats_py;
   pub mod metrics_py;
   pub mod ohlcv_py;
+  pub mod ctx_py;
+  pub mod trade_py;
+  pub mod signal_py;
+  pub mod orderbook_py;
+  pub mod backtest_py;
   use timeframe_py::PyTimeframe;
   use sym_py::PySym;
   use sym_py::PySymKind;
+  use ohlcv_py::PyOhlcv;
 }}
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
+// cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm", target_arch = "wasm32"))] {
+cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm"))] {
   use wasm_bindgen::prelude::*;
   pub mod timeframe_wasm;
   pub mod sym_wasm;
   pub mod stats_wasm;
   pub mod metrics_wasm;
+  pub mod ohlcv_wasm;
+  pub mod ctx_wasm;
+  pub mod trade_wasm;
+  pub mod signal_wasm;
+  pub mod orderbook_wasm;
+  pub mod backtest_wasm;
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
   use napi_derive::napi;
   pub mod timeframe_node;
-  pub mod sym_node;
   pub mod stats_node;
   pub mod metrics_node;
 }}
 
+#[cfg(feature = "bindings_node")]
+pub mod backtest_node;
+#[cfg(feature = "bindings_node")]
+pub mod ctx_node;
+#[cfg(feature = "bindings_node")]
+pub mod ohlcv_node;
+#[cfg(feature = "bindings_node")]
+pub mod orderbook_node;
+#[cfg(feature = "bindings_node")]
+pub mod signal_node;
+#[cfg(feature = "bindings_node")]
+pub mod sym_node;
+#[cfg(feature = "bindings_node")]
+pub mod trade_node;
+
 #[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
-#[cfg_attr(feature = "bindings_py", pyfunction(name = "get_version"))]
+#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
 #[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = getVersion))]
+#[inline]
 pub fn get_version() -> String {
     return env!("CARGO_PKG_VERSION").to_string();
+}
+
+#[cfg_attr(feature = "bindings_node", napi(js_name = getVersion))]
+#[inline]
+pub fn node_get_version() -> String {
+    return get_version();
 }
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
@@ -61,6 +101,8 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyTimeframe>()?;
     m.add_class::<PySym>()?;
     m.add_class::<PySymKind>()?;
+    m.add_class::<PyOhlcv>()?;
+    m.add_class::<ohlcv::OhlcvBar>()?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy_score, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_pnl, m)?)?;
@@ -88,9 +130,12 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
 define_stub_info_gatherer!(stub_info);
 }}
 
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-#[napi]
-pub fn init(mut exports: napi::JsObject) -> napi::Result<()> {
-  Ok(())
-}
-}}
+// cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
+//   use napi::bindgen_prelude::JsObjectValue;
+// #[napi(module_exports)]
+// pub fn node_exports(mut export: napi::bindgen_prelude::Object) -> napi::bindgen_prelude::Result<()> {
+//   let symbol = napi::bindgen_prelude::Symbol::for_desc("NAPI_RS_SYMBOL");
+//   export.set_named_property("NAPI_RS_SYMBOL", symbol)?;
+//   Ok(())
+// }
+// }}

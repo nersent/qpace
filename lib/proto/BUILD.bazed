@@ -1,0 +1,7 @@
+fileSet("ts", {
+  srcs: [glob("*.{ts,js}")],
+});
+
+fileSet("py", {
+  srcs: [glob("*.py")],
+});

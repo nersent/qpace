@@ -1,13 +1,3 @@
-use std::{any::Any, collections::HashMap};
-
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
-  use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
-}}
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
-  use wasm_bindgen::prelude::*;
-}}
-
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "json", serde(try_from = "String", into = "String"))]
@@ -188,6 +178,11 @@ impl Sym {
     #[inline]
     pub fn currency(&self) -> Option<&str> {
         self.currency.as_deref()
+    }
+
+    #[inline]
+    pub fn _currency(&self) -> String {
+        self.currency().unwrap_or("?").to_string()
     }
 
     #[inline]

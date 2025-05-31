@@ -1,19 +1,15 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
-  use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods}};
-  use pyo3::types::PyDict;
-}}
 use crate::sym::{Sym, SymKind};
+use pyo3::prelude::*;
+use pyo3::types::PyDict;
+use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
-#[cfg(feature = "bindings_py")]
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "SymKind"))]
+#[gen_stub_pyclass]
+#[pyclass(name = "SymKind")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PySymKind {
     inner: SymKind,
 }
 
-#[cfg(feature = "bindings_py")]
 impl Into<SymKind> for PySymKind {
     #[inline]
     fn into(self) -> SymKind {
@@ -21,7 +17,6 @@ impl Into<SymKind> for PySymKind {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl From<SymKind> for PySymKind {
     #[inline]
     fn from(inner: SymKind) -> Self {
@@ -29,7 +24,6 @@ impl From<SymKind> for PySymKind {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl Default for PySymKind {
     #[inline]
     fn default() -> Self {
@@ -37,7 +31,6 @@ impl Default for PySymKind {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 #[gen_stub_pymethods]
 #[pymethods]
 impl PySymKind {
@@ -110,15 +103,13 @@ impl PySymKind {
     }
 }
 
-#[cfg(feature = "bindings_py")]
-#[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
-#[cfg_attr(feature = "bindings_py", pyclass(name = "Sym"))]
-#[derive(Debug)]
+#[gen_stub_pyclass]
+#[pyclass(name = "Sym")]
+#[derive(Debug, Clone)]
 pub struct PySym {
     inner: Sym,
 }
 
-#[cfg(feature = "bindings_py")]
 impl Default for PySym {
     #[inline]
     fn default() -> Self {
@@ -126,7 +117,6 @@ impl Default for PySym {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl Into<Sym> for PySym {
     #[inline]
     fn into(self) -> Sym {
@@ -134,7 +124,6 @@ impl Into<Sym> for PySym {
     }
 }
 
-#[cfg(feature = "bindings_py")]
 impl From<Sym> for PySym {
     #[inline]
     fn from(inner: Sym) -> Self {
@@ -164,22 +153,23 @@ impl IntoPy<PyResult<PyObject>> for PySym {
     }
 }
 
-impl<'py> FromPyObject<'py> for PySym {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let id = ob.get_item("id")?.extract::<Option<String>>()?;
-        let ticker_id = ob.get_item("ticker_id")?.extract::<Option<String>>()?;
-        let kind = ob.get_item("kind")?.extract::<String>()?;
+impl PySym {
+    #[inline]
+    pub fn from_py(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let id = obj.get_item("id")?.extract::<Option<String>>()?;
+        let ticker_id = obj.get_item("ticker_id")?.extract::<Option<String>>()?;
+        let kind = obj.get_item("kind")?.extract::<String>()?;
         let kind: SymKind = kind.into();
-        let min_tick = ob.get_item("min_tick")?.extract::<f64>()?;
-        let min_qty = ob.get_item("min_qty")?.extract::<f64>()?;
-        let prefix = ob.get_item("prefix")?.extract::<Option<String>>()?;
-        let currency = ob.get_item("currency")?.extract::<Option<String>>()?;
-        let base_currency = ob.get_item("base_currency")?.extract::<Option<String>>()?;
-        let ticker = ob.get_item("ticker")?.extract::<Option<String>>()?;
-        let country = ob.get_item("country")?.extract::<Option<String>>()?;
-        let price_scale = ob.get_item("price_scale")?.extract::<f64>()?;
-        let point_value = ob.get_item("point_value")?.extract::<f64>()?;
-        let metadata = ob.get_item("metadata")?.extract::<Option<String>>()?;
+        let min_tick = obj.get_item("min_tick")?.extract::<f64>()?;
+        let min_qty = obj.get_item("min_qty")?.extract::<f64>()?;
+        let prefix = obj.get_item("prefix")?.extract::<Option<String>>()?;
+        let currency = obj.get_item("currency")?.extract::<Option<String>>()?;
+        let base_currency = obj.get_item("base_currency")?.extract::<Option<String>>()?;
+        let ticker = obj.get_item("ticker")?.extract::<Option<String>>()?;
+        let country = obj.get_item("country")?.extract::<Option<String>>()?;
+        let price_scale = obj.get_item("price_scale")?.extract::<f64>()?;
+        let point_value = obj.get_item("point_value")?.extract::<f64>()?;
+        let metadata = obj.get_item("metadata")?.extract::<Option<String>>()?;
         let mut sym = Sym::default();
         sym.set_id(id);
         sym.set_ticker_id(ticker_id);
@@ -198,17 +188,6 @@ impl<'py> FromPyObject<'py> for PySym {
     }
 }
 
-#[cfg(feature = "bindings_py")]
-// some conflict with pyo3 nerds
-impl PySym {
-    pub fn clone(&self) -> Self {
-        PySym {
-            inner: self.inner.clone(),
-        }
-    }
-}
-
-#[cfg(feature = "bindings_py")]
 #[gen_stub_pymethods]
 #[pymethods]
 impl PySym {
@@ -398,28 +377,28 @@ impl PySym {
     }
 
     #[staticmethod]
-    #[pyo3(name = "btc_usd")]
+    #[pyo3(name = "BTC_USD")]
     #[inline]
     pub fn py_btc_usd() -> Self {
         Sym::btc_usd().into()
     }
 
     #[staticmethod]
-    #[pyo3(name = "eth_usd")]
+    #[pyo3(name = "ETH_USD")]
     #[inline]
     pub fn py_eth_usd() -> Self {
         Sym::eth_usd().into()
     }
 
     #[staticmethod]
-    #[pyo3(name = "sol_usd")]
+    #[pyo3(name = "SOL_USD")]
     #[inline]
     pub fn py_sol_usd() -> Self {
         Sym::sol_usd().into()
     }
 
     #[staticmethod]
-    #[pyo3(name = "doge_usd")]
+    #[pyo3(name = "DOGE_USD")]
     #[inline]
     pub fn py_doge_usd() -> Self {
         Sym::doge_usd().into()

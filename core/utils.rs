@@ -245,3 +245,36 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
   }
 }
 }
+
+#[cfg(feature = "bindings_py")]
+#[cfg(feature = "polars")]
+pub struct PandasDataFrame(pub PyObject);
+
+#[cfg(feature = "bindings_py")]
+#[cfg(feature = "polars")]
+impl PyStubType for PandasDataFrame {
+    fn type_output() -> TypeInfo {
+        TypeInfo::with_module("pandas.DataFrame", "pandas".into())
+    }
+}
+
+#[cfg(feature = "bindings_py")]
+#[cfg(feature = "polars")]
+impl Into<PandasDataFrame> for PyObject {
+    fn into(self) -> PandasDataFrame {
+        PandasDataFrame(self)
+    }
+}
+
+#[cfg(feature = "bindings_py")]
+#[cfg(feature = "polars")]
+impl IntoPy<PyObject> for PandasDataFrame {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        self.0
+    }
+}
+
+pub fn with_suffix(suffix: &str) -> impl Fn(f64) -> String {
+    let suffix = suffix.to_string();
+    move |value| format!("{:0.2}{}", value, suffix)
+}

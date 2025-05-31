@@ -49,19 +49,33 @@ fileSet("core", {
   copy: true,
 });
 
-fileSet("wasm_src", {
+fileSet("ts_src", {
   srcs: glob("**/*.*"),
   deps: [":src_py", ":src_rs"],
   copy: true,
 });
 
 rustWasm("wasm", {
-  deps: [":wasm_src"],
+  deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
     "--target nodejs --release --no-default-features --features=bindings_wasm",
   ],
 });
+
+rustNapi("napi", {
+  deps: [":ts_src"],
+  workspace: WORKSPACE,
+  args: [
+    `--release --cargo-name qpace_core --cargo-flags="--no-default-features`,
+  ],
+});
+
+// execute("napi", (ctx) => ({
+//   command: `pnpm napi build core/pkg_napi --release --cargo-name qpace_core --cargo-flags="--no-default-features --features=bindings_node"`,
+//   cwd: ctx.workspacePath,
+//   run: true,
+// }));
 
 execute("check", (ctx) => ({
   command: [

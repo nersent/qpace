@@ -1,18 +1,14 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
-  use wasm_bindgen::prelude::*;
-  use js_sys::{Error};
-  use js_sys::{Object, Reflect};
-}}
 use crate::sym::{Sym, SymKind};
+use js_sys::Error;
+use js_sys::{Object, Reflect};
+use wasm_bindgen::prelude::*;
 
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_name = "SymKind")]
 #[derive(Debug, Clone)]
 pub struct WasmSymKind {
     inner: SymKind,
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl From<SymKind> for WasmSymKind {
     #[inline]
     fn from(inner: SymKind) -> Self {
@@ -20,7 +16,6 @@ impl From<SymKind> for WasmSymKind {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Into<SymKind> for WasmSymKind {
     #[inline]
     fn into(self) -> SymKind {
@@ -28,7 +23,6 @@ impl Into<SymKind> for WasmSymKind {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Default for WasmSymKind {
     #[inline]
     fn default() -> Self {
@@ -36,7 +30,6 @@ impl Default for WasmSymKind {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class = SymKind)]
 impl WasmSymKind {
     #[wasm_bindgen(js_name = toString)]
@@ -100,14 +93,12 @@ impl WasmSymKind {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_name = "Sym")]
 #[derive(Debug, Clone)]
 pub struct WasmSym {
     inner: Sym,
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Default for WasmSym {
     #[inline]
     fn default() -> Self {
@@ -115,7 +106,6 @@ impl Default for WasmSym {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl From<Sym> for WasmSym {
     #[inline]
     fn from(inner: Sym) -> Self {
@@ -123,7 +113,6 @@ impl From<Sym> for WasmSym {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Into<Sym> for WasmSym {
     #[inline]
     fn into(self) -> Sym {
@@ -131,7 +120,6 @@ impl Into<Sym> for WasmSym {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Into<JsValue> for &WasmSym {
     #[inline]
     fn into(self) -> JsValue {
@@ -177,7 +165,6 @@ impl Into<JsValue> for &WasmSym {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Into<WasmSym> for JsValue {
     #[inline]
     fn into(self) -> WasmSym {
@@ -253,8 +240,6 @@ impl Into<WasmSym> for JsValue {
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class = Sym)]
 impl WasmSym {
     #[wasm_bindgen(constructor)]
@@ -419,25 +404,25 @@ impl WasmSym {
         self.inner.set_metadata(metadata);
     }
 
-    #[wasm_bindgen(js_name = btcUsd)]
+    #[wasm_bindgen(js_name = BTC_USD)]
     #[inline]
     pub fn wasm_btc_usd() -> Self {
         Sym::btc_usd().into()
     }
 
-    #[wasm_bindgen(js_name = ethUsd)]
+    #[wasm_bindgen(js_name = ETH_USD)]
     #[inline]
     pub fn wasm_eth_usd() -> Self {
         Sym::eth_usd().into()
     }
 
-    #[wasm_bindgen(js_name = solUsd)]
+    #[wasm_bindgen(js_name = SOL_USD)]
     #[inline]
     pub fn wasm_sol_usd() -> Self {
         Sym::sol_usd().into()
     }
 
-    #[wasm_bindgen(js_name = dogeUsd)]
+    #[wasm_bindgen(js_name = DOGE_USD)]
     #[inline]
     pub fn wasm_doge_usd() -> Self {
         Sym::doge_usd().into()

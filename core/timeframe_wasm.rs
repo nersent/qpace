@@ -1,32 +1,26 @@
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
-  use wasm_bindgen::prelude::*;
-  use js_sys::{Error};
-}}
 use crate::timeframe::Timeframe;
 use chrono::Duration;
+use js_sys::Error;
+use wasm_bindgen::prelude::*;
 
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_name = "Timeframe")]
 #[derive(Debug, Clone)]
 pub struct WasmTimeframe {
     inner: Timeframe,
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl From<Timeframe> for WasmTimeframe {
     fn from(inner: Timeframe) -> Self {
         WasmTimeframe { inner }
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 impl Into<Timeframe> for WasmTimeframe {
     fn into(self) -> Timeframe {
         self.inner
     }
 }
 
-#[cfg(feature = "bindings_wasm")]
 #[wasm_bindgen(js_class = Timeframe)]
 impl WasmTimeframe {
     #[wasm_bindgen(js_name = toString)]

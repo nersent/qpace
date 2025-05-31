@@ -28,12 +28,12 @@ bindings_py = [
   "pyo3-stub-gen",
   "pyo3-stub-gen-derive",
   "env_logger",
-  "comfy-table",
-  "textplots",
+  "pretty_table",
 ]
 bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook"]
-bindings_node = ["napi", "napi-derive"]
+bindings_node = ["napi", "napi-derive", "pretty_table"]
 json = ["serde", "serde_json"]
+pretty_table = ["comfy-table", "textplots"]
 # polars_utils = ["polars"]
 
 [dependencies]
@@ -65,8 +65,13 @@ pyo3 = { version = "0.23", optional = true, features = [
 pyo3-ffi = { version = "0.23", optional = true }
 pyo3-stub-gen = { version = "0.7", optional = true }
 pyo3-stub-gen-derive = { version = "0.7", optional = true }
-napi = { version = "2", optional = true }
-napi-derive = { version = "2", features = ["type-def"], optional = true }
+napi = { version = "3.0.0-beta.2", optional = true, features = [
+  "chrono_date",
+  "napi8",
+] }
+napi-derive = { version = "3.0.0-beta.2", features = [
+  "type-def",
+], optional = true }
 # cfg-if = { workspace = true }
 # chrono = { workspace = true }
 # serde = { workspace = true }

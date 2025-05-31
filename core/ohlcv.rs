@@ -1,5 +1,4 @@
 use chrono::{DateTime, Duration, Utc};
-use itertools::izip;
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
     use polars::frame::DataFrame;
     use polars::series::Series;
@@ -14,13 +13,15 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods}};
+  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyfunction}};
   use pyo3::types::PyDict;
 }}
 use std::{
     any::Any,
+    cell::RefCell,
     fmt,
     ops::Range,
+    rc::Rc,
     sync::{Arc, RwLock},
 };
 cfg_if::cfg_if! {
@@ -34,14 +35,13 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
 use crate::{timeframe::Timeframe, utils::get_oldest_possible_datetime};
 use std::path::Path;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]
 #[cfg_attr(feature = "bindings_py", pyclass(name = "OhlcvBar"))]
-#[wasm_bindgen(js_name = "OhlcvBar")]
-#[napi]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = "OhlcvBar"))]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct OhlcvBar {
-    open_time: DateTime<Utc>,
-    close_time: DateTime<Utc>,
+    open_time: Option<DateTime<Utc>>,
+    close_time: Option<DateTime<Utc>>,
     open: f64,
     high: f64,
     low: f64,
@@ -58,7 +58,7 @@ impl PartialOrd for OhlcvBar {
 impl fmt::Display for OhlcvBar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&format!(
-            "OhlcvBar(open_time={}, close_time={}, open={}, high={}, low={}, close={}, volume={})",
+            "OhlcvBar(open_time={:?}, close_time={:?}, open={}, high={}, low={}, close={}, volume={})",
             self.open_time,
             self.close_time,
             self.open,
@@ -73,8 +73,8 @@ impl fmt::Display for OhlcvBar {
 impl Default for OhlcvBar {
     fn default() -> Self {
         Self {
-            open_time: get_oldest_possible_datetime(),
-            close_time: get_oldest_possible_datetime(),
+            open_time: None,
+            close_time: None,
             open: f64::NAN,
             high: f64::NAN,
             low: f64::NAN,
@@ -87,8 +87,8 @@ impl Default for OhlcvBar {
 impl OhlcvBar {
     #[inline]
     pub fn new(
-        open_time: DateTime<Utc>,
-        close_time: DateTime<Utc>,
+        open_time: Option<DateTime<Utc>>,
+        close_time: Option<DateTime<Utc>>,
         open: f64,
         high: f64,
         low: f64,
@@ -107,22 +107,22 @@ impl OhlcvBar {
     }
 
     #[inline]
-    pub fn open_time(&self) -> &DateTime<Utc> {
-        &self.open_time
+    pub fn open_time(&self) -> Option<&DateTime<Utc>> {
+        self.open_time.as_ref()
     }
 
     #[inline]
-    pub fn set_open_time(&mut self, open_time: DateTime<Utc>) {
+    pub fn set_open_time(&mut self, open_time: Option<DateTime<Utc>>) {
         self.open_time = open_time;
     }
 
     #[inline]
-    pub fn close_time(&self) -> &DateTime<Utc> {
-        &self.close_time
+    pub fn close_time(&self) -> Option<&DateTime<Utc>> {
+        self.close_time.as_ref()
     }
 
     #[inline]
-    pub fn set_close_time(&mut self, close_time: DateTime<Utc>) {
+    pub fn set_close_time(&mut self, close_time: Option<DateTime<Utc>>) {
         self.close_time = close_time;
     }
 
@@ -205,13 +205,13 @@ impl OhlcvBar {
 
 #[inline]
 pub fn zip_ohlcv_bars(
-    open_time: Option<&[Option<DateTime<Utc>>]>,
-    close_time: Option<&[Option<DateTime<Utc>>]>,
-    open: Option<&[f64]>,
-    high: Option<&[f64]>,
-    low: Option<&[f64]>,
-    close: Option<&[f64]>,
-    volume: Option<&[f64]>,
+    open_time: Option<Vec<Option<DateTime<Utc>>>>,
+    close_time: Option<Vec<Option<DateTime<Utc>>>>,
+    open: Option<Vec<f64>>,
+    high: Option<Vec<f64>>,
+    low: Option<Vec<f64>>,
+    close: Option<Vec<f64>>,
+    volume: Option<Vec<f64>>,
 ) -> Vec<OhlcvBar> {
     let len = open_time
         .as_ref()
@@ -232,31 +232,62 @@ pub fn zip_ohlcv_bars(
     assert!(volume.is_none() || volume.as_ref().unwrap().len() == len);
     let mut bars: Vec<OhlcvBar> = vec![OhlcvBar::default(); len];
     for i in 0..len {
-        let open_time = open_time.and_then(|x| x.get(i)).copied().unwrap_or(None);
-        let close_time = close_time.and_then(|x| x.get(i)).copied().unwrap_or(None);
-        let open = open.and_then(|x| x.get(i)).copied().unwrap_or(f64::NAN);
-        let high = high.and_then(|x| x.get(i)).copied().unwrap_or(f64::NAN);
-        let low = low.and_then(|x| x.get(i)).copied().unwrap_or(f64::NAN);
-        let close = close.and_then(|x| x.get(i)).copied().unwrap_or(f64::NAN);
-        let volume = volume.and_then(|x| x.get(i)).copied().unwrap_or(f64::NAN);
-        bars[i] = OhlcvBar::new(
-            open_time.unwrap_or_else(|| get_oldest_possible_datetime()),
-            close_time.unwrap_or_else(|| get_oldest_possible_datetime()),
-            open,
-            high,
-            low,
-            close,
-            volume,
-        );
+        let open_time = open_time
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(None);
+        let close_time = close_time
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(None);
+        let open = open
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(f64::NAN);
+        let high = high
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(f64::NAN);
+        let low = low
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(f64::NAN);
+        let close = close
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(f64::NAN);
+        let volume = volume
+            .as_ref()
+            .and_then(|x| x.get(i))
+            .copied()
+            .unwrap_or(f64::NAN);
+        bars[i] = OhlcvBar::new(open_time, close_time, open, high, low, close, volume);
     }
     return bars;
 }
 
 pub trait OhlcvReader: fmt::Debug {
     fn len(&self) -> usize;
-    fn at(&self, index: usize) -> Option<OhlcvBar>;
+    fn get(&self, index: usize) -> Option<OhlcvBar>;
+
+    #[inline]
+    fn at(&self, index: i32) -> Option<OhlcvBar> {
+        let idx = if index < 0 {
+            (self.len() as i32 + index) as usize
+        } else {
+            index as usize
+        };
+        self.get(idx)
+    }
+
     fn slice(&self, range: Range<usize>) -> Vec<OhlcvBar>;
-    fn all(&self) -> Vec<OhlcvBar> {
+    fn bars(&self) -> Vec<OhlcvBar> {
         return self.slice(0..self.len());
     }
     fn into_box(self) -> Box<dyn OhlcvReader>;
@@ -264,38 +295,44 @@ pub trait OhlcvReader: fmt::Debug {
     fn as_any(&self) -> &dyn Any;
 
     #[inline]
-    fn open_time(&self) -> Vec<DateTime<Utc>> {
-        self.all().iter().map(|bar| *bar.open_time()).collect()
+    fn open_time(&self) -> Vec<Option<DateTime<Utc>>> {
+        self.bars()
+            .iter()
+            .map(|bar| bar.open_time().copied())
+            .collect()
     }
 
     #[inline]
-    fn close_time(&self) -> Vec<DateTime<Utc>> {
-        self.all().iter().map(|bar| *bar.close_time()).collect()
+    fn close_time(&self) -> Vec<Option<DateTime<Utc>>> {
+        self.bars()
+            .iter()
+            .map(|bar| bar.close_time().copied())
+            .collect()
     }
 
     #[inline]
     fn open(&self) -> Vec<f64> {
-        self.all().iter().map(|bar| bar.open()).collect()
+        self.bars().iter().map(|bar| bar.open()).collect()
     }
 
     #[inline]
     fn high(&self) -> Vec<f64> {
-        self.all().iter().map(|bar| bar.high()).collect()
+        self.bars().iter().map(|bar| bar.high()).collect()
     }
 
     #[inline]
     fn low(&self) -> Vec<f64> {
-        self.all().iter().map(|bar| bar.low()).collect()
+        self.bars().iter().map(|bar| bar.low()).collect()
     }
 
     #[inline]
     fn close(&self) -> Vec<f64> {
-        self.all().iter().map(|bar| bar.close()).collect()
+        self.bars().iter().map(|bar| bar.close()).collect()
     }
 
     #[inline]
     fn volume(&self) -> Vec<f64> {
-        self.all().iter().map(|bar| bar.volume()).collect()
+        self.bars().iter().map(|bar| bar.volume()).collect()
     }
 
     #[cfg(feature = "polars")]
@@ -309,9 +346,9 @@ pub trait OhlcvReader: fmt::Debug {
         let mut close = Vec::with_capacity(len);
         let mut volume = Vec::with_capacity(len);
         for i in 0..len {
-            let bar = self.at(i).unwrap();
-            open_time.push(bar.open_time.timestamp_millis());
-            close_time.push(bar.close_time.timestamp_millis());
+            let bar = self.get(i).unwrap();
+            open_time.push(bar.open_time.as_ref().map(|x| x.timestamp_millis()));
+            close_time.push(bar.close_time.as_ref().map(|x| x.timestamp_millis()));
             open.push(bar.open);
             high.push(bar.high);
             low.push(bar.low);
@@ -372,9 +409,9 @@ pub trait OhlcvReader: fmt::Debug {
             messages.push("ohlcv volume is all NaN".to_string());
         }
         for bar_index in 0..self.len() {
-            let bar: OhlcvBar = self.at(bar_index).unwrap();
+            let bar: OhlcvBar = self.get(bar_index).unwrap();
             let prev_bar: Option<OhlcvBar> = if bar_index > 0 {
-                Some(self.at(bar_index - 1).unwrap())
+                Some(self.get(bar_index - 1).unwrap())
             } else {
                 None
             };
@@ -424,6 +461,32 @@ pub trait OhlcvReader: fmt::Debug {
             Ok(())
         };
     }
+
+    #[inline]
+    fn find_bar_index_open_time_eq(&self, open_time: &DateTime<Utc>) -> Option<usize> {
+        let bars = self.bars();
+        for (index, bar) in bars.iter().enumerate() {
+            if let Some(bar_open_time) = bar.open_time() {
+                if bar_open_time == open_time {
+                    return Some(index);
+                }
+            }
+        }
+        return None;
+    }
+
+    #[inline]
+    fn find_bar_index_open_time_geq(&self, open_time: &DateTime<Utc>) -> Option<usize> {
+        let bars = self.bars();
+        for (index, bar) in bars.iter().enumerate() {
+            if let Some(bar_open_time) = bar.open_time() {
+                if bar_open_time >= open_time {
+                    return Some(index);
+                }
+            }
+        }
+        return None;
+    }
 }
 
 pub trait OhlcvWriter: fmt::Debug {
@@ -440,18 +503,23 @@ pub trait OhlcvWriter: fmt::Debug {
 
     #[cfg(feature = "polars")]
     #[inline]
+    fn read_polars(&mut self, df: &DataFrame) {
+        let bars = ohlcv_bars_from_polars(df, "s");
+        self.push_many(bars);
+    }
+
+    #[cfg(feature = "polars")]
+    #[inline]
     fn read_csv(&mut self, path: &Path) {
         let df = read_df_csv(path).unwrap();
-        let bars = ohlcv_bars_from_polars(&df, "s");
-        self.push_many(bars);
+        self.read_polars(&df);
     }
 
     #[cfg(feature = "polars")]
     #[inline]
     fn read_parquet(&mut self, path: &Path) {
         let df = read_df_parquet(path).unwrap();
-        let bars = ohlcv_bars_from_polars(&df, "s");
-        self.push_many(bars);
+        self.read_polars(&df);
     }
 }
 
@@ -463,10 +531,7 @@ pub trait OhlcvReaderOps: OhlcvReader {
 
     #[inline]
     fn last(&mut self) -> Option<OhlcvBar> {
-        if self.len() == 0 {
-            return None;
-        }
-        self.at(self.len() - 1)
+        self.at(-1)
     }
 
     fn copy(&self) -> Self;
@@ -490,6 +555,15 @@ pub struct Ohlcv {
     timeframe: Timeframe,
 }
 
+impl Default for Ohlcv {
+    fn default() -> Self {
+        Self {
+            bars: vec![],
+            timeframe: Timeframe::Unknown(),
+        }
+    }
+}
+
 #[cfg(feature = "polars")]
 impl Into<DataFrame> for &Ohlcv {
     fn into(self) -> DataFrame {
@@ -500,14 +574,14 @@ impl Into<DataFrame> for &Ohlcv {
 impl Ohlcv {
     #[inline]
     pub fn new() -> Self {
-        Self::from_bars(vec![])
+        Self::default()
     }
 
     #[inline]
     pub fn from_bars(bars: Vec<OhlcvBar>) -> Self {
         Self {
             bars,
-            timeframe: Timeframe::Unknown(),
+            ..Self::default()
         }
     }
 
@@ -529,7 +603,7 @@ impl OhlcvReader for Ohlcv {
     }
 
     #[inline]
-    fn at(&self, index: usize) -> Option<OhlcvBar> {
+    fn get(&self, index: usize) -> Option<OhlcvBar> {
         self.bars.get(index).copied()
     }
 
@@ -581,7 +655,7 @@ impl OhlcvReaderOps for Ohlcv {
     #[inline]
     fn copy(&self) -> Self {
         return Self {
-            bars: self.all(),
+            bars: self.bars(),
             timeframe: self.timeframe,
         };
     }
@@ -594,7 +668,7 @@ impl OhlcvReaderOps for Ohlcv {
     #[inline]
     fn tail(&self, n: usize) -> Vec<OhlcvBar> {
         if n > self.len() {
-            return self.all();
+            return self.bars();
         }
         self.slice(self.len() - n..self.len())
     }
@@ -609,7 +683,7 @@ impl OhlcvReaderOps for Ohlcv {
 impl OhlcvWriterOps for Ohlcv {
     #[inline]
     fn extend(&mut self, other: &Self) {
-        self.bars.extend(other.all());
+        self.bars.extend(other.bars());
     }
 
     #[inline]
@@ -646,6 +720,160 @@ impl OhlcvWriterOps for Ohlcv {
 }
 
 #[derive(Debug, Clone)]
+pub struct RcOhlcv {
+    inner: Rc<RefCell<Ohlcv>>,
+}
+
+impl Into<Ohlcv> for RcOhlcv {
+    #[inline]
+    fn into(self) -> Ohlcv {
+        self.inner.borrow().clone()
+    }
+}
+
+impl Into<RcOhlcv> for Ohlcv {
+    #[inline]
+    fn into(self) -> RcOhlcv {
+        RcOhlcv {
+            inner: Rc::new(RefCell::new(self)),
+        }
+    }
+}
+
+#[cfg(feature = "polars")]
+impl Into<DataFrame> for &RcOhlcv {
+    #[inline]
+    fn into(self) -> DataFrame {
+        self.inner.borrow().to_polars().unwrap()
+    }
+}
+
+impl RcOhlcv {
+    #[inline]
+    pub fn new() -> Self {
+        Ohlcv::new().into()
+    }
+
+    #[inline]
+    pub fn from_bars(bars: Vec<OhlcvBar>) -> Self {
+        Ohlcv::from_bars(bars).into()
+    }
+
+    #[inline]
+    pub fn timeframe(&self) -> Timeframe {
+        self.inner.borrow().timeframe()
+    }
+
+    #[inline]
+    pub fn set_timeframe(&self, timeframe: Timeframe) {
+        self.inner.borrow_mut().set_timeframe(timeframe);
+    }
+}
+
+impl OhlcvReader for RcOhlcv {
+    #[inline]
+    fn len(&self) -> usize {
+        self.inner.borrow().len()
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<OhlcvBar> {
+        self.inner.borrow().get(index)
+    }
+
+    #[inline]
+    fn slice(&self, range: Range<usize>) -> Vec<OhlcvBar> {
+        self.inner.borrow().slice(range)
+    }
+
+    #[inline]
+    fn into_box(self) -> Box<dyn OhlcvReader> {
+        Box::new(self)
+    }
+
+    #[inline]
+    fn clone_box(&self) -> Box<dyn OhlcvReader> {
+        self.clone().into_box()
+    }
+
+    #[inline]
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl OhlcvWriter for RcOhlcv {
+    #[inline]
+    fn push(&mut self, bar: OhlcvBar) {
+        self.inner.borrow_mut().push(bar);
+    }
+
+    #[inline]
+    fn push_many(&mut self, bars: Vec<OhlcvBar>) {
+        self.inner.borrow_mut().push_many(bars);
+    }
+
+    #[inline]
+    fn set(&mut self, index: usize, bar: OhlcvBar) {
+        self.inner.borrow_mut().set(index, bar);
+    }
+}
+
+impl OhlcvReaderOps for RcOhlcv {
+    #[inline]
+    fn copy(&self) -> Self {
+        self.inner.borrow().clone().into()
+    }
+
+    #[inline]
+    fn head(&self, n: usize) -> Vec<OhlcvBar> {
+        self.inner.borrow().head(n)
+    }
+
+    #[inline]
+    fn tail(&self, n: usize) -> Vec<OhlcvBar> {
+        self.inner.borrow().tail(n)
+    }
+
+    #[inline]
+    fn resample(&self, timeframe: Timeframe, align_utc: bool) -> Self {
+        self.inner.borrow().resample(timeframe, align_utc).into()
+    }
+}
+
+impl OhlcvWriterOps for RcOhlcv {
+    #[inline]
+    fn extend(&mut self, other: &Self) {
+        self.inner.borrow_mut().extend(&other.inner.borrow());
+    }
+
+    #[inline]
+    fn sort(&mut self, ascending: bool) {
+        self.inner.borrow_mut().sort(ascending);
+    }
+
+    #[inline]
+    fn reverse(&mut self) {
+        self.inner.borrow_mut().reverse();
+    }
+
+    #[inline]
+    fn clear(&mut self) {
+        self.inner.borrow_mut().clear();
+    }
+
+    #[inline]
+    fn pop(&mut self) -> Option<OhlcvBar> {
+        self.inner.borrow_mut().pop()
+    }
+
+    #[inline]
+    fn shift(&mut self) -> Option<OhlcvBar> {
+        self.inner.borrow_mut().shift()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ArcOhlcv {
     inner: Arc<RwLock<Ohlcv>>,
 }
@@ -677,7 +905,7 @@ impl Into<DataFrame> for &ArcOhlcv {
 impl ArcOhlcv {
     #[inline]
     pub fn new() -> Self {
-        Self::from_bars(vec![])
+        Ohlcv::new().into()
     }
 
     #[inline]
@@ -703,8 +931,8 @@ impl OhlcvReader for ArcOhlcv {
     }
 
     #[inline]
-    fn at(&self, index: usize) -> Option<OhlcvBar> {
-        self.inner.read().unwrap().at(index)
+    fn get(&self, index: usize) -> Option<OhlcvBar> {
+        self.inner.read().unwrap().get(index)
     }
 
     #[inline]
@@ -863,18 +1091,19 @@ fn group_by_time(bars: &[OhlcvBar], duration: Duration) -> Vec<OhlcvBar> {
     let mut bucket_start: Option<DateTime<Utc>> = None;
 
     for bar in bars {
+        assert!(bar.open_time.is_some(), "Bar must have an open time");
         if aggregator.is_none() {
             aggregator = Some(*bar);
-            bucket_start = Some(bar.open_time);
+            bucket_start = Some(bar.open_time.unwrap());
         } else if let (Some(agg), Some(start)) = (aggregator, bucket_start) {
             // Determine if this bar crosses the boundary
             let boundary = start + duration;
-            if bar.open_time >= boundary {
+            if bar.open_time.unwrap() >= boundary {
                 // close out current aggregator
                 result.push(agg);
                 // start a new aggregator
                 aggregator = Some(*bar);
-                bucket_start = Some(bar.open_time);
+                bucket_start = Some(bar.open_time.unwrap());
             } else {
                 // merge into existing aggregator
                 aggregator = Some(agg.merge(bar));
@@ -1077,13 +1306,13 @@ fn finalize_aggregator(agg: &mut OhlcvBar, tf: &Timeframe) {
         Timeframe::Days(n) => {
             // close_time = open_time + (n * 24 hours)
             let offset = chrono::Duration::days(*n as i64);
-            agg.close_time = agg.open_time + offset;
+            agg.close_time = Some(agg.open_time.unwrap() + offset);
         }
 
         // If you want hour bars pinned similarly, do the same for Hours(n).
         Timeframe::Hours(n) => {
             let offset = chrono::Duration::hours(*n as i64);
-            agg.close_time = agg.open_time + offset;
+            agg.close_time = Some(agg.open_time.unwrap() + offset);
         }
 
         // Otherwise leave aggregator.close_time as the last intraday bar timestamp
@@ -1099,13 +1328,13 @@ fn group_by_aligned_time(bars: &[OhlcvBar], timeframe: Timeframe) -> Vec<OhlcvBa
     let mut current_bucket: Option<chrono::DateTime<chrono::Utc>> = None;
 
     for bar in bars {
-        let bucket = floor_to_timeframe(bar.open_time, &timeframe);
+        let bucket = floor_to_timeframe(bar.open_time.unwrap(), &timeframe);
 
         match aggregator {
             None => {
                 // start a new aggregator, open_time pinned to the boundary
                 let mut new_bar = *bar;
-                new_bar.open_time = bucket;
+                new_bar.open_time = Some(bucket);
                 aggregator = Some(new_bar);
                 current_bucket = Some(bucket);
             }
@@ -1121,7 +1350,7 @@ fn group_by_aligned_time(bars: &[OhlcvBar], timeframe: Timeframe) -> Vec<OhlcvBa
 
                     // start next aggregator
                     let mut new_bar = *bar;
-                    new_bar.open_time = bucket;
+                    new_bar.open_time = Some(bucket);
                     aggregator = Some(new_bar);
                     current_bucket = Some(bucket);
                 }
@@ -1216,13 +1445,20 @@ fn ohlcv_bars_from_polars(df: &DataFrame, time_unit: &str) -> Vec<OhlcvBar> {
         None
     };
 
-    return zip_ohlcv_bars(
-        open_time.as_deref(),
-        close_time.as_deref(),
-        open.as_deref(),
-        high.as_deref(),
-        low.as_deref(),
-        close.as_deref(),
-        volume.as_deref(),
-    );
+    return zip_ohlcv_bars(open_time, close_time, open, high, low, close, volume);
+}
+
+#[inline]
+pub fn hl2(high: f64, low: f64) -> f64 {
+    return (high + low) / 2.0;
+}
+
+#[inline]
+pub fn hlc3(high: f64, low: f64, close: f64) -> f64 {
+    return (high + low + close) / 3.0;
+}
+
+#[inline]
+pub fn hlcc4(high: f64, low: f64, close: f64) -> f64 {
+    return (high + low + close + close) / 4.0;
 }

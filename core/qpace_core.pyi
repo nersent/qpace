@@ -3,10 +3,126 @@
 
 import builtins
 import datetime
+import pandas
 import typing
+from enum import Enum, auto
+
+class Backtest:
+    initial_capital: builtins.float
+    process_orders_on_close: builtins.bool
+    ctx: Ctx
+    equity: builtins.float
+    net_equity: builtins.float
+    equity_list: builtins.list[builtins.float]
+    net_equity_list: builtins.list[builtins.float]
+    pnl_list: builtins.list[builtins.float]
+    open_profit: builtins.float
+    net_profit: builtins.float
+    gross_profit: builtins.float
+    gross_loss: builtins.float
+    position_size: builtins.float
+    trades: builtins.list[Trade]
+    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False): ...
+    def on_bar_open(self) -> None:
+        ...
+
+    def on_bar_close(self) -> None:
+        ...
+
+    def signal(self, signal:Signal) -> None:
+        ...
+
+    def signal_list(self, signals:typing.Sequence[typing.Optional[Signal]]) -> None:
+        ...
+
+    def signal_dict(self, signals:typing.Mapping[builtins.int, Signal]) -> None:
+        ...
+
+    def skip(self, skip:CtxSkip) -> None:
+        ...
+
+    def __len__(self) -> builtins.int:
+        ...
+
+    def __next__(self) -> builtins.int:
+        ...
+
+    def __iter__(self) -> Backtest:
+        ...
+
+    def to_pine(self) -> builtins.str:
+        ...
+
+
+class BacktestSummary:
+    def print(self) -> None:
+        ...
+
+    def to_dict(self) -> typing.Any:
+        ...
+
+
+class Ctx:
+    bar_index: builtins.int
+    bar: OhlcvBar
+    is_initialized: builtins.bool
+    sym: Sym
+    ohlcv: Ohlcv
+    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None): ...
+    def copy(self) -> Ctx:
+        ...
+
+    def reset(self) -> None:
+        ...
+
+    def next(self) -> typing.Optional[builtins.int]:
+        ...
+
+    def __len__(self) -> builtins.int:
+        ...
+
+    def __next__(self) -> builtins.int:
+        ...
+
+    def __iter__(self) -> Ctx:
+        ...
+
+    def skip(self, skip:CtxSkip) -> None:
+        ...
+
+
+class CtxSkip:
+    @staticmethod
+    def end() -> CtxSkip:
+        ...
+
+    @staticmethod
+    def bars(bars:builtins.int) -> CtxSkip:
+        ...
+
+    @staticmethod
+    def bar_index(bar_index:builtins.int) -> CtxSkip:
+        ...
+
+    @staticmethod
+    def open_time_eq(open_time:datetime.datetime) -> CtxSkip:
+        ...
+
+    @staticmethod
+    def open_time_geq(open_time:datetime.datetime) -> CtxSkip:
+        ...
+
 
 class Ohlcv:
     timeframe: Timeframe
+    open_time: builtins.list[typing.Optional[datetime.datetime]]
+    close_time: builtins.list[typing.Optional[datetime.datetime]]
+    open: builtins.list[builtins.float]
+    high: builtins.list[builtins.float]
+    low: builtins.list[builtins.float]
+    close: builtins.list[builtins.float]
+    volume: builtins.list[builtins.float]
+    bars: builtins.list[OhlcvBar]
     def __new__(cls,): ...
     @staticmethod
     def from_bars(bars:typing.Sequence[OhlcvBar]) -> Ohlcv:
@@ -21,7 +137,13 @@ class Ohlcv:
     def __len__(self) -> builtins.int:
         ...
 
-    def slice(self, slice:slice) -> builtins.list[OhlcvBar]:
+    def slice(self, slice:slice) -> Ohlcv:
+        ...
+
+    def head(self, count:builtins.int) -> Ohlcv:
+        ...
+
+    def tail(self, count:builtins.int) -> Ohlcv:
         ...
 
     def copy(self) -> Ohlcv:
@@ -30,16 +152,13 @@ class Ohlcv:
     def extend(self, other:Ohlcv) -> None:
         ...
 
-    def head(self, n:builtins.int) -> builtins.list[OhlcvBar]:
-        ...
-
-    def tail(self, n:builtins.int) -> builtins.list[OhlcvBar]:
-        ...
-
     def resample(self, timeframe:Timeframe, align_utc:builtins.bool) -> Ohlcv:
         ...
 
     def sort(self, ascending:builtins.bool) -> None:
+        ...
+
+    def reverse(self) -> None:
         ...
 
     def clear(self) -> None:
@@ -61,7 +180,7 @@ class Ohlcv:
     def from_pandas(df:typing.Any) -> Ohlcv:
         ...
 
-    def to_pandas(self) -> typing.Any:
+    def to_pandas(self) -> pandas.DataFrame:
         ...
 
     @staticmethod
@@ -83,8 +202,8 @@ class Ohlcv:
 
 
 class OhlcvBar:
-    open_time: datetime.datetime
-    close_time: datetime.datetime
+    open_time: typing.Optional[datetime.datetime]
+    close_time: typing.Optional[datetime.datetime]
     open: builtins.float
     high: builtins.float
     low: builtins.float
@@ -97,10 +216,10 @@ class OhlcvBar:
     def __repr__(self) -> builtins.str:
         ...
 
-    def py_set_open_time(self, open_time:datetime.datetime) -> None:
+    def py_set_open_time(self, open_time:typing.Optional[datetime.datetime]) -> None:
         ...
 
-    def py_set_close_time(self, close_time:datetime.datetime) -> None:
+    def py_set_close_time(self, close_time:typing.Optional[datetime.datetime]) -> None:
         ...
 
     def py_set_open(self, open:builtins.float) -> None:
@@ -126,6 +245,40 @@ class OhlcvBar:
 
     @staticmethod
     def from_dict(obj:typing.Any) -> OhlcvBar:
+        ...
+
+
+class Signal:
+    id: typing.Optional[builtins.str]
+    comment: typing.Optional[builtins.str]
+    def py_set_id(self, id:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_comment(self, comment:typing.Optional[builtins.str]) -> None:
+        ...
+
+    @staticmethod
+    def hold() -> Signal:
+        ...
+
+    @staticmethod
+    def size(size:builtins.float) -> Signal:
+        ...
+
+    @staticmethod
+    def equity_pct(equity_pct:builtins.float) -> Signal:
+        ...
+
+    @staticmethod
+    def close_all() -> Signal:
+        ...
+
+    @staticmethod
+    def long() -> Signal:
+        ...
+
+    @staticmethod
+    def short() -> Signal:
         ...
 
 
@@ -197,19 +350,19 @@ class Sym:
         ...
 
     @staticmethod
-    def btc_usd() -> Sym:
+    def BTC_USD() -> Sym:
         ...
 
     @staticmethod
-    def eth_usd() -> Sym:
+    def ETH_USD() -> Sym:
         ...
 
     @staticmethod
-    def sol_usd() -> Sym:
+    def SOL_USD() -> Sym:
         ...
 
     @staticmethod
-    def doge_usd() -> Sym:
+    def DOGE_USD() -> Sym:
         ...
 
 
@@ -320,6 +473,32 @@ class Timeframe:
         ...
 
 
+class Trade:
+    size: builtins.float
+    entry: typing.Optional[TradeEvent]
+    exit: typing.Optional[TradeEvent]
+    pnl: builtins.float
+    direction: TradeDirection
+    is_active: builtins.bool
+    is_closed: builtins.bool
+    def to_dict(self) -> typing.Any:
+        ...
+
+
+class TradeEvent:
+    id: typing.Optional[builtins.str]
+    order_bar_index: builtins.int
+    fill_bar_index: builtins.int
+    price: builtins.float
+    comment: typing.Optional[builtins.str]
+    def to_dict(self) -> typing.Any:
+        ...
+
+
+class TradeDirection(Enum):
+    Long = auto()
+    Short = auto()
+
 def accuracy(tp_count:builtins.float, fp_count:builtins.float, fn_count:builtins.float, tn_count:builtins.float) -> builtins.float:
     ...
 
@@ -368,6 +547,12 @@ def omega_ratio(positive_returns_sum:builtins.float, negative_returns_sum:builti
 def omega_ratio_from_returns(returns:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
     ...
 
+def order_size(equity_pct:builtins.float, equity:builtins.float, exchange_rate:builtins.float, instrument_price:builtins.float, point_value:builtins.float) -> builtins.float:
+    ...
+
+def order_size_for_equity_pct(equity_pct:builtins.float, equity:builtins.float, current_position:builtins.float, instrument_price:builtins.float, point_value:builtins.float, exchange_rate:builtins.float) -> builtins.float:
+    ...
+
 def pnl(qty:builtins.float, entry_price:builtins.float, current_price:builtins.float) -> builtins.float:
     ...
 
@@ -377,7 +562,16 @@ def precision(tp_count:builtins.float, fp_count:builtins.float) -> builtins.floa
 def profit_factor(gross_profit:builtins.float, gross_loss:builtins.float) -> builtins.float:
     ...
 
+def py_zip_ohlcv_bars(open_time:typing.Optional[typing.Sequence[typing.Optional[datetime.datetime]]]=None, close_time:typing.Optional[typing.Sequence[typing.Optional[datetime.datetime]]]=None, open:typing.Optional[typing.Sequence[builtins.float]]=None, high:typing.Optional[typing.Sequence[builtins.float]]=None, low:typing.Optional[typing.Sequence[builtins.float]]=None, close:typing.Optional[typing.Sequence[builtins.float]]=None, volume:typing.Optional[typing.Sequence[builtins.float]]=None) -> builtins.list[OhlcvBar]:
+    ...
+
 def recall(tp_count:builtins.float, fn_count:builtins.float) -> builtins.float:
+    ...
+
+def round_contracts(size:builtins.float, price_scale:builtins.float) -> builtins.float:
+    ...
+
+def round_to_min_tick(value:builtins.float, min_tick:builtins.float) -> builtins.float:
     ...
 
 def sharpe_ratio(mean_returns:builtins.float, std_returns:builtins.float, risk_free_rate:builtins.float) -> builtins.float:
@@ -393,6 +587,9 @@ def sortino_ratio(mean_returns:builtins.float, negative_returns_stdev:builtins.f
     ...
 
 def sortino_ratio_from_returns(returns:typing.Sequence[builtins.float], risk_free_rate:builtins.float) -> builtins.float:
+    ...
+
+def validate_contracts(size:builtins.float, min_qty:builtins.float) -> builtins.bool:
     ...
 
 def win_rate(profitable_trades:builtins.int, total_trades:builtins.int) -> builtins.float:

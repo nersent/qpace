@@ -1,3 +1,14 @@
 fileSet("package_json", {
   srcs: ["package.json", "README.md", "LICENSE.md"],
 });
+
+fileSet("ts", {
+  deps: [":package_json", "//lib:ts"],
+});
+
+execute("npm_link", (ctx) => ({
+  command: `cd ${ctx.sandboxPath} && pnpm link --global`,
+  copyDeps: true,
+  deps: [":ts"],
+  run: true,
+}));
