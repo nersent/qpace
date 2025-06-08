@@ -9,7 +9,8 @@
     "base",
     "core",
     "lib",
-    "cli"
+    "cli",
+    "compiler"
   ],
   "main": "lib/node/index.js",
   "browser": {
@@ -24,6 +25,11 @@
       "import": "./lib/web/index.js",
       "require": "./lib/web/common.js"
     },
+    "./compiler/*": {
+      "import": "./compiler/*.js",
+      "require": "./compiler/*.js",
+      "types": "./compiler/*.d.ts"
+    },
     "./package.json": "./package.json"
   },
   "typesVersions": {
@@ -31,19 +37,16 @@
       ".": [
         "lib/index.d.ts"
       ],
-      "./lib/node": [
+      "lib/node": [
         "lib/node/index.d.ts"
       ],
-      "./lib/web": [
+      "lib/web": [
         "lib/web/index.d.ts"
       ],
-      "lib/proto": [
-        "lib/proto/compiler_grpc_pb.d.ts",
-        "lib/proto/compiler_pb.d.ts",
-        "lib/proto/ohlcv_grpc_pb.d.ts",
-        "lib/proto/ohlcv_pb.d.ts",
-        "lib/proto/sym_grpc_pb.d.ts",
-        "lib/proto/sym_pb.d.ts"
+      "compiler": [
+        "index.d.ts",
+        "schema_grpc_pb.d.ts",
+        "schema_pb.d.ts"
       ]
     }
   },

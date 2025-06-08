@@ -1,5 +1,5 @@
 export {
-  getVersion as getCoreVersion,
+  getVersion as coreVersion,
   NodeOhlcv as Ohlcv,
   NodeOhlcvBar as OhlcvBar,
   NodeSym as Sym,

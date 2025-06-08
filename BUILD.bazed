@@ -3,7 +3,7 @@ fileSet("package_json", {
 });
 
 fileSet("ts", {
-  deps: [":package_json", "//lib:ts"],
+  deps: [":package_json", "//lib:ts", "//compiler:ts"],
 });
 
 execute("npm_link", (ctx) => ({
