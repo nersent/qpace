@@ -24,9 +24,6 @@ importers:
       axios:
         specifier: ^0.27.2
         version: 0.27.2
-      bazed:
-        specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
-        version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -115,6 +112,9 @@ importers:
       babel-jest:
         specifier: 29.4.3
         version: 29.4.3(@babel/core@7.26.10)
+      bazed:
+        specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
+        version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/bazed
       eslint:
         specifier: 8.46.0
         version: 8.46.0

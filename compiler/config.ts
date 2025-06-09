@@ -54,10 +54,8 @@ export interface Config {
   wasm?: WasmConfig;
   /* Emits compiled code to directory. default: `false` */
   emit?: boolean;
-  /* Directory to emit compiled code. default: `.qpc` */
-  emitDir?: string;
-  /* Directory to output compilation artifacts. default: `build` */
-  buildDir?: string;
+  /* Directory to emit compiled code and artifacts. default: `build` */
+  out?: string;
   /* Files included in the build. default: `["**\/*.pine"]` */
   include?: string[];
   /* Files excluded from the build. default: `["node_modules", "build", "dist", "target", "__pycache__"]` */
@@ -96,8 +94,7 @@ export const getDefaultConfig = (): Config => {
       testWheel: true,
     },
     emit: false,
-    emitDir: ".",
-    buildDir: "build",
+    out: "build",
     include: ["**/*.pine"],
     exclude: [
       "node_modules",

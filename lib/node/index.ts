@@ -1,5 +1,5 @@
 export {
-  getVersion as coreVersion,
+  getVersion as getCoreVersion,
   NodeOhlcv as Ohlcv,
   NodeOhlcvBar as OhlcvBar,
   NodeSym as Sym,
@@ -50,3 +50,4 @@ export {
   roundToMinTick,
   zipOhlcvBars,
 } from "../../core/pkg_napi";
+export { Client, ClientConfig } from "./client";

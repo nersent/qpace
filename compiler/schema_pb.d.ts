@@ -8,43 +8,43 @@ import * as jspb from "google-protobuf";
 import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 
-export class VersionRequest extends jspb.Message { 
+export class InfoRequest extends jspb.Message { 
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): VersionRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: VersionRequest): VersionRequest.AsObject;
+    toObject(includeInstance?: boolean): InfoRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: InfoRequest): InfoRequest.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: VersionRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): VersionRequest;
-    static deserializeBinaryFromReader(message: VersionRequest, reader: jspb.BinaryReader): VersionRequest;
+    static serializeBinaryToWriter(message: InfoRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InfoRequest;
+    static deserializeBinaryFromReader(message: InfoRequest, reader: jspb.BinaryReader): InfoRequest;
 }
 
-export namespace VersionRequest {
+export namespace InfoRequest {
     export type AsObject = {
     }
 }
 
-export class VersionResponse extends jspb.Message { 
+export class InfoResponse extends jspb.Message { 
     getVersion(): string;
-    setVersion(value: string): VersionResponse;
+    setVersion(value: string): InfoResponse;
 
     hasBuildTime(): boolean;
     clearBuildTime(): void;
     getBuildTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
-    setBuildTime(value?: google_protobuf_timestamp_pb.Timestamp): VersionResponse;
+    setBuildTime(value?: google_protobuf_timestamp_pb.Timestamp): InfoResponse;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): VersionResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: VersionResponse): VersionResponse.AsObject;
+    toObject(includeInstance?: boolean): InfoResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: InfoResponse): InfoResponse.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: VersionResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): VersionResponse;
-    static deserializeBinaryFromReader(message: VersionResponse, reader: jspb.BinaryReader): VersionResponse;
+    static serializeBinaryToWriter(message: InfoResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InfoResponse;
+    static deserializeBinaryFromReader(message: InfoResponse, reader: jspb.BinaryReader): InfoResponse;
 }
 
-export namespace VersionResponse {
+export namespace InfoResponse {
     export type AsObject = {
         version: string,
         buildTime?: google_protobuf_timestamp_pb.Timestamp.AsObject,
@@ -54,6 +54,9 @@ export namespace VersionResponse {
 export class File extends jspb.Message { 
     getPath(): string;
     setPath(value: string): File;
+
+    hasData(): boolean;
+    clearData(): void;
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
@@ -63,6 +66,8 @@ export class File extends jspb.Message {
     clearUrl(): void;
     getUrl(): string | undefined;
     setUrl(value: string): File;
+    getFlags(): number;
+    setFlags(value: number): File;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): File.AsObject;
@@ -79,6 +84,58 @@ export namespace File {
         path: string,
         data: Uint8Array | string,
         url?: string,
+        flags: number,
+    }
+}
+
+export class CheckRequest extends jspb.Message { 
+    getQpcConfig(): string;
+    setQpcConfig(value: string): CheckRequest;
+    clearFilesList(): void;
+    getFilesList(): Array<File>;
+    setFilesList(value: Array<File>): CheckRequest;
+    addFiles(value?: File, index?: number): File;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CheckRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: CheckRequest): CheckRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: CheckRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CheckRequest;
+    static deserializeBinaryFromReader(message: CheckRequest, reader: jspb.BinaryReader): CheckRequest;
+}
+
+export namespace CheckRequest {
+    export type AsObject = {
+        qpcConfig: string,
+        filesList: Array<File.AsObject>,
+    }
+}
+
+export class CheckResponse extends jspb.Message { 
+    getOk(): boolean;
+    setOk(value: boolean): CheckResponse;
+
+    hasMessage(): boolean;
+    clearMessage(): void;
+    getMessage(): string | undefined;
+    setMessage(value: string): CheckResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CheckResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: CheckResponse): CheckResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: CheckResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CheckResponse;
+    static deserializeBinaryFromReader(message: CheckResponse, reader: jspb.BinaryReader): CheckResponse;
+}
+
+export namespace CheckResponse {
+    export type AsObject = {
+        ok: boolean,
+        message?: string,
     }
 }
 
@@ -90,11 +147,6 @@ export class BuildRequest extends jspb.Message {
     clearTarget(): void;
     getTarget(): string | undefined;
     setTarget(value: string): BuildRequest;
-
-    hasCheckOnly(): boolean;
-    clearCheckOnly(): void;
-    getCheckOnly(): boolean | undefined;
-    setCheckOnly(value: boolean): BuildRequest;
     clearFilesList(): void;
     getFilesList(): Array<File>;
     setFilesList(value: Array<File>): BuildRequest;
@@ -114,109 +166,56 @@ export namespace BuildRequest {
     export type AsObject = {
         qpcConfig: string,
         target?: string,
-        checkOnly?: boolean,
         filesList: Array<File.AsObject>,
     }
 }
 
-export class StageEvent extends jspb.Message { 
-
-    hasCheckStart(): boolean;
-    clearCheckStart(): void;
-    getCheckStart(): CheckStart | undefined;
-    setCheckStart(value?: CheckStart): StageEvent;
+export class BuildEvent extends jspb.Message { 
 
     hasCheckEnd(): boolean;
     clearCheckEnd(): void;
     getCheckEnd(): CheckEnd | undefined;
-    setCheckEnd(value?: CheckEnd): StageEvent;
-
-    hasEmitStart(): boolean;
-    clearEmitStart(): void;
-    getEmitStart(): EmitStart | undefined;
-    setEmitStart(value?: EmitStart): StageEvent;
-
-    hasEmitEnd(): boolean;
-    clearEmitEnd(): void;
-    getEmitEnd(): EmitEnd | undefined;
-    setEmitEnd(value?: EmitEnd): StageEvent;
+    setCheckEnd(value?: CheckEnd): BuildEvent;
 
     hasBuildStart(): boolean;
     clearBuildStart(): void;
     getBuildStart(): BuildStart | undefined;
-    setBuildStart(value?: BuildStart): StageEvent;
+    setBuildStart(value?: BuildStart): BuildEvent;
 
     hasBuildEnd(): boolean;
     clearBuildEnd(): void;
     getBuildEnd(): BuildEnd | undefined;
-    setBuildEnd(value?: BuildEnd): StageEvent;
+    setBuildEnd(value?: BuildEnd): BuildEvent;
 
-    hasMessage(): boolean;
-    clearMessage(): void;
-    getMessage(): string;
-    setMessage(value: string): StageEvent;
-
-    getKindCase(): StageEvent.KindCase;
+    getKindCase(): BuildEvent.KindCase;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): StageEvent.AsObject;
-    static toObject(includeInstance: boolean, msg: StageEvent): StageEvent.AsObject;
+    toObject(includeInstance?: boolean): BuildEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: BuildEvent): BuildEvent.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: StageEvent, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): StageEvent;
-    static deserializeBinaryFromReader(message: StageEvent, reader: jspb.BinaryReader): StageEvent;
+    static serializeBinaryToWriter(message: BuildEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BuildEvent;
+    static deserializeBinaryFromReader(message: BuildEvent, reader: jspb.BinaryReader): BuildEvent;
 }
 
-export namespace StageEvent {
+export namespace BuildEvent {
     export type AsObject = {
-        checkStart?: CheckStart.AsObject,
         checkEnd?: CheckEnd.AsObject,
-        emitStart?: EmitStart.AsObject,
-        emitEnd?: EmitEnd.AsObject,
         buildStart?: BuildStart.AsObject,
         buildEnd?: BuildEnd.AsObject,
-        message: string,
     }
 
     export enum KindCase {
         KIND_NOT_SET = 0,
-        CHECK_START = 1,
-        CHECK_END = 2,
-        EMIT_START = 3,
-        EMIT_END = 4,
-        BUILD_START = 5,
-        BUILD_END = 6,
-        MESSAGE = 7,
+        CHECK_END = 1,
+        BUILD_START = 2,
+        BUILD_END = 3,
     }
 
-}
-
-export class CheckStart extends jspb.Message { 
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): CheckStart.AsObject;
-    static toObject(includeInstance: boolean, msg: CheckStart): CheckStart.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: CheckStart, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): CheckStart;
-    static deserializeBinaryFromReader(message: CheckStart, reader: jspb.BinaryReader): CheckStart;
-}
-
-export namespace CheckStart {
-    export type AsObject = {
-    }
 }
 
 export class CheckEnd extends jspb.Message { 
-    getOk(): boolean;
-    setOk(value: boolean): CheckEnd;
-
-    hasMessage(): boolean;
-    clearMessage(): void;
-    getMessage(): string | undefined;
-    setMessage(value: string): CheckEnd;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CheckEnd.AsObject;
@@ -230,56 +229,6 @@ export class CheckEnd extends jspb.Message {
 
 export namespace CheckEnd {
     export type AsObject = {
-        ok: boolean,
-        message?: string,
-    }
-}
-
-export class EmitStart extends jspb.Message { 
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): EmitStart.AsObject;
-    static toObject(includeInstance: boolean, msg: EmitStart): EmitStart.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: EmitStart, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): EmitStart;
-    static deserializeBinaryFromReader(message: EmitStart, reader: jspb.BinaryReader): EmitStart;
-}
-
-export namespace EmitStart {
-    export type AsObject = {
-    }
-}
-
-export class EmitEnd extends jspb.Message { 
-    getOk(): boolean;
-    setOk(value: boolean): EmitEnd;
-
-    hasMessage(): boolean;
-    clearMessage(): void;
-    getMessage(): string | undefined;
-    setMessage(value: string): EmitEnd;
-    clearFilesList(): void;
-    getFilesList(): Array<File>;
-    setFilesList(value: Array<File>): EmitEnd;
-    addFiles(value?: File, index?: number): File;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): EmitEnd.AsObject;
-    static toObject(includeInstance: boolean, msg: EmitEnd): EmitEnd.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: EmitEnd, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): EmitEnd;
-    static deserializeBinaryFromReader(message: EmitEnd, reader: jspb.BinaryReader): EmitEnd;
-}
-
-export namespace EmitEnd {
-    export type AsObject = {
-        ok: boolean,
-        message?: string,
-        filesList: Array<File.AsObject>,
     }
 }
 
@@ -308,11 +257,10 @@ export class BuildEnd extends jspb.Message {
     clearMessage(): void;
     getMessage(): string | undefined;
     setMessage(value: string): BuildEnd;
-
-    hasWheel(): boolean;
-    clearWheel(): void;
-    getWheel(): File | undefined;
-    setWheel(value?: File): BuildEnd;
+    clearFilesList(): void;
+    getFilesList(): Array<File>;
+    setFilesList(value: Array<File>): BuildEnd;
+    addFiles(value?: File, index?: number): File;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): BuildEnd.AsObject;
@@ -328,6 +276,11 @@ export namespace BuildEnd {
     export type AsObject = {
         ok: boolean,
         message?: string,
-        wheel?: File.AsObject,
+        filesList: Array<File.AsObject>,
     }
+}
+
+export enum FileFlag {
+    FILE_FLAG_NONE = 0,
+    FILE_FLAG_PYTHON_WHEEL = 1,
 }

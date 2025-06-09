@@ -1,5 +1,5 @@
 tsLibrary("node", {
   srcs: glob("**/*.ts"),
-  deps: ["//core:napi"],
+  deps: ["//core:napi", "//:package_json"],
   compiler: "tsc",
 });

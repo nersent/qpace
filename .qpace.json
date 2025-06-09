@@ -1,0 +1,9 @@
+{
+  "python": {
+    "package": "qpace_script_e0ffe1",
+    "installWheel": true,
+    "testWheel": true
+  },
+  "buildDir": "build",
+  "include": ["xd.pine"]
+}
