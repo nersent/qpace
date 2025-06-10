@@ -1,0 +1,4 @@
+library("Supertrended RSI [AlgoAlpha]")
+
+export gownoWDupsku(series float x) =>
+    x[1] + x
