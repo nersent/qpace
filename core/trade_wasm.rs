@@ -23,13 +23,13 @@ impl Into<TradeDirection> for WasmTradeDirection {
 
 #[wasm_bindgen(js_class = TradeDirection)]
 impl WasmTradeDirection {
-    #[wasm_bindgen(js_name = "long")]
+    #[wasm_bindgen(js_name = "Long")]
     #[inline]
     pub fn wasm_long(&self) -> Self {
         TradeDirection::Long.into()
     }
 
-    #[wasm_bindgen(js_name = "short")]
+    #[wasm_bindgen(js_name = "Short")]
     #[inline]
     pub fn wasm_short(&self) -> Self {
         TradeDirection::Short.into()

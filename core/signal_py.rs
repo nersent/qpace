@@ -26,6 +26,48 @@ impl From<Signal> for PySignal {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PySignal {
+    #[staticmethod]
+    #[pyo3(name = "Hold")]
+    #[inline]
+    pub fn py_hold() -> Self {
+        Signal::hold().into()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "Size")]
+    #[inline]
+    pub fn py_size(size: f64) -> Self {
+        Signal::size(size).into()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "Equity_pct")]
+    #[inline]
+    pub fn py_equity_pct(equity_pct: f64) -> Self {
+        Signal::equity_pct(equity_pct).into()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "Close_all")]
+    #[inline]
+    pub fn py_close_all() -> Self {
+        Signal::close_all().into()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "Long")]
+    #[inline]
+    pub fn py_long() -> Self {
+        Signal::long().into()
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "Short")]
+    #[inline]
+    pub fn py_short() -> Self {
+        Signal::short().into()
+    }
+
     #[getter(id)]
     #[inline]
     pub fn py_id(&self) -> Option<String> {
@@ -48,47 +90,5 @@ impl PySignal {
     #[inline]
     pub fn py_set_comment(&mut self, comment: Option<String>) {
         self.inner.set_comment(comment);
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "hold")]
-    #[inline]
-    pub fn py_hold() -> Self {
-        Signal::hold().into()
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "size")]
-    #[inline]
-    pub fn py_size(size: f64) -> Self {
-        Signal::size(size).into()
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "equity_pct")]
-    #[inline]
-    pub fn py_equity_pct(equity_pct: f64) -> Self {
-        Signal::equity_pct(equity_pct).into()
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "close_all")]
-    #[inline]
-    pub fn py_close_all() -> Self {
-        Signal::close_all().into()
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "long")]
-    #[inline]
-    pub fn py_long() -> Self {
-        Signal::long().into()
-    }
-
-    #[staticmethod]
-    #[pyo3(name = "short")]
-    #[inline]
-    pub fn py_short() -> Self {
-        Signal::short().into()
     }
 }

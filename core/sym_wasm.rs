@@ -44,43 +44,43 @@ impl WasmSymKind {
         SymKind::from(kind).into()
     }
 
-    #[wasm_bindgen(js_name = stock)]
+    #[wasm_bindgen(js_name = Stock)]
     #[inline]
     pub fn wasm_stock() -> Self {
         SymKind::Stock.into()
     }
 
-    #[wasm_bindgen(js_name = future)]
+    #[wasm_bindgen(js_name = Future)]
     #[inline]
     pub fn wasm_future() -> Self {
         SymKind::Future.into()
     }
 
-    #[wasm_bindgen(js_name = option)]
+    #[wasm_bindgen(js_name = Option)]
     #[inline]
     pub fn wasm_option() -> Self {
         SymKind::Option.into()
     }
 
-    #[wasm_bindgen(js_name = crypto)]
+    #[wasm_bindgen(js_name = Crypto)]
     #[inline]
     pub fn wasm_crypto() -> Self {
         SymKind::Crypto.into()
     }
 
-    #[wasm_bindgen(js_name = forex)]
+    #[wasm_bindgen(js_name = Forex)]
     #[inline]
     pub fn wasm_forex() -> Self {
         SymKind::Forex.into()
     }
 
-    #[wasm_bindgen(js_name = unknown)]
+    #[wasm_bindgen(js_name = Unknown)]
     #[inline]
     pub fn wasm_unknown() -> Self {
         SymKind::Unknown.into()
     }
 
-    #[wasm_bindgen(js_name = other)]
+    #[wasm_bindgen(js_name = Other)]
     #[inline]
     pub fn wasm_other(kind: String) -> Self {
         SymKind::Other(kind).into()

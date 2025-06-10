@@ -35,61 +35,61 @@ impl WasmTimeframe {
         Timeframe::from(timeframe).into()
     }
 
-    #[wasm_bindgen(js_name = years)]
+    #[wasm_bindgen(js_name = Years)]
     #[inline]
     pub fn wasm_from_years(value: usize) -> Self {
         Timeframe::Years(value).into()
     }
 
-    #[wasm_bindgen(js_name = months)]
+    #[wasm_bindgen(js_name = Months)]
     #[inline]
     pub fn wasm_from_months(value: usize) -> Self {
         Timeframe::Months(value).into()
     }
 
-    #[wasm_bindgen(js_name = weeks)]
+    #[wasm_bindgen(js_name = Weeks)]
     #[inline]
     pub fn wasm_from_weeks(value: usize) -> Self {
         Timeframe::Weeks(value).into()
     }
 
-    #[wasm_bindgen(js_name = days)]
+    #[wasm_bindgen(js_name = Days)]
     #[inline]
     pub fn wasm_from_days(value: usize) -> Self {
         Timeframe::Days(value).into()
     }
 
-    #[wasm_bindgen(js_name = hours)]
+    #[wasm_bindgen(js_name = Hours)]
     #[inline]
     pub fn wasm_from_hours(value: usize) -> Self {
         Timeframe::Hours(value).into()
     }
 
-    #[wasm_bindgen(js_name = minutes)]
+    #[wasm_bindgen(js_name = Minutes)]
     #[inline]
     pub fn wasm_from_minutes(value: usize) -> Self {
         Timeframe::Minutes(value).into()
     }
 
-    #[wasm_bindgen(js_name = seconds)]
+    #[wasm_bindgen(js_name = Seconds)]
     #[inline]
     pub fn wasm_from_seconds(value: usize) -> Self {
         Timeframe::Seconds(value).into()
     }
 
-    #[wasm_bindgen(js_name = ticks)]
+    #[wasm_bindgen(js_name = Ticks)]
     #[inline]
     pub fn wasm_from_ticks(value: usize) -> Self {
         Timeframe::Ticks(value).into()
     }
 
-    #[wasm_bindgen(js_name = ranges)]
+    #[wasm_bindgen(js_name = Ranges)]
     #[inline]
     pub fn wasm_from_ranges(value: usize) -> Self {
         Timeframe::Ranges(value).into()
     }
 
-    #[wasm_bindgen(js_name = unknown)]
+    #[wasm_bindgen(js_name = Unknown)]
     #[inline]
     pub fn wasm_from_unknown() -> Self {
         Timeframe::Unknown().into()

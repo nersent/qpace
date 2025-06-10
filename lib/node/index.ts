@@ -1,5 +1,4 @@
 export {
-  getVersion as getCoreVersion,
   NodeOhlcv as Ohlcv,
   NodeOhlcvBar as OhlcvBar,
   NodeSym as Sym,
@@ -51,3 +50,13 @@ export {
   zipOhlcvBars,
 } from "../../core/pkg_napi";
 export { Client, ClientConfig } from "./client";
+
+import { _getCoreVersion } from "../../core/pkg_napi";
+import { version } from "../../package.json";
+export const VERSION = version;
+export const CORE_VERSION = _getCoreVersion();
+
+// export const VERSION = "1.0.0";
+// export const CORE_VERSION = "1.0.0";
+
+// export const node = 1;

@@ -191,6 +191,13 @@ pub struct WasmOhlcv {
     inner: RcOhlcv,
 }
 
+impl Default for WasmOhlcv {
+    #[inline]
+    fn default() -> Self {
+        Ohlcv::new().into()
+    }
+}
+
 impl Into<WasmOhlcv> for Ohlcv {
     #[inline]
     fn into(self) -> WasmOhlcv {

@@ -40,7 +40,8 @@ impl WasmCtx {
 #[wasm_bindgen(js_class=Ctx)]
 impl WasmCtx {
     #[wasm_bindgen(constructor)]
-    pub fn wasm_new(ohlcv: WasmOhlcv, sym: Option<WasmSym>) -> Self {
+    pub fn wasm_new(ohlcv: Option<WasmOhlcv>, sym: Option<WasmSym>) -> Self {
+        let ohlcv: WasmOhlcv = ohlcv.unwrap_or_else(|| WasmOhlcv::default());
         let sym = sym.unwrap_or_else(|| WasmSym::default());
         let mut ctx = Ctx::new();
         let _ohlcv: RcOhlcv = ohlcv.clone().into();

@@ -198,6 +198,13 @@ pub struct PyOhlcv {
     inner: ArcOhlcv,
 }
 
+impl Default for PyOhlcv {
+    #[inline]
+    fn default() -> Self {
+        Self::from(ArcOhlcv::new())
+    }
+}
+
 impl Into<PyOhlcv> for Ohlcv {
     #[inline]
     fn into(self) -> PyOhlcv {

@@ -1,5 +1,4 @@
 export {
-  getVersion as getCoreVersion,
   Ohlcv,
   OhlcvBar,
   Sym,
@@ -50,3 +49,15 @@ export {
   roundToMinTick,
   zipOhlcvBars,
 } from "../../core/pkg/qpace_core";
+
+import init from "../../core/pkg/qpace_core";
+export { init };
+
+import { _getCoreVersion } from "../../core/pkg/qpace_core";
+import { version } from "../../package.json";
+export const VERSION = version;
+// export const CORE_VERSION = _getCoreVersion();
+
+// export const VERSION = "1.0.0";
+// export const CORE_VERSION = "1.0.0";
+// export const web = 1;

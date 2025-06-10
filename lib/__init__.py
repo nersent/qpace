@@ -1,13 +1,9 @@
 from qpace_core import *
 
-import content.ta as ta
+import lib.content.ta as ta
 
-# from .content import ta
+from lib.content import ta
+from lib.client import *
 
-from .client import *
-
-__version__ = "0.0.1-dev.5"
-
-
-def get_version():
-    return __version__
+__version__ = "__BAZED::QPACE_VERSION__"
+__core__version__: str = _get_core_version()

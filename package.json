@@ -12,18 +12,19 @@
     "cli",
     "compiler"
   ],
-  "main": "lib/node/index.js",
   "browser": {
     "./lib/web/index.js": "./lib/web/index.js"
   },
   "exports": {
     "./node": {
       "import": "./lib/node/index.js",
-      "require": "./lib/node/index.js"
+      "require": "./lib/node/index.js",
+      "default": "./lib/node/index.js"
     },
     "./web": {
       "import": "./lib/web/index.js",
-      "require": "./lib/web/common.js"
+      "require": "./lib/web/index.js",
+      "default": "./lib/web/index.js"
     },
     "./compiler/*": {
       "import": "./compiler/*.js",
@@ -34,13 +35,10 @@
   },
   "typesVersions": {
     "*": {
-      ".": [
-        "lib/index.d.ts"
-      ],
-      "lib/node": [
+      "node": [
         "lib/node/index.d.ts"
       ],
-      "lib/web": [
+      "web": [
         "lib/web/index.d.ts"
       ],
       "compiler": [
@@ -52,7 +50,7 @@
   },
   "scripts": {
     "bazed:clean": "rimraf build",
-    "wasm": "wasm-pack build ./core --target nodejs --no-default-features --features=bindings_wasm",
+    "wasm": "wasm-pack build ./core --target web --no-default-features --features=bindings_wasm",
     "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py --features=polars",
     "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler"
   },
@@ -70,6 +68,7 @@
     "@typescript-eslint/eslint-plugin": "5.60.1",
     "@typescript-eslint/parser": "5.60.1",
     "babel-jest": "29.4.3",
+    "bazed": "link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed",
     "eslint": "8.46.0",
     "eslint-config-next": "13.4.1",
     "eslint-config-prettier": "^8.5.0",
@@ -78,11 +77,14 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.6.3",
     "jest": "29.4.3",
     "prettier": "2.6.2",
     "rimraf": "^5.0.1",
     "typescript": "^5.6.3",
-    "bazed": "link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed"
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.0",
@@ -103,6 +105,7 @@
     "nodejs-polars": "^0.8.4",
     "object-hash": "^3.0.0",
     "ora": "^5.4.1",
+    "qpace": "link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace",
     "tslib": "^2.8.1",
     "which": "^5.0.0"
   }

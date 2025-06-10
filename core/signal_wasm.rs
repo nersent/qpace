@@ -23,6 +23,42 @@ impl From<Signal> for WasmSignal {
 
 #[wasm_bindgen(js_class = Signal)]
 impl WasmSignal {
+    #[wasm_bindgen(js_name = Hold)]
+    #[inline]
+    pub fn wasm_hold() -> Self {
+        Signal::hold().into()
+    }
+
+    #[wasm_bindgen(js_name = Size)]
+    #[inline]
+    pub fn wasm_size(size: f64) -> Self {
+        Signal::size(size).into()
+    }
+
+    #[wasm_bindgen(js_name = EquityPct)]
+    #[inline]
+    pub fn wasm_equity_pct(equity_pct: f64) -> Self {
+        Signal::equity_pct(equity_pct).into()
+    }
+
+    #[wasm_bindgen(js_name = CloseAll)]
+    #[inline]
+    pub fn wasm_close_all() -> Self {
+        Signal::close_all().into()
+    }
+
+    #[wasm_bindgen(js_name = Long)]
+    #[inline]
+    pub fn wasm_long() -> Self {
+        Signal::long().into()
+    }
+
+    #[wasm_bindgen(js_name = Short)]
+    #[inline]
+    pub fn wasm_short() -> Self {
+        Signal::short().into()
+    }
+
     #[wasm_bindgen(getter = id)]
     #[inline]
     pub fn wasm_id(&self) -> Option<String> {
@@ -45,41 +81,5 @@ impl WasmSignal {
     #[inline]
     pub fn wasm_set_comment(&mut self, comment: Option<String>) {
         self.inner.set_comment(comment);
-    }
-
-    #[wasm_bindgen(js_name = hold)]
-    #[inline]
-    pub fn wasm_hold() -> Self {
-        Signal::hold().into()
-    }
-
-    #[wasm_bindgen(js_name = size)]
-    #[inline]
-    pub fn wasm_size(size: f64) -> Self {
-        Signal::size(size).into()
-    }
-
-    #[wasm_bindgen(js_name = equityPct)]
-    #[inline]
-    pub fn wasm_equity_pct(equity_pct: f64) -> Self {
-        Signal::equity_pct(equity_pct).into()
-    }
-
-    #[wasm_bindgen(js_name = closeAll)]
-    #[inline]
-    pub fn wasm_close_all() -> Self {
-        Signal::close_all().into()
-    }
-
-    #[wasm_bindgen(js_name = long)]
-    #[inline]
-    pub fn wasm_long() -> Self {
-        Signal::long().into()
-    }
-
-    #[wasm_bindgen(js_name = short)]
-    #[inline]
-    pub fn wasm_short() -> Self {
-        Signal::short().into()
     }
 }

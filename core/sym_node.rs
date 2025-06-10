@@ -33,37 +33,37 @@ impl NodeSymKind {
         SymKind::from(text).into()
     }
 
-    #[napi(js_name = stock)]
+    #[napi(js_name = Stock)]
     pub fn node_stock() -> Self {
         SymKind::Stock.into()
     }
 
-    #[napi(js_name = future)]
+    #[napi(js_name = Future)]
     pub fn node_future() -> Self {
         SymKind::Future.into()
     }
 
-    #[napi(js_name = option)]
+    #[napi(js_name = Option)]
     pub fn node_option() -> Self {
         SymKind::Option.into()
     }
 
-    #[napi(js_name = forex)]
+    #[napi(js_name = Forex)]
     pub fn node_forex() -> Self {
         SymKind::Forex.into()
     }
 
-    #[napi(js_name = crypto)]
+    #[napi(js_name = Crypto)]
     pub fn node_crypto() -> Self {
         SymKind::Crypto.into()
     }
 
-    #[napi(js_name = unknown)]
+    #[napi(js_name = Unknown)]
     pub fn node_unknown() -> Self {
         SymKind::Unknown.into()
     }
 
-    #[napi(js_name = other)]
+    #[napi(js_name = Other)]
     pub fn node_other(other: String) -> Self {
         SymKind::Other(other).into()
     }

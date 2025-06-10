@@ -25,13 +25,13 @@ impl Into<TradeDirection> for NodeTradeDirection {
 
 #[napi]
 impl NodeTradeDirection {
-    #[napi(js_name = "long")]
+    #[napi(js_name = "Long")]
     #[inline]
     pub fn node_long(&self) -> Self {
         TradeDirection::Long.into()
     }
 
-    #[napi(js_name = "short")]
+    #[napi(js_name = "Short")]
     #[inline]
     pub fn node_short(&self) -> Self {
         TradeDirection::Short.into()

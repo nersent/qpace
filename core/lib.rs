@@ -19,6 +19,7 @@ pub mod sym;
 pub mod timeframe;
 pub mod trade;
 pub mod utils;
+use trade::{Trade, TradeDirection, TradeEvent};
 
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   extern crate pyo3;
@@ -44,6 +45,9 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use sym_py::PySym;
   use sym_py::PySymKind;
   use ohlcv_py::PyOhlcv;
+  use ctx_py::PyCtx;
+  use backtest_py::{PyBacktest, PyBacktestSummary};
+  use signal_py::PySignal;
 }}
 // cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm", target_arch = "wasm32"))] {
 cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm"))] {
@@ -59,17 +63,14 @@ cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm"))] {
   pub mod orderbook_wasm;
   pub mod backtest_wasm;
 }}
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-  use napi_derive::napi;
-  pub mod timeframe_node;
-  pub mod stats_node;
-  pub mod metrics_node;
-}}
 
+// napi-rs can't expand `napi` macro if we enclose in `cfg_if`
 #[cfg(feature = "bindings_node")]
 pub mod backtest_node;
 #[cfg(feature = "bindings_node")]
 pub mod ctx_node;
+#[cfg(feature = "bindings_node")]
+pub mod metrics_node;
 #[cfg(feature = "bindings_node")]
 pub mod ohlcv_node;
 #[cfg(feature = "bindings_node")]
@@ -77,19 +78,22 @@ pub mod orderbook_node;
 #[cfg(feature = "bindings_node")]
 pub mod signal_node;
 #[cfg(feature = "bindings_node")]
+pub mod stats_node;
+#[cfg(feature = "bindings_node")]
 pub mod sym_node;
+#[cfg(feature = "bindings_node")]
+pub mod timeframe_node;
 #[cfg(feature = "bindings_node")]
 pub mod trade_node;
 
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
-#[cfg_attr(feature = "bindings_py", gen_stub_pyfunction)]
-#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = getVersion))]
+#[cfg_attr(feature = "bindings_py", pyfunction(name = "_get_core_version"))]
+#[cfg_attr(feature = "bindings_wasm", wasm_bindgen(js_name = _getCoreVersion))]
 #[inline]
 pub fn get_version() -> String {
     return env!("CARGO_PKG_VERSION").to_string();
 }
 
-#[cfg_attr(feature = "bindings_node", napi(js_name = getVersion))]
+#[cfg_attr(feature = "bindings_node", napi(js_name = _getCoreVersion))]
 #[inline]
 pub fn node_get_version() -> String {
     return get_version();
@@ -102,7 +106,15 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySym>()?;
     m.add_class::<PySymKind>()?;
     m.add_class::<PyOhlcv>()?;
+    m.add_class::<PyCtx>()?;
+    m.add_class::<Trade>()?;
+    m.add_class::<TradeEvent>()?;
+    m.add_class::<TradeDirection>()?;
+    m.add_class::<PyBacktest>()?;
+    m.add_class::<PyBacktestSummary>()?;
+    m.add_class::<PySignal>()?;
     m.add_class::<ohlcv::OhlcvBar>()?;
+    m.add_function(wrap_pyfunction!(get_version, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy_score, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_pnl, m)?)?;

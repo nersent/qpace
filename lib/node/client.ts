@@ -1,7 +1,6 @@
 import * as grpc from "@grpc/grpc-js";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { getCoreVersion } from "./index";
-import { version } from "~/package.json";
+import { VERSION, CORE_VERSION } from "./index";
 
 // export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
 // export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;
@@ -29,8 +28,8 @@ export class Client {
     this.config.grpcCredentials ??= grpc.ChannelCredentials.createInsecure();
     this._clientInfo = {
       ...this._clientInfo,
-      qpace: version,
-      qpaceCore: getCoreVersion(),
+      qpace: VERSION,
+      qpaceCore: CORE_VERSION,
       client: "node",
       node: process.versions.node,
       platform: process.platform,

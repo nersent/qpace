@@ -43,10 +43,13 @@ impl NodeCtx {
 #[napi]
 impl NodeCtx {
     #[napi(constructor)]
-    pub fn new(ohlcv: &NodeOhlcv, sym: Option<&NodeSym>) -> Self {
+    pub fn new(ohlcv: Option<&NodeOhlcv>, sym: Option<&NodeSym>) -> Self {
+        let ohlcv: NodeOhlcv = ohlcv
+            .map(|x| x.clone())
+            .unwrap_or_else(|| NodeOhlcv::default());
         let sym = sym.cloned().unwrap_or_else(|| NodeSym::default());
         let mut ctx = Ctx::new();
-        let _ohlcv: ArcOhlcv = ohlcv.into();
+        let _ohlcv: ArcOhlcv = (&ohlcv).into();
         ctx.set_ohlcv(_ohlcv.clone_box());
         ctx.set_sym(sym.into());
         Self {

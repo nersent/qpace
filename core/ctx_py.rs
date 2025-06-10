@@ -63,8 +63,9 @@ impl PyCtx {
 #[pymethods]
 impl PyCtx {
     #[new]
-    #[pyo3(signature = (ohlcv, sym=None))]
-    pub fn py_new(ohlcv: PyOhlcv, sym: Option<PySym>) -> Self {
+    #[pyo3(signature = (ohlcv=None, sym=None))]
+    pub fn py_new(ohlcv: Option<PyOhlcv>, sym: Option<PySym>) -> Self {
+        let ohlcv = ohlcv.unwrap_or_else(|| PyOhlcv::default());
         let sym = sym.unwrap_or_else(|| PySym::default());
         let mut ctx = Ctx::new();
         let _ohlcv: ArcOhlcv = ohlcv.clone().into();

@@ -25,6 +25,42 @@ impl From<Signal> for NodeSignal {
 
 #[napi]
 impl NodeSignal {
+    #[napi(js_name = Hold)]
+    #[inline]
+    pub fn node_hold() -> Self {
+        Signal::hold().into()
+    }
+
+    #[napi(js_name = Size)]
+    #[inline]
+    pub fn node_size(size: f64) -> Self {
+        Signal::size(size).into()
+    }
+
+    #[napi(js_name = EquityPct)]
+    #[inline]
+    pub fn node_equity_pct(equity_pct: f64) -> Self {
+        Signal::equity_pct(equity_pct).into()
+    }
+
+    #[napi(js_name = CloseAll)]
+    #[inline]
+    pub fn node_close_all() -> Self {
+        Signal::close_all().into()
+    }
+
+    #[napi(js_name = Long)]
+    #[inline]
+    pub fn node_long() -> Self {
+        Signal::long().into()
+    }
+
+    #[napi(js_name = Short)]
+    #[inline]
+    pub fn node_short() -> Self {
+        Signal::short().into()
+    }
+
     #[napi(getter = id)]
     #[inline]
     pub fn node_id(&self) -> Option<String> {
@@ -47,41 +83,5 @@ impl NodeSignal {
     #[inline]
     pub fn node_set_comment(&mut self, comment: Option<String>) {
         self.inner.set_comment(comment);
-    }
-
-    #[napi(js_name = hold)]
-    #[inline]
-    pub fn node_hold() -> Self {
-        Signal::hold().into()
-    }
-
-    #[napi(js_name = size)]
-    #[inline]
-    pub fn node_size(size: f64) -> Self {
-        Signal::size(size).into()
-    }
-
-    #[napi(js_name = equityPct)]
-    #[inline]
-    pub fn node_equity_pct(equity_pct: f64) -> Self {
-        Signal::equity_pct(equity_pct).into()
-    }
-
-    #[napi(js_name = closeAll)]
-    #[inline]
-    pub fn node_close_all() -> Self {
-        Signal::close_all().into()
-    }
-
-    #[napi(js_name = long)]
-    #[inline]
-    pub fn node_long() -> Self {
-        Signal::long().into()
-    }
-
-    #[napi(js_name = short)]
-    #[inline]
-    pub fn node_short() -> Self {
-        Signal::short().into()
     }
 }

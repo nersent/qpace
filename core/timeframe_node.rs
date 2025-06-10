@@ -25,70 +25,70 @@ impl NodeTimeframe {
     #[napi(js_name = toString)]
     #[inline]
     pub fn node_to_string(&self) -> String {
-        self.inner.into()
+        self.inner.to_string()
     }
 
-    #[napi(js_name = fromString)]
+    #[napi(factory, js_name = fromString)]
     #[inline]
     pub fn node_from_string(timeframe: String) -> Self {
         Timeframe::from(timeframe).into()
     }
 
-    #[napi(js_name = years)]
+    #[napi(factory, js_name = Years)]
     #[inline]
     pub fn node_from_years(value: i32) -> Self {
         Timeframe::Years(value as usize).into()
     }
 
-    #[napi(js_name = months)]
+    #[napi(factory, js_name = Months)]
     #[inline]
     pub fn node_from_months(value: i32) -> Self {
         Timeframe::Months(value as usize).into()
     }
 
-    #[napi(js_name = weeks)]
+    #[napi(factory, js_name = Weeks)]
     #[inline]
     pub fn node_from_weeks(value: i32) -> Self {
         Timeframe::Weeks(value as usize).into()
     }
 
-    #[napi(js_name = days)]
+    #[napi(factory, js_name = Days)]
     #[inline]
     pub fn node_from_days(value: i32) -> Self {
         Timeframe::Days(value as usize).into()
     }
 
-    #[napi(js_name = hours)]
+    #[napi(factory, js_name = Hours)]
     #[inline]
     pub fn node_from_hours(value: i32) -> Self {
         Timeframe::Hours(value as usize).into()
     }
 
-    #[napi(js_name = minutes)]
+    #[napi(factory, js_name = Minutes)]
     #[inline]
     pub fn node_from_minutes(value: i32) -> Self {
         Timeframe::Minutes(value as usize).into()
     }
 
-    #[napi(js_name = seconds)]
+    #[napi(factory, js_name = Seconds)]
     #[inline]
     pub fn node_from_seconds(value: i32) -> Self {
         Timeframe::Seconds(value as usize).into()
     }
 
-    #[napi(js_name = ticks)]
+    #[napi(factory, js_name = Ticks)]
     #[inline]
     pub fn node_from_ticks(value: i32) -> Self {
         Timeframe::Ticks(value as usize).into()
     }
 
-    #[napi(js_name = ranges)]
+    #[napi(factory, js_name = Ranges)]
     #[inline]
     pub fn node_from_ranges(value: i32) -> Self {
         Timeframe::Ranges(value as usize).into()
     }
 
-    #[napi(js_name = unknown)]
+    #[napi(factory, js_name = Unknown)]
     #[inline]
     pub fn node_from_unknown() -> Self {
         Timeframe::Unknown().into()
@@ -170,7 +170,7 @@ impl NodeTimeframe {
         }
     }
 
-    #[napi(js_name = fromDurationS)]
+    #[napi(factory, js_name = fromDurationS)]
     #[inline]
     pub fn node_from_duration_s(duration: i32) -> Self {
         let duration = Duration::seconds(duration as i64);

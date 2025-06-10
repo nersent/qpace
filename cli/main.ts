@@ -1,7 +1,6 @@
 import { Command } from "commander";
 import * as compiler from "./compiler";
-import { getCoreVersion } from "~/lib/node";
-import { version as qpaceVersion } from "~/package.json";
+import { VERSION, CORE_VERSION } from "~/lib/node";
 import { handleExceptions } from "./exceptions";
 import * as compilerApi from "~/compiler/schema_pb";
 import * as user from "./user";
@@ -14,8 +13,8 @@ const main = async (): Promise<void> => {
     .option("--skip-remote", "Skip remote checks", false)
     .action(async ({ skipRemote }: { skipRemote?: boolean }) => {
       let data: any = {
-        qpace: qpaceVersion,
-        qpaceCore: getCoreVersion(),
+        qpace: VERSION,
+        qpaceCore: CORE_VERSION,
       };
       if (!skipRemote) {
         const compilerClient = compiler.getClient();

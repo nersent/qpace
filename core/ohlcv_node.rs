@@ -205,6 +205,12 @@ pub struct NodeOhlcv {
     inner: ArcOhlcv,
 }
 
+impl Default for NodeOhlcv {
+    fn default() -> Self {
+        ArcOhlcv::new().into()
+    }
+}
+
 impl Into<NodeOhlcv> for Ohlcv {
     fn into(self) -> NodeOhlcv {
         NodeOhlcv { inner: self.into() }
