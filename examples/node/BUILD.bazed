@@ -1,10 +1,10 @@
-tsLibrary("ts", {
+tsLibrary("src", {
   srcs: [glob("**/!(*.test).ts")],
   deps: ["//:npm_link", "//examples:csv"],
 });
 
 nodeEntry("node", {
   main: "main.js",
-  deps: [":ts"],
+  deps: [":src"],
   inspect: true,
 });

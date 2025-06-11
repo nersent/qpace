@@ -1,0 +1,9 @@
+fileSet("src", {
+  srcs: [glob("**/*.py")],
+  deps: ["//examples:csv"],
+});
+
+pythonEntry("python", {
+  main: "main.py",
+  deps: [":src"],
+});

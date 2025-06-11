@@ -25,7 +25,13 @@ impl PaceContext {
         let mut ctx = self.inner.borrow_mut();
         ctx.next()
     }
+
+    pub fn bar_index(&self) -> usize {
+        let ctx = self.inner.borrow();
+        ctx.bar_index()
+    }
 }
+
 // #endregion
 
 // #region series
@@ -54,7 +60,7 @@ impl<T: Copy + From<PaceNa>> PaceSeriesGetter<T> for T {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PaceSeries<T: Clone + From<PaceNa>> {
     values: Vec<T>,
     _marker: PhantomData<T>,
@@ -593,6 +599,26 @@ impl IntoPy<PyObject> for PaceFloat {
     }
 }
 
+impl IntoPy<PyObject> for PaceString {
+    #[inline]
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        match self.0 {
+            Some(s) => s.into_py(py),
+            None => "".into_py(py),
+        }
+    }
+}
+
+impl IntoPy<PyObject> for PaceInt {
+    #[inline]
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        match self.0 {
+            Some(i) => i.into_py(py),
+            None => 0.into_py(py),
+        }
+    }
+}
+
 impl<'py> FromPyObject<'py> for PaceFloat {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(float) = ob.extract::<f64>() {
@@ -609,6 +635,20 @@ impl<'py> FromPyObject<'py> for PaceString {
             Ok(PaceString(Some(string)))
         } else {
             Err(pyo3::exceptions::PyTypeError::new_err("Expected a string"))
+        }
+    }
+}
+
+impl<'py> FromPyObject<'py> for PaceInt {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(int) = ob.extract::<i64>() {
+            Ok(PaceInt(Some(int)))
+        } else if let Ok(int) = ob.extract::<i32>() {
+            Ok(PaceInt(Some(int as i64)))
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err(
+                "Expected an integer",
+            ))
         }
     }
 }
