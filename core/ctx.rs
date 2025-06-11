@@ -61,6 +61,11 @@ impl Ctx {
     }
 
     #[inline]
+    pub fn last_bar_index(&self) -> usize {
+        self.ohlcv.len().saturating_sub(1)
+    }
+
+    #[inline]
     pub fn bar(&self) -> OhlcvBar {
         self.ohlcv.get(self.bar_index()).unwrap()
     }

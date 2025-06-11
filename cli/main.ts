@@ -17,7 +17,7 @@ const main = async (): Promise<void> => {
         qpaceCore: CORE_VERSION,
       };
       if (!skipRemote) {
-        const compilerClient = compiler.getClient();
+        const [compilerClient] = await compiler.getCompilerClient();
         const compilerInfo = await compiler.fetchInfo(compilerClient);
         data = {
           ...data,

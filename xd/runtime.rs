@@ -2,6 +2,7 @@ use core::f64;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use qpace_core::ctx::Ctx;
+use qpace_core::ohlcv::{hl2, hlc3, hlcc4, OhlcvBar};
 use std::cell::{Ref, RefMut};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, SubAssign};
@@ -11,6 +12,12 @@ use std::{cell::RefCell, rc::Rc};
 #[derive(Clone)]
 pub struct PaceContext {
     inner: Rc<RefCell<Ctx>>,
+}
+
+impl std::fmt::Debug for PaceContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PaceContext").finish()
+    }
 }
 
 impl Into<PaceContext> for Rc<RefCell<Ctx>> {
@@ -27,8 +34,15 @@ impl PaceContext {
     }
 
     pub fn bar_index(&self) -> usize {
-        let ctx = self.inner.borrow();
-        ctx.bar_index()
+        self.inner.borrow().bar_index()
+    }
+
+    pub fn last_bar_index(&self) -> usize {
+        self.inner.borrow().len().saturating_sub(1)
+    }
+
+    pub fn bar(&self) -> OhlcvBar {
+        self.inner.borrow().bar()
     }
 }
 
@@ -239,6 +253,9 @@ impl std::ops::Add for PaceFloat {
     type Output = PaceFloat;
     #[inline]
     fn add(self, other: PaceFloat) -> PaceFloat {
+        if self.is_na() || other.is_na() {
+            return PaceFloat(f64::NAN);
+        }
         return PaceFloat(self.0 + other.0);
     }
 }
@@ -247,6 +264,9 @@ impl std::ops::Sub for PaceFloat {
     type Output = PaceFloat;
     #[inline]
     fn sub(self, other: PaceFloat) -> PaceFloat {
+        if self.is_na() || other.is_na() {
+            return PaceFloat(f64::NAN);
+        }
         return PaceFloat(self.0 - other.0);
     }
 }
@@ -255,6 +275,9 @@ impl std::ops::Mul for PaceFloat {
     type Output = PaceFloat;
     #[inline]
     fn mul(self, other: PaceFloat) -> PaceFloat {
+        if self.is_na() || other.is_na() {
+            return PaceFloat(f64::NAN);
+        }
         return PaceFloat(self.0 * other.0);
     }
 }
@@ -263,7 +286,7 @@ impl std::ops::Div for PaceFloat {
     type Output = PaceFloat;
     #[inline]
     fn div(self, other: PaceFloat) -> PaceFloat {
-        if other.0 == 0.0 {
+        if self.is_na() || other.is_na() {
             return PaceFloat(f64::NAN);
         }
         return PaceFloat(self.0 / other.0);
@@ -442,6 +465,30 @@ impl From<i64> for PaceInt {
     }
 }
 
+impl From<usize> for PaceInt {
+    #[inline]
+    fn from(x: usize) -> PaceInt {
+        return PaceInt(Some(x as i64));
+    }
+}
+
+impl From<&chrono::DateTime<chrono::Utc>> for PaceInt {
+    #[inline]
+    fn from(x: &chrono::DateTime<chrono::Utc>) -> PaceInt {
+        return PaceInt(Some(x.timestamp_millis()));
+    }
+}
+
+impl From<Option<&chrono::DateTime<chrono::Utc>>> for PaceInt {
+    #[inline]
+    fn from(x: Option<&chrono::DateTime<chrono::Utc>>) -> PaceInt {
+        return match x {
+            Some(dt) => PaceInt(Some(dt.timestamp_millis())),
+            None => PaceInt(None),
+        };
+    }
+}
+
 impl From<PaceInt> for usize {
     #[inline]
     fn from(x: PaceInt) -> usize {
@@ -460,6 +507,13 @@ impl From<f64> for PaceFloat {
     #[inline]
     fn from(x: f64) -> PaceFloat {
         return PaceFloat(x);
+    }
+}
+
+impl From<usize> for PaceFloat {
+    #[inline]
+    fn from(x: usize) -> PaceFloat {
+        return PaceFloat(x as f64);
     }
 }
 
@@ -619,6 +673,16 @@ impl IntoPy<PyObject> for PaceInt {
     }
 }
 
+impl IntoPy<PyObject> for PaceBool {
+    #[inline]
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        match self.0 {
+            Some(b) => b.into_py(py),
+            None => false.into_py(py),
+        }
+    }
+}
+
 impl<'py> FromPyObject<'py> for PaceFloat {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(float) = ob.extract::<f64>() {
@@ -652,9 +716,101 @@ impl<'py> FromPyObject<'py> for PaceInt {
         }
     }
 }
+
+impl<'py> FromPyObject<'py> for PaceBool {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(bool) = ob.extract::<bool>() {
+            Ok(PaceBool(Some(bool)))
+        } else {
+            Err(pyo3::exceptions::PyTypeError::new_err("Expected a boolean"))
+        }
+    }
+}
 // impl Default for PaceSeries<PaceAny> {
 //     fn default() -> Self {
 //         return PaceSeries::new();
 //     }
 // }
 // #endregion
+
+#[derive(Debug, Clone)]
+pub struct GlobalSeries {
+    ctx: PaceContext,
+    pub open: PaceSeries<PaceFloat>,
+    pub high: PaceSeries<PaceFloat>,
+    pub low: PaceSeries<PaceFloat>,
+    pub close: PaceSeries<PaceFloat>,
+    pub volume: PaceSeries<PaceFloat>,
+    pub hl2: PaceSeries<PaceFloat>,
+    pub hlc3: PaceSeries<PaceFloat>,
+    pub hlcc4: PaceSeries<PaceFloat>,
+    pub bar_index: PaceSeries<PaceInt>,
+    pub last_bar_index: PaceSeries<PaceInt>,
+    pub time: PaceSeries<PaceInt>,
+    pub time_close: PaceSeries<PaceInt>,
+}
+
+impl GlobalSeries {
+    pub fn new(ctx: PaceContext) -> Self {
+        return Self {
+            ctx,
+            open: PaceSeries::new(),
+            high: PaceSeries::new(),
+            low: PaceSeries::new(),
+            close: PaceSeries::new(),
+            volume: PaceSeries::new(),
+            hl2: PaceSeries::new(),
+            hlc3: PaceSeries::new(),
+            hlcc4: PaceSeries::new(),
+            bar_index: PaceSeries::new(),
+            last_bar_index: PaceSeries::new(),
+            time: PaceSeries::new(),
+            time_close: PaceSeries::new(),
+        };
+    }
+}
+
+impl GlobalSeries {
+    pub fn next(&mut self) {
+        let bar = self.ctx.bar();
+        self.open.next();
+        self.high.next();
+        self.low.next();
+        self.close.next();
+        self.volume.next();
+        self.hl2.next();
+        self.hlc3.next();
+        self.hlcc4.next();
+        //
+        self.open.set(bar.open().into());
+        self.high.set(bar.high().into());
+        self.low.set(bar.low().into());
+        self.close.set(bar.close().into());
+        self.volume.set(bar.volume().into());
+        self.hl2.set(hl2(bar.high(), bar.low()).into());
+        self.hlc3
+            .set(hlc3(bar.high(), bar.low(), bar.close()).into());
+        self.hlcc4
+            .set(hlcc4(bar.high(), bar.low(), bar.close()).into());
+
+        self.bar_index.set(self.ctx.bar_index().into());
+        self.last_bar_index.set(self.ctx.last_bar_index().into());
+
+        self.time.set(bar.open_time().into());
+        self.time_close.set(bar.close_time().into());
+    }
+
+    pub fn from_name(&self, name: &str) -> Option<&PaceSeries<PaceFloat>> {
+        match name {
+            "open" => Some(&self.open),
+            "high" => Some(&self.high),
+            "low" => Some(&self.low),
+            "close" => Some(&self.close),
+            "volume" => Some(&self.volume),
+            "hl2" => Some(&self.hl2),
+            "hlc3" => Some(&self.hlc3),
+            "hlcc4" => Some(&self.hlcc4),
+            _ => None,
+        }
+    }
+}

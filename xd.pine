@@ -1,6 +1,0 @@
-library("Supertrended RSI [AlgoAlpha]")
-
-export gownoWDupsku(series float x) =>
-    var float lastValue = na
-    lastValue := x
-    x[0] + x[1]

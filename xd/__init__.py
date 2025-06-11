@@ -24,5 +24,4 @@ def __check__qpace_core_version__():
 
 __check__qpace_core_version__()
 
-from . import xd
 from . import intrinsics

@@ -54,7 +54,7 @@ export namespace BuildTarget {
   };
 }
 
-const getCompilerClient = async (): Promise<
+export const getCompilerClient = async (): Promise<
   [CompilerApiClient, grpc.Metadata]
 > => {
   const profile = await Profile.load();
@@ -69,7 +69,7 @@ const getCompilerClient = async (): Promise<
   ];
 };
 
-const fetchInfo = async (
+export const fetchInfo = async (
   client: CompilerApiClient,
 ): Promise<{ version: string; buildDate: Date }> => {
   const info = (await promisify(client.info.bind(client))(
@@ -152,6 +152,7 @@ const check = async ({
   req.setQpcConfig(JSON.stringify(qpcConfig));
   req.setFilesList(srcFiles);
   let pb = ora(`Checking`).start();
+  let ok = true;
   const res = await new Promise<compilerApi.CheckResponse>(
     (resolve, reject) => {
       compilerClient.check(req, grpcMetadata, (err, data) => {
@@ -160,13 +161,18 @@ const check = async ({
       });
     },
   );
+  ok = res.getOk();
   const logs = res.getMessage();
   pb.stop();
   if (logs?.length) {
     console.log(logs);
   }
-  if (res.getOk()) pb.succeed(`Ok`);
-  else pb.fail(`Failed`);
+  if (ok) {
+    pb.succeed(`Ok`);
+  } else {
+    pb.fail(`Failed`);
+    process.exitCode = 1;
+  }
 };
 
 const writeApiFile = async (
@@ -349,6 +355,10 @@ const build = async ({
       }
     });
   });
+
+  if (!ok) {
+    process.exitCode = 1;
+  }
 
   pb?.stop();
 };
