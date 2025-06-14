@@ -17,7 +17,7 @@ rustFileSet("src_rs_test", {
   srcs: [glob("**/*.test.rs"), glob("**/*.csv"), glob("**/*.json")],
 });
 
-rustBinary("main_rs", {
+rustBinary("main", {
   deps: [":src_rs"],
   srcs: ["main.rs"],
   target: "main",

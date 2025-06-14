@@ -214,8 +214,8 @@ const build = async ({
   config: configPath,
   emit,
   out: outDir,
-  skipWheelInstall,
-  skipWheelTest,
+  skipInstall,
+  skipTest,
   verbose,
 }: {
   target?: BuildTarget;
@@ -223,8 +223,8 @@ const build = async ({
   config?: string;
   emit?: boolean;
   out?: string;
-  skipWheelInstall?: boolean;
-  skipWheelTest?: boolean;
+  skipInstall?: boolean;
+  skipTest?: boolean;
   verbose?: boolean;
 }): Promise<void> => {
   if (rawTarget == null && !emit) {
@@ -242,13 +242,20 @@ const build = async ({
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
   );
   qpcConfig.python ??= {};
+  qpcConfig.node ??= {};
   qpcConfig.emit ||= emit;
   qpcConfig.out = outDir ?? qpcConfig.out;
-  if (skipWheelInstall) qpcConfig.python!.installWheel = false;
-  if (skipWheelTest) qpcConfig.python!.testWheel = false;
+
+  if (target?.startsWith("python")) {
+    if (skipInstall) qpcConfig.python!.install = false;
+    if (skipTest) qpcConfig.python!.test = false;
+  } else if (target?.startsWith("node")) {
+    if (skipInstall) qpcConfig.node!.install = false;
+    if (skipTest) qpcConfig.node!.test = false;
+  }
 
   const pythonPath = await locatePython();
-  if (target?.startsWith("python") && qpcConfig.python?.installWheel) {
+  if (target?.startsWith("python") && qpcConfig.python?.install) {
     if (pythonPath == null)
       throw new CliError(`Python not found. Install python and or it to PATH`);
     {
@@ -314,7 +321,7 @@ const build = async ({
             fail(`Python wheel file not produced`);
           }
 
-          if (pythonWheelFile != null && qpcConfig.python?.installWheel) {
+          if (pythonWheelFile != null && qpcConfig.python?.install) {
             pb.text = `Installing Python wheel`;
             const path = resolve(cwd, pythonWheelFile.getPath());
             {
@@ -328,7 +335,7 @@ const build = async ({
                 process.stderr.write(res.stderr);
               }
             }
-            if (ok && qpcConfig.python?.testWheel) {
+            if (ok && qpcConfig.python?.test) {
               pb.text = `Testing Python wheel`;
               const res = await exec({
                 command: `${pythonPath} -c "import ${qpcConfig.python.package}"`,
@@ -381,12 +388,12 @@ export const getCommands = (): Command[] => {
       .option("--cwd <path>", `Project root directory`)
       .option("--config <path>", `Path to the QPC config file`)
       .option(
-        "--skip-wheel-install",
-        `Skips installing python wheel artifact. "config.python.installWheel"`,
+        "--skip-install",
+        `Skips installing artifact. "config.python|node.install"`,
       )
       .option(
-        "--skip-wheel-test",
-        `Skips testing python wheel artifact. "config.python.testWheel"`,
+        "--skip-test",
+        `Skips testing artifact. "config.python|node.test"`,
         false,
       )
       .option("--verbose", `Prints verbose output`, false)

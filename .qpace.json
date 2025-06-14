@@ -1,6 +1,6 @@
 {
   "python": {
-    "package": "qpace_script_e0ffe1",
+    "package": "qpace_example_lib",
     "installWheel": true,
     "testWheel": true
   },
