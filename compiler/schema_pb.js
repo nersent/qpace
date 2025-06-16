@@ -2140,7 +2140,8 @@ proto.compiler.BuildEnd.prototype.clearFilesList = function() {
  */
 proto.compiler.FileFlag = {
   FILE_FLAG_NONE: 0,
-  FILE_FLAG_PYTHON_WHEEL: 1
+  FILE_FLAG_PYTHON_WHEEL: 1,
+  FILE_FLAG_NPM_TAR: 2
 };
 
 goog.object.extend(exports, proto.compiler);

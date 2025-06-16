@@ -62,7 +62,7 @@ export interface Config {
   /* Emits compiled code to directory. default: `false` */
   emit?: boolean;
   /* Directory to emit compiled code and artifacts. default: `build` */
-  out?: string;
+  outDir?: string;
   /* Files included in the build. default: `["**\/*.pine"]` */
   include?: string[];
   /* Files excluded from the build. default: `["node_modules", "build", "dist", "target", "__pycache__"]` */
@@ -142,7 +142,7 @@ export const getInitConfig = (): Config => {
       test: true,
       packageManager: "auto",
     },
-    buildDir: "build",
+    outDir: "build",
     include: ["**/*.pine"],
   };
 };

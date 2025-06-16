@@ -4,6 +4,9 @@
     "installWheel": true,
     "testWheel": true
   },
-  "buildDir": "build",
+  "node": {
+    "package": "qpace_example_lib"
+  },
+  "outDir": "build",
   "include": ["xd.pine"]
 }

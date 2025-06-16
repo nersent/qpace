@@ -1,3 +1,6 @@
+#[cfg(feature = "polars")]
+extern crate polars;
+
 #[cfg(feature = "bindings_node")]
 #[macro_use]
 extern crate napi_derive;

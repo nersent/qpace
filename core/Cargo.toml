@@ -68,6 +68,7 @@ pyo3-stub-gen-derive = { version = "0.7", optional = true }
 napi = { version = "3.0.0-beta.2", optional = true, features = [
   "chrono_date",
   "napi8",
+  "compat-mode",
 ] }
 napi-derive = { version = "3.0.0-beta.2", features = [
   "type-def",

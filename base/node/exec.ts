@@ -54,7 +54,7 @@ export async function exec(options: ExecOptions): Promise<ExecResult> {
   const req = {
     command: commandStr,
     args: args ?? [],
-    env: options.env ?? {},
+    env: options.env ?? process.env,
     shell: options.shell ?? true,
     cwd: options.cwd ?? undefined,
     stdio:

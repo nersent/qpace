@@ -26,6 +26,7 @@ import { Profile } from "./profile";
 import axios, { AxiosInstance } from "axios";
 import { locatePython } from "~/base/node/python";
 import { exec } from "~/base/node/exec";
+import { detectNodePackageManager, installNodePackage } from "./utils";
 
 export const BUILD_TARGETS = [...TARGETS, "python", "node", "web"] as const;
 export type BuildTarget = typeof BUILD_TARGETS[number];
@@ -49,6 +50,18 @@ export namespace BuildTarget {
     }
     if (buildTarget === "python" && isLinux() && arch === "x64") {
       return "python-x86_64-linux";
+    }
+    if (buildTarget === "node" && isMacOs() && arch === "arm64") {
+      return "node-arm64-macos";
+    }
+    if (buildTarget === "node" && isMacOs() && arch === "x64") {
+      return "node-x86_64-macos";
+    }
+    if (buildTarget === "node" && isWindows() && arch === "x64") {
+      return "node-x86_64-windows";
+    }
+    if (buildTarget === "node" && isLinux() && arch === "x64") {
+      return "node-x86_64-linux";
     }
     return;
   };
@@ -201,10 +214,11 @@ const writeApiFile = async (
   }
 };
 
-const getApiFileFlags = (file: compilerApi.File): { pythonWheel: boolean } => {
+const getApiFileFlags = (file: compilerApi.File) => {
   const flags = file.getFlags();
   return {
     pythonWheel: Boolean(flags & compilerApi.FileFlag.FILE_FLAG_PYTHON_WHEEL),
+    npmTar: Boolean(flags & compilerApi.FileFlag.FILE_FLAG_NPM_TAR),
   };
 };
 
@@ -213,7 +227,7 @@ const build = async ({
   cwd,
   config: configPath,
   emit,
-  out: outDir,
+  outDir,
   skipInstall,
   skipTest,
   verbose,
@@ -222,7 +236,7 @@ const build = async ({
   cwd?: string;
   config?: string;
   emit?: boolean;
-  out?: string;
+  outDir?: string;
   skipInstall?: boolean;
   skipTest?: boolean;
   verbose?: boolean;
@@ -244,7 +258,7 @@ const build = async ({
   qpcConfig.python ??= {};
   qpcConfig.node ??= {};
   qpcConfig.emit ||= emit;
-  qpcConfig.out = outDir ?? qpcConfig.out;
+  qpcConfig.outDir = outDir ?? qpcConfig.outDir;
 
   if (target?.startsWith("python")) {
     if (skipInstall) qpcConfig.python!.install = false;
@@ -314,35 +328,57 @@ const build = async ({
         );
 
         if (data.getOk()) {
-          const pythonWheelFile = files.find(
-            (f) => getApiFileFlags(f).pythonWheel,
-          );
-          if (target?.startsWith("python-") && pythonWheelFile == null) {
-            fail(`Python wheel file not produced`);
-          }
+          if (target?.includes("python")) {
+            const pythonWheelFile = files.find(
+              (f) => getApiFileFlags(f).pythonWheel,
+            );
+            if (target?.startsWith("python-") && pythonWheelFile == null) {
+              fail(`Python wheel file not produced`);
+            }
 
-          if (pythonWheelFile != null && qpcConfig.python?.install) {
-            pb.text = `Installing Python wheel`;
-            const path = resolve(cwd, pythonWheelFile.getPath());
-            {
-              const res = await exec({
-                command: `${pythonPath} -m pip install "${path}" --force-reinstall --break-system-packages`,
-                io: verbose,
-              });
-              if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
-                fail(`Failed to install Python wheel`);
-                process.stdout.write(res.stdout);
-                process.stderr.write(res.stderr);
+            if (pythonWheelFile != null && qpcConfig.python?.install) {
+              pb.text = `Installing Python wheel`;
+              const path = resolve(cwd, pythonWheelFile.getPath());
+              {
+                const res = await exec({
+                  command: `${pythonPath} -m pip install "${path}" --force-reinstall --break-system-packages`,
+                  io: verbose,
+                });
+                if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
+                  fail(`Failed to install Python wheel`);
+                  process.stdout.write(res.stdout);
+                  process.stderr.write(res.stderr);
+                }
+              }
+              if (ok && qpcConfig.python?.test) {
+                pb.text = `Testing Python wheel`;
+                const res = await exec({
+                  command: `${pythonPath} -c "import ${qpcConfig.python.package}"`,
+                  io: verbose,
+                });
+                if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
+                  fail(`Failed Python wheel test`);
+                  process.stdout.write(res.stdout);
+                  process.stderr.write(res.stderr);
+                }
               }
             }
-            if (ok && qpcConfig.python?.test) {
-              pb.text = `Testing Python wheel`;
-              const res = await exec({
-                command: `${pythonPath} -c "import ${qpcConfig.python.package}"`,
-                io: verbose,
+          } else if (target?.includes("node")) {
+            const nodeTarFile = files.find((f) => getApiFileFlags(f).npmTar);
+            if (target?.startsWith("python-") && nodeTarFile == null) {
+              fail(`NPM tar file not produced`);
+            }
+            if (nodeTarFile != null && qpcConfig.python?.install) {
+              pb.text = `Installing NPM package`;
+              const path = resolve(cwd, nodeTarFile.getPath());
+              const pkgManager = await detectNodePackageManager(cwd);
+              const res = await installNodePackage(`"${path}"`, {
+                cwd,
+                manager: pkgManager,
+                verbose,
               });
-              if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
-                fail(`Failed Python wheel test`);
+              if (res.exitCode !== 0) {
+                fail(`Failed to install NPM package`);
                 process.stdout.write(res.stdout);
                 process.stderr.write(res.stderr);
               }
@@ -384,7 +420,10 @@ export const getCommands = (): Command[] => {
         ),
       )
       .option("--emit", `Emits compiled files. Default: "config.emit"`)
-      .option("--out <path>", `Directory to emit compiled files and artifacts`)
+      .option(
+        "--out-dir <path>",
+        `Directory to emit compiled files and artifacts. Default: "config.outDir"`,
+      )
       .option("--cwd <path>", `Project root directory`)
       .option("--config <path>", `Path to the QPC config file`)
       .option(

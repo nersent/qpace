@@ -7,6 +7,7 @@ settings:
 overrides:
   qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
   '@nersent/bazed': link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
+  qpace_example_lib: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace_example_lib
 
 importers:
 
@@ -69,6 +70,9 @@ importers:
       qpace:
         specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
         version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
+      qpace_example_lib:
+        specifier: file:C:/projects/nersent/qpace_other/build/qpace_example_lib-1.0.0.tgz
+        version: file:build/qpace_example_lib-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace)
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -3564,6 +3568,12 @@ packages:
 
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
+
+  qpace_example_lib@file:build/qpace_example_lib-1.0.0.tgz:
+    resolution: {integrity: sha512-rCGK45dhzSjRqHsJgx1ySpCe/AFDnItvDChOkDs5Xf0z5ahNyfJkayAzUYtQkfR5/IAsB2FScq7xvmOWgKKaGQ==, tarball: file:build/qpace_example_lib-1.0.0.tgz}
+    version: 1.0.0
+    peerDependencies:
+      qpace: latest
 
   qs@6.13.0:
     resolution: {integrity: sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==}
@@ -8274,6 +8284,10 @@ snapshots:
   punycode@2.3.1: {}
 
   pure-rand@6.1.0: {}
+
+  qpace_example_lib@file:build/qpace_example_lib-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace):
+    dependencies:
+      qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
 
   qs@6.13.0:
     dependencies:

@@ -283,4 +283,5 @@ export namespace BuildEnd {
 export enum FileFlag {
     FILE_FLAG_NONE = 0,
     FILE_FLAG_PYTHON_WHEEL = 1,
+    FILE_FLAG_NPM_TAR = 2,
 }

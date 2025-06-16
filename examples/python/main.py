@@ -12,11 +12,11 @@ ohlcv_path = os.path.join(os.path.dirname(__file__), "../btc.csv")
 ohlcv = qp.Ohlcv.read_csv(ohlcv_path)
 ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
 
-df = pd.DataFrame(pine.xd.gowno(ctx.copy()), columns=["src", "ma", "dev", "cci"])
+# df = pd.DataFrame(pine.xd.gowno(ctx.copy()), columns=["src", "ma", "dev", "cci"])
 # print df with 5 digit precision
-print(df[0:10].to_string(float_format="%.5f"))
+# print(df[0:10].to_string(float_format="%.5f"))
 
-print(pine.xd.gowno2(ctx.copy())[0:15])
+print(pine.xd.gowno(ctx.copy(), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 69.0, 420.0])[0:15])
 # print(
 #     pd.DataFrame(
 #         pine.xd.xd_rma(ctx.copy()), columns=["u", "d", "rs_numerator", "rs_dominator"]

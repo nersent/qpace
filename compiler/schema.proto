@@ -28,6 +28,7 @@ message File {
 enum FileFlag {
   FILE_FLAG_NONE = 0; // 0b0000
   FILE_FLAG_PYTHON_WHEEL = 1; // 0b0001 (1 << 0)
+  FILE_FLAG_NPM_TAR = 2; // 0b0010 (1 << 1)
 }
 
 message CheckRequest {
