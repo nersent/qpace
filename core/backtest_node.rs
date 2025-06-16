@@ -2,11 +2,10 @@ use crate::{
     backtest::{Backtest, BacktestConfig, BacktestSummary},
     ctx_node::{NodeCtx, NodeCtxSkip},
     signal_node::NodeSignal,
-    trade::Trade,
     trade_node::NodeTrade,
 };
 use napi::bindgen_prelude::*;
-use napi::{Error, Result, Status};
+use napi::Result;
 use napi_derive::napi;
 use std::{cell::RefCell, rc::Rc};
 

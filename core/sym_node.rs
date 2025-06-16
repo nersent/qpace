@@ -1,6 +1,4 @@
 use crate::sym::{Sym, SymKind};
-use napi::bindgen_prelude::*;
-use napi::{Error, Result, Status};
 use napi_derive::napi;
 
 #[napi]

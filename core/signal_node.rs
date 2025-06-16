@@ -1,6 +1,4 @@
-use crate::signal::{Signal, SignalKind};
-use napi::bindgen_prelude::*;
-use napi::{Error, Result, Status};
+use crate::signal::Signal;
 use napi_derive::napi;
 
 #[napi]

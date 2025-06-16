@@ -1,4 +1,4 @@
-use crate::signal::{Signal, SignalKind};
+use crate::signal::Signal;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = "Signal")]

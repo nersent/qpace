@@ -1,6 +1,6 @@
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyclass_enum}};
+  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pyclass_enum}};
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_wasm")] {
   use wasm_bindgen::prelude::*;

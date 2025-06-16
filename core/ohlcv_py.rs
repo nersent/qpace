@@ -7,15 +7,12 @@ use crate::{
         OhlcvWriterOps,
     },
     timeframe_py::PyTimeframe,
-    utils::{get_oldest_possible_datetime, pyslice_to_range, PandasDataFrame},
+    utils::{pyslice_to_range, PandasDataFrame},
 };
 use chrono::{DateTime, Utc};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use pyo3::{
-    exceptions::{PyTypeError, PyValueError},
-    types::{PySequence, PySlice, PySliceIndices},
-};
+use pyo3::types::PySlice;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
 
 impl IntoPy<PyResult<PyObject>> for OhlcvBar {

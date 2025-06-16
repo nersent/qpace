@@ -2,10 +2,8 @@ use crate::ohlcv::{
     zip_ohlcv_bars, ArcOhlcv, Ohlcv, OhlcvBar, OhlcvReader, OhlcvReaderOps, OhlcvWriter,
     OhlcvWriterOps,
 };
-use crate::timeframe::Timeframe;
 use crate::timeframe_node::NodeTimeframe;
-use crate::utils::get_oldest_possible_datetime;
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use napi::bindgen_prelude::*;
 use napi::{Error, Result, Status};
 use napi_derive::napi;

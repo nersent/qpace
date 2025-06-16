@@ -13,7 +13,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
 }}
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::{gen_stub_pyclass, gen_stub_pymethods, gen_stub_pyfunction}};
+  use pyo3_stub_gen::{derive::{gen_stub_pyclass}};
   use pyo3::types::PyDict;
 }}
 use std::{
@@ -29,10 +29,7 @@ cfg_if::cfg_if! {
         use wasm_bindgen::prelude::*;
     }
 }
-cfg_if::cfg_if! { if #[cfg(feature = "bindings_node")] {
-    use napi_derive::napi;
-}}
-use crate::{timeframe::Timeframe, utils::get_oldest_possible_datetime};
+use crate::timeframe::Timeframe;
 use std::path::Path;
 
 #[cfg_attr(feature = "bindings_py", gen_stub_pyclass)]

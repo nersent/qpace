@@ -3,12 +3,6 @@ use chrono::{DateTime, Utc};
 use crate::{
     ohlcv::{Ohlcv, OhlcvBar, OhlcvReader},
     sym::Sym,
-    timeframe::Timeframe,
-};
-use std::{
-    cell::{Cell, Ref, RefCell, RefMut},
-    rc::Rc,
-    sync::Arc,
 };
 
 pub struct Ctx {

@@ -1,6 +1,5 @@
 use crate::backtest::BacktestSummary;
 use crate::ctx_py::{PyCtx, PyCtxSkip};
-use crate::signal::Signal;
 use crate::signal_py::PySignal;
 use crate::{
     backtest::{Backtest, BacktestConfig},
@@ -9,7 +8,7 @@ use crate::{
 use pyo3::exceptions::PyStopIteration;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyclass_enum, gen_stub_pymethods};
+use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
 

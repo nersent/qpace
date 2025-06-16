@@ -1,10 +1,3 @@
-use std::cell::RefCell;
-use std::fs;
-use std::path::Path;
-use std::rc::Rc;
-
-use qpace_core::timeframe::Timeframe;
-
 fn main() {
     let mut _2_src: f64 = 11.70000;
     let mut _3_ma: f64 = 11.70000;

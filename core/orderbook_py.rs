@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
+use pyo3_stub_gen::derive::gen_stub_pyfunction;
 
 use crate::orderbook::{
     order_size, order_size_for_equity_pct, round_contracts, round_to_min_tick, validate_contracts,

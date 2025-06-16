@@ -1,6 +1,7 @@
 #[cfg(feature = "bindings_node")]
 #[macro_use]
 extern crate napi_derive;
+
 #[cfg(feature = "bindings_node")]
 use napi::bindgen_prelude::*;
 #[cfg(feature = "bindings_node")]

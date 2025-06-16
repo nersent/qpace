@@ -1,14 +1,9 @@
 use chrono::{DateTime, TimeZone, Utc};
 cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use pyo3::prelude::*;
-  use pyo3_stub_gen::{derive::gen_stub_pyfunction};
-  use pyo3::{
-    exceptions::{PyTypeError, PyValueError},
-    types::{PySequence, PySlice, PySliceIndices},
-  };
+  use pyo3::{types::{PySlice}};
   use pyo3_stub_gen::PyStubType;
   use pyo3_stub_gen::TypeInfo;
-  use pyo3::conversion::FromPyObjectBound;
 }}
 use std::{ffi::OsStr, ops::Range, path::Path};
 cfg_if::cfg_if! { if #[cfg(feature = "polars")] {

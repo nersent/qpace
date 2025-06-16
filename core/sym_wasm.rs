@@ -1,5 +1,4 @@
 use crate::sym::{Sym, SymKind};
-use js_sys::Error;
 use js_sys::{Object, Reflect};
 use wasm_bindgen::prelude::*;
 

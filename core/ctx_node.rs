@@ -2,11 +2,9 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     ctx::{Ctx, CtxSkip},
-    ohlcv::{ArcOhlcv, Ohlcv, OhlcvBar, OhlcvReader, OhlcvWriter, RcOhlcv},
+    ohlcv::{ArcOhlcv, OhlcvReader},
     ohlcv_node::{NodeOhlcv, NodeOhlcvBar},
-    sym::Sym,
     sym_node::NodeSym,
-    sym_wasm::WasmSym,
 };
 use chrono::{DateTime, Utc};
 use napi::bindgen_prelude::*;
