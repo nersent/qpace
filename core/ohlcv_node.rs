@@ -395,7 +395,18 @@ impl NodeOhlcv {
         format!("{:?}", self.inner)
     }
 
-    #[cfg(feature = "polars")]
+    #[napi(js_name = "sanityCheck")]
+    pub fn node_sanity_check(&self) -> Vec<String> {
+        match self.inner.sanity_check() {
+            Ok(_) => vec![],
+            Err(e) => e,
+        }
+    }
+}
+
+#[cfg(feature = "polars")]
+#[napi]
+impl NodeOhlcv {
     #[napi(js_name = "read_csv")]
     #[inline]
     pub fn node_read_csv(path: String) -> Self {
@@ -405,7 +416,6 @@ impl NodeOhlcv {
         return ohlcv.into();
     }
 
-    #[cfg(feature = "polars")]
     #[napi(js_name = "read_parquet")]
     #[inline]
     pub fn node_read_parquet(path: String) -> Self {
@@ -415,26 +425,16 @@ impl NodeOhlcv {
         return ohlcv.into();
     }
 
-    #[cfg(feature = "polars")]
     #[napi(js_name = "write_csv")]
     #[inline]
     pub fn node_write_csv(&self, path: String) {
         self.inner.write_csv(Path::new(&path));
     }
 
-    #[cfg(feature = "polars")]
     #[napi(js_name = "write_parquet")]
     #[inline]
     pub fn node_write_parquet(&self, path: String) {
         self.inner.write_parquet(Path::new(&path));
-    }
-
-    #[napi(js_name = "sanityCheck")]
-    pub fn node_sanity_check(&self) -> Vec<String> {
-        match self.inner.sanity_check() {
-            Ok(_) => vec![],
-            Err(e) => e,
-        }
     }
 }
 
