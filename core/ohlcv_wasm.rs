@@ -11,6 +11,7 @@ use chrono::DateTime;
 use chrono::Utc;
 use js_sys::Object;
 use js_sys::Reflect;
+use js_sys::Array;
 }}
 
 #[wasm_bindgen(js_class=OhlcvBar)]
