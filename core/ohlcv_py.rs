@@ -7,13 +7,17 @@ use crate::{
         OhlcvWriterOps,
     },
     timeframe_py::PyTimeframe,
-    utils::{pyslice_to_range, PandasDataFrame},
+    utils::pyslice_to_range,
 };
 use chrono::{DateTime, Utc};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::types::PySlice;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
+
+cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
+    use crate::utils::PandasDataFrame;
+}}
 
 impl IntoPy<PyResult<PyObject>> for OhlcvBar {
     #[inline]
