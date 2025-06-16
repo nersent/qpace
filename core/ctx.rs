@@ -5,6 +5,7 @@ use crate::{
     sym::Sym,
 };
 
+#[derive(Debug)]
 pub struct Ctx {
     ohlcv: Box<dyn OhlcvReader>,
     sym: Sym,
