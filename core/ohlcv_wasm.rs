@@ -5,6 +5,13 @@ use crate::ohlcv::RcOhlcv;
 use crate::ohlcv::{OhlcvBar, OhlcvReader, OhlcvWriter};
 use crate::timeframe_wasm::WasmTimeframe;
 use wasm_bindgen::prelude::*;
+cfg_if::cfg_if! { if #[cfg(target_arch = "wasm32")] {
+use crate::ohlcv::zip_ohlcv_bars;
+use chrono::DateTime;
+use chrono::Utc;
+use js_sys::Object;
+use js_sys::Reflect;
+}}
 
 #[wasm_bindgen(js_class=OhlcvBar)]
 impl OhlcvBar {
