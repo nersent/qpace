@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use crate::ohlcv::Ohlcv;
+use crate::utils::PandasDataFrame;
 use crate::{
     ohlcv::{
         zip_ohlcv_bars, ArcOhlcv, OhlcvBar, OhlcvReader, OhlcvReaderOps, OhlcvWriter,
@@ -14,10 +15,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::types::PySlice;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pyfunction, gen_stub_pymethods};
-
-cfg_if::cfg_if! { if #[cfg(feature = "polars")] {
-    use crate::utils::PandasDataFrame;
-}}
 
 impl IntoPy<PyResult<PyObject>> for OhlcvBar {
     #[inline]
