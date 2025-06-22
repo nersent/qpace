@@ -204,7 +204,7 @@ execute("wheel", (ctx) => {
       `pwd`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
-    deps: ["//:package_json", ":py"],
+    deps: ["//:package_json", ":py", ":maturin_unwheel_core"],
     run: true,
   };
 });
