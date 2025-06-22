@@ -31,7 +31,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: "pnpm"
 
       - name: Get pnpm store directory
@@ -99,11 +99,13 @@ jobs:
 
       - name: Build
         run: |
-          pnpm bazed build //core --verbose
-          pnpm bazed build //content --verbose
-          pnpm bazed build //lib --verbose
-      # - name: Test
-      #   run: |
-      #     pnpm bazed run //pace/lib:test --verbose
+          pnpm bazed build //core:maturin --verbose
+          pnpm bazed build //core:napi --verbose
+          pnpm bazed build //core:wasm --verbose
+    # pnpm bazed build //content --verbose
+    #  pnpm bazed build //lib --verbose
+    # - name: Test
+    #   run: |
+    #     pnpm bazed run //pace/lib:test --verbose
 
 # pnpm bazed run //pace/compiler/e2e:test --verbose

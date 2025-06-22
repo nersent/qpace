@@ -43,10 +43,33 @@ export class Profile {
 
   public async getClient(cache = true): Promise<Client> {
     if (this.client == null || !cache) {
+      let apiBase = "https://api.qpace.dev/v1";
+      let grpcApiBase = "grpc.qpace.dev";
+      let apiKey = this.data.apiKey;
+
+      if (process.env["DEV"]) {
+        apiBase = "http://0.0.0.0:3000/v1";
+        grpcApiBase = "0.0.0.0:3001";
+      }
+
+      if (process.env["QPACE_API_KEY"]?.length) {
+        apiKey = process.env["QPACE_API_KEY"];
+      }
+      if (process.env["QPACE_API_BASE"]?.length) {
+        apiBase = process.env["QPACE_API_BASE"];
+      }
+      if (process.env["QPACE_GRPC_API_BASE"]?.length) {
+        grpcApiBase = process.env["QPACE_GRPC_API_BASE"];
+      }
+
+      if (!apiKey?.length) {
+        throw new CliError(`API key is required`);
+      }
+
       this.client = new Client({
-        apiKey: unwrap(this.data.apiKey, "API key is required"),
-        apiBase: "http://0.0.0.0:3000/v1",
-        grpcApiBase: "0.0.0.0:3001",
+        apiKey,
+        apiBase,
+        grpcApiBase,
       });
     }
     return this.client;

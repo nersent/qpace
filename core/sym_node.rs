@@ -1,4 +1,6 @@
 use crate::sym::{Sym, SymKind};
+use napi::bindgen_prelude::*;
+use napi::{Error, Result, Status};
 use napi_derive::napi;
 
 #[napi]
@@ -260,5 +262,72 @@ impl NodeSym {
     #[napi(js_name = eq)]
     pub fn node_eq(&self, other: &NodeSym) -> bool {
         self.inner == other.inner
+    }
+
+    #[napi(js_name = toJSON)]
+    pub fn node_to_json(&self, env: Env) -> Result<Object> {
+        let mut obj = Object::new(&env)?;
+
+        macro_rules! set_opt_str {
+            ($getter:expr, $js_key:literal) => {
+                if let Some(v) = $getter {
+                    obj.set($js_key, v)?;
+                } else {
+                    obj.set($js_key, Null)?;
+                }
+            };
+        }
+
+        set_opt_str!(self.node_id(), "id");
+        set_opt_str!(self.node_ticker_id(), "ticker_id");
+        set_opt_str!(self.node_prefix(), "prefix");
+        set_opt_str!(self.node_currency(), "currency");
+        set_opt_str!(self.node_base_currency(), "base_currency");
+        set_opt_str!(self.node_ticker(), "ticker");
+        set_opt_str!(self.node_country(), "country");
+        set_opt_str!(self.node_metadata(), "metadata");
+
+        obj.set("min_tick", self.node_min_tick())?;
+        obj.set("min_qty", self.node_min_qty())?;
+        obj.set("price_scale", self.node_price_scale())?;
+        obj.set("point_value", self.node_point_value())?;
+
+        let kind_str: String = self.inner.kind().into();
+        obj.set("kind", kind_str)?;
+
+        Ok(obj)
+    }
+
+    #[napi(js_name = fromJSON)]
+    pub fn node_from_json(json: Object) -> Result<NodeSym> {
+        fn opt_str(json: &Object, key: &str) -> Result<Option<String>> {
+            json.get(key)
+        }
+
+        let min_tick: Option<f64> = json.get("min_tick")?;
+        let min_qty: Option<f64> = json.get("min_qty")?;
+        let price_scale: Option<f64> = json.get("price_scale")?;
+        let point_value: Option<f64> = json.get("point_value")?;
+
+        let kind_str: Option<String> = json.get("kind")?;
+        let kind = kind_str.map(SymKind::from).unwrap_or(SymKind::Unknown);
+
+        let mut sym = Sym::default();
+        sym.set_id(opt_str(&json, "id")?);
+        sym.set_ticker_id(opt_str(&json, "ticker_id")?);
+        sym.set_prefix(opt_str(&json, "prefix")?);
+        sym.set_currency(opt_str(&json, "currency")?);
+        sym.set_base_currency(opt_str(&json, "base_currency")?);
+        sym.set_ticker(opt_str(&json, "ticker")?);
+        sym.set_country(opt_str(&json, "country")?);
+        sym.set_metadata(opt_str(&json, "metadata")?);
+
+        sym.set_min_tick(min_tick.unwrap_or(f64::NAN));
+        sym.set_min_qty(min_qty.unwrap_or(f64::NAN));
+        sym.set_price_scale(price_scale.unwrap_or(f64::NAN));
+        sym.set_point_value(point_value.unwrap_or(f64::NAN));
+        sym.set_kind(kind);
+
+        Ok(sym.into())
     }
 }

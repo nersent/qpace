@@ -73,7 +73,7 @@
     "@typescript-eslint/eslint-plugin": "5.60.1",
     "@typescript-eslint/parser": "5.60.1",
     "babel-jest": "29.4.3",
-    "bazed": "link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed",
+    "bazed": "^0.0.60",
     "eslint": "8.46.0",
     "eslint-config-next": "13.4.1",
     "eslint-config-prettier": "^8.5.0",
@@ -110,10 +110,6 @@
     "nodejs-polars": "^0.8.4",
     "object-hash": "^3.0.0",
     "ora": "^5.4.1",
-    "qpace": "link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace",
-    "qpace_example_lib": "file:C:/projects/nersent/qpace_other/build/qpace_example_lib-1.0.0.tgz",
-    "qpace_example_lib_node": "file:C:/projects/nersent/qpace_other/build/qpace_example_lib_node-1.0.0.tgz",
-    "qpace_example_lib_wasm": "file:C:/projects/nersent/qpace_other/build/qpace_example_lib_wasm-1.0.0.tgz",
     "tslib": "^2.8.1",
     "which": "^5.0.0"
   }
