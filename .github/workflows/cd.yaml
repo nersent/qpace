@@ -129,13 +129,13 @@ jobs:
       - name: Build
         run: |
           pnpm bazed build //core:napi --verbose
-          ls build/_bazed/__core__napi/core/pkg_napi
+          ls build/_bazed/__core_napi/core/pkg_napi
 
       - name: Upload per-platform artifact
         uses: actions/upload-artifact@v4
         with:
           name: napi-${{ matrix.triplet }}
-          path: build/_bazed/__core__napi/core/pkg_napi/index.${{ matrix.triplet }}.node
+          path: build/_bazed/__core_napi/core/pkg_napi/index.${{ matrix.triplet }}.node
           if-no-files-found: error
 
   publish:
@@ -149,9 +149,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: napi-*
-          path: build/_bazed/__core__napi/core/pkg_napi
+          path: build/_bazed/__core_napi/core/pkg_napi
 
       - name: Show final directory layout
         run: |
           echo "Bundle now contains:"
-          ls -R build/_bazed/__core__napi/core/pkg_napi
+          ls -R build/_bazed/__core_napi/core/pkg_napi
