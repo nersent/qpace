@@ -126,26 +126,25 @@ jobs:
           mkdir -p target/nextest/default
           ls -l
 
-      - name: Build NAPI
-        run: |
-          pnpm bazed build //core:napi --verbose
+      # - name: Build NAPI
+      #   run: |
+      #     pnpm bazed build //core:napi --verbose
 
       - name: Build wheel
         run: |
           pnpm bazed build //:wheel --verbose
 
+      # echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
+      # ls build/_bazed/__core_napi/core/pkg_napi
       - name: List
         run: |
-          echo 'Contents of build/_bazed:'
+          echo "Contents of build/_bazed:"
           ls build/_bazed
 
-          echo 'Contents of build/_bazed/__core_napi/core/pkg_napi:'
-          ls build/_bazed/__core_napi/core/pkg_napi
-
-          echo 'Contents of build/_bazed/___wheel:'
+          echo "Contents of build/_bazed/___wheel:"
           ls build/_bazed/___wheel
 
-          echo 'Contents of build/_bazed/___wheel/dist:'
+          echo "Contents of build/_bazed/___wheel/dist:"
           ls build/_bazed/___wheel/dist
 
       - name: Upload NAPI

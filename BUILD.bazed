@@ -128,6 +128,7 @@ execute("wheel", (ctx) => {
     PYPROJECT_TOML,
     "utf8",
   );
+  console.log("XDDDDDD", platform, arch, ctx.sandboxPath);
   return {
     command: [
       ...(platform === "win32"
