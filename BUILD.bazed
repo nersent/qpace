@@ -196,6 +196,26 @@ execute("wheel", (ctx) => {
       `echo "Sandbox Path: ${ctx.sandboxPath}"`,
       `echo "Workspace Path: ${ctx.workspacePath}"`,
       `pwd`,
+      ...(platform === "win32"
+        ? [
+            "copy ..\\MANIFEST.in .",
+            "copy ..\\setup.py .",
+            "copy ..\\pyproject.toml .",
+          ]
+        : [
+            "cp ../MANIFEST.in .",
+            "cp ../setup.py .",
+            "cp ../pyproject.toml .",
+          ]),
+      `python setup.py bdist_wheel --plat-name ${(() => {
+        if (platform === "darwin") {
+          return `macosx_11_0_${arch}`;
+        } else if (platform === "linux") {
+          return `linux_${arch}`;
+        } else {
+          return `win_amd64`;
+        }
+      })()}`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: ["//:package_json", ":py", ":maturin_unwheel_core"],
