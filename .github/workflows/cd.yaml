@@ -141,13 +141,13 @@ jobs:
       - name: Build wheel
         run: |
           pnpm bazed build //:wheel --verbose
-          ls build/_bazed/___wheel/dist
+          ls build/_bazed/__wheel/dist
 
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.triplet }}
-          path: build/_bazed/___wheel/dist/*.whl
+          path: build/_bazed/__wheel/dist/*.whl
           if-no-files-found: error
 
   publish:
