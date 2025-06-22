@@ -55,7 +55,7 @@ setup(
     name="qpace",
     version="${packageJson.version}",
     package_dir={
-        "": "lib/python",
+        "": "lib",
         "lib": "lib",
         "qpace": "lib",
         "qpace_core": "qpace_core",
@@ -95,10 +95,10 @@ build-backend = "setuptools.build_meta"
 // .replaceAll("\n", "\\n")
 // .replaceAll(`"`, `""`);
 
-// unpackWheel(`maturin_unwheel_core`, (ctx) => ({
-//   deps: ["//core:maturin"],
-//   dir: ctx.sandboxPath,
-// }));
+unpackWheel(`maturin_unwheel_core`, (ctx) => ({
+  deps: ["//core:maturin"],
+  dir: ctx.sandboxPath,
+}));
 
 // unpackWheel(`maturin_unwheel_content`, (ctx) => ({
 //   deps: ["//lib/content:maturin"],
@@ -155,7 +155,7 @@ execute("wheel", (ctx) => {
     deps: [
       ":py",
       "//:package_json",
-      // ":maturin_unwheel_core",
+      ":maturin_unwheel_core",
       // ":maturin_unwheel_content",
     ],
     run: true,

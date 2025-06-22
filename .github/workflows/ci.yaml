@@ -125,4 +125,4 @@ jobs:
 
       - name: Test
         run: |
-          pnpm bazed run //lib:test --verbose
+          pnpm bazed run //core:test --verbose

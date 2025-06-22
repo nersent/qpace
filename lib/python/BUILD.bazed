@@ -1,4 +1,0 @@
-fileSet("python", {
-  srcs: [glob("**/*.py")],
-  deps: [],
-});
