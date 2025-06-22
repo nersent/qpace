@@ -113,5 +113,6 @@ jobs:
           mkdir -p target/nextest/default
           ls -l
 
-      - name: Xd
-        run: pnpm bazed run //:xd --verbose
+      - name: Build python
+        run: |
+          pnpm bazed run //:wheel --verbose
