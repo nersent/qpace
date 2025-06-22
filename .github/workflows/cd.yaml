@@ -116,3 +116,11 @@ jobs:
       - name: Build python
         run: |
           pnpm bazed run //:wheel --verbose
+
+      - name: List
+        run: |
+          echo "Contents of build/_bazed:"
+          ls build/_bazed
+
+          echo "Contents of build/_bazed/___wheel:"
+          ls build/_bazed/___wheel
