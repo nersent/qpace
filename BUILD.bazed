@@ -190,3 +190,21 @@ execute("lint", (ctx) => ({
   cwd: ctx.workspacePath,
   run: true,
 }));
+
+execute("xd", (ctx) => {
+  const platform = os.platform();
+  const arch = os.arch();
+  return {
+    // command: `echo "${platform} | ${arch} | ${ctx.sandboxPath}"`,
+    command: [
+      `echo "Platform: ${platform}"`,
+      `echo "Architecture: ${arch}"`,
+      `echo "Sandbox Path: ${ctx.sandboxPath}"`,
+      `echo "Workspace Path: ${ctx.workspacePath}"`,
+      `echo "Current Directory: ${process.cwd()}"`,
+    ].join(" && "),
+    cwd: ctx.sandboxPath,
+    deps: [],
+    run: true,
+  };
+});

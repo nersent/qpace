@@ -130,57 +130,57 @@ jobs:
       #   run: pnpm bazed build //core:napi --verbose
 
       - name: Build wheel
-        run: pnpm bazed build //:wheel --verbose
+        run: pnpm bazed build //:xd --verbose
 
       # echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
       # ls build/_bazed/__core_napi/core/pkg_napi
-      - name: List
-        run: |
-          echo "Contents of build/_bazed:"
-          ls build/_bazed
+  #     - name: List
+  #       run: |
+  #         echo "Contents of build/_bazed:"
+  #         ls build/_bazed
 
-          echo "Contents of build/_bazed/___wheel:"
-          ls build/_bazed/___wheel
+  #         echo "Contents of build/_bazed/___wheel:"
+  #         ls build/_bazed/___wheel
 
-          echo "Contents of build/_bazed/___wheel/dist:"
-          ls build/_bazed/___wheel/dist
+  #         echo "Contents of build/_bazed/___wheel/dist:"
+  #         ls build/_bazed/___wheel/dist
 
-      - name: Upload NAPI
-        uses: actions/upload-artifact@v4
-        with:
-          name: napi-${{ matrix.triplet }}
-          path: build/_bazed/__core_napi/core/pkg_napi/*.node
-          if-no-files-found: error
+  #     - name: Upload NAPI
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: napi-${{ matrix.triplet }}
+  #         path: build/_bazed/__core_napi/core/pkg_napi/*.node
+  #         if-no-files-found: error
 
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheel-${{ matrix.triplet }}
-          path: build/_bazed/___wheel/dist/*.whl
-          if-no-files-found: error
+  #     - name: Upload wheel
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: wheel-${{ matrix.triplet }}
+  #         path: build/_bazed/___wheel/dist/*.whl
+  #         if-no-files-found: error
 
-  publish:
-    needs: build
-    runs-on: ubuntu-24.04
+  # publish:
+  #   needs: build
+  #   runs-on: ubuntu-24.04
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Prepare
-        run: |
-          mkdir -p build/artifacts
+  #     - name: Prepare
+  #       run: |
+  #         mkdir -p build/artifacts
 
-      - name: Download NAPI artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: napi-*
-          path: build/artifacts
+  #     - name: Download NAPI artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: napi-*
+  #         path: build/artifacts
 
-      - name: Download wheel artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: wheel-*
-          path: build/artifacts
+  #     - name: Download wheel artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: wheel-*
+  #         path: build/artifacts
 
-      - name: List artifacts
-        run: ls -R build/artifacts
+  #     - name: List artifacts
+  #       run: ls -R build/artifacts
