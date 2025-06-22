@@ -129,6 +129,7 @@ jobs:
       - name: Build
         run: |
           pnpm bazed build //core:napi --verbose
+          ls build/_bazed/__core__napi/core/pkg_napi
 
       - name: Upload per-platform artifact
         uses: actions/upload-artifact@v4
