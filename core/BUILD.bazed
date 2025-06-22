@@ -68,7 +68,7 @@ rustNapi("napi", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    `--manifest-path core/Cargo.toml --release --no-default-features --features="bindings_node polars"`,
+    `--manifest-path core/Cargo.toml --release --js index.js --platform --no-default-features --features="bindings_node polars"`,
   ],
 });
 
