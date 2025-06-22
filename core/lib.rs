@@ -15,6 +15,8 @@ extern crate num_traits;
 #[macro_use]
 extern crate num_derive;
 
+mod backtest_test;
+
 pub mod backtest;
 pub mod ctx;
 pub mod legacy;

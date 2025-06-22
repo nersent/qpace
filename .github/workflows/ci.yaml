@@ -113,9 +113,9 @@ jobs:
           mkdir -p target/nextest/default
           ls -l
 
-      # - name: Lint
-      #   run: |
-      #     pnpm bazed run //:lint --verbose
+      - name: Lint
+        run: |
+          pnpm bazed run //:lint --verbose
 
       - name: Build
         run: |
@@ -123,14 +123,6 @@ jobs:
           pnpm bazed build //core:napi --verbose
           pnpm bazed build //core:wasm --verbose
 
-      #pnpm bazed build //core:maturin --verbose
-      #pnpm bazed build //core:napi --verbose
-      #pnpm bazed build //core:wasm --verbose
-    # pnpm bazed build //core:wasm --verbose
-    # pnpm bazed build //content --verbose
-    #  pnpm bazed build //lib --verbose
-    # - name: Test
-    #   run: |
-    #     pnpm bazed run //pace/lib:test --verbose
-
-# pnpm bazed run //pace/compiler/e2e:test --verbose
+      - name: Test
+        run: |
+          pnpm bazed run //lib:test --verbose

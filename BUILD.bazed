@@ -161,3 +161,10 @@ execute("wheel", (ctx) => {
     run: true,
   };
 });
+
+execute("lint", (ctx) => ({
+  // pnpm eslint "**/*.ts"
+  command: [`cargo check`, `cargo fmt -- --check --verbose`].join("&&"),
+  cwd: ctx.workspacePath,
+  run: true,
+}));
