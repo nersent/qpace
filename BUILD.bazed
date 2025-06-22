@@ -138,9 +138,9 @@ execute("wheel", (ctx) => {
             "copy ..\\pyproject.toml .",
           ]
         : [
-            "cp ../MANIFEST.in .",
-            "cp ../setup.py .",
-            "cp ../pyproject.toml .",
+            // "cp ../MANIFEST.in .",
+            // "cp ../setup.py .",
+            // "cp ../pyproject.toml .",
           ]),
 
       // copy from ../ctx.sandboxPath to here
