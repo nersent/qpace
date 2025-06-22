@@ -1,0 +1,186 @@
+name: CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  # workflow_run:
+  #   workflows: ["CI"]
+  #   types: [completed]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            triplet: linux-x64-gnu
+          # - os: windows-latest
+          #   triplet: win32-x64-msvc
+          # - os: macos-14
+          #   triplet: darwin-universal
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Node.js dependencies
+        run: |
+          pnpm install
+          npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.89 --global
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade Pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install Python dependencies
+        run: |
+          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: "1.85.0"
+          components: rustfmt, clippy
+
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Rust tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Install wasm-pack
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Toolchain debug
+        run: |
+          pnpm bazed --version
+          node --version
+          npm --version
+          pnpm --version
+          python --version
+          python3 --version
+          rustc --version
+          cargo --version
+          cargo fmt --version
+          wasm-pack --version
+          maturin --version
+          napi
+
+      - name: Prepare
+        run: |
+          mkdir -p target/nextest/default
+          ls -l
+
+      # - name: Build NAPI
+      #   run: pnpm bazed build //core:napi --verbose
+
+      - name: Build wheel
+        run: pnpm bazed build //:wheel --verbose
+
+      # echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
+      # ls build/_bazed/__core_napi/core/pkg_napi
+      - name: List
+        run: |
+          echo "Contents of build/_bazed:"
+          ls build/_bazed
+
+          echo "Contents of build/_bazed/___wheel:"
+          ls build/_bazed/___wheel
+
+          echo "Contents of build/_bazed/___wheel/dist:"
+          ls build/_bazed/___wheel/dist
+
+      - name: Upload NAPI
+        uses: actions/upload-artifact@v4
+        with:
+          name: napi-${{ matrix.triplet }}
+          path: build/_bazed/__core_napi/core/pkg_napi/*.node
+          if-no-files-found: error
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.triplet }}
+          path: build/_bazed/___wheel/dist/*.whl
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          mkdir -p build/artifacts
+
+      - name: Download NAPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: napi-*
+          path: build/artifacts
+
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: build/artifacts
+
+      - name: List artifacts
+        run: ls -R build/artifacts
