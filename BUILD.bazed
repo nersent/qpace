@@ -136,7 +136,7 @@ execute("wheel", (ctx) => {
   //   readdirSync(ctx.sandboxPath),
   // );
   return {
-    command: [
+    /* command: [
       ...(platform === "win32"
         ? [
             "copy ..\\MANIFEST.in .",
@@ -148,21 +148,6 @@ execute("wheel", (ctx) => {
             "cp ../setup.py .",
             "cp ../pyproject.toml .",
           ]),
-
-      // copy from ../ctx.sandboxPath to here
-      // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN.replaceAll(
-      //   "\n",
-      //   "\\n",
-      // ).replaceAll(`"`, `""`)}')"`,
-      // `node -e "require('fs').writeFileSync('setup.py', '${GET_SETUP_PY(
-      //   ctx,
-      // ).replaceAll(`"`, `""`)}.replaceAll("\n", "\\n")')"`,
-      // `node -e "require('fs').writeFileSync('pyproject.toml', '${PYPROJECT_TOML.replaceAll(
-      //   "\n",
-      //   "\\n",
-      // ).replaceAll(`"`, `""`)}')"`,
-      // `python setup.py bdist_wheel --plat-name win_amd64`,
-      // macos arm
       `python setup.py bdist_wheel --plat-name ${(() => {
         if (platform === "darwin") {
           return `macosx_11_0_${arch}`;
@@ -172,14 +157,19 @@ execute("wheel", (ctx) => {
           return `win_amd64`;
         }
       })()}`,
-      // `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
-      // `python setup.py bdist_wheel --plat-name linux_x86_64`,
+    ].join(" && "),*/
+    command: [
+      `echo "Platform: ${platform}"`,
+      `echo "Architecture: ${arch}"`,
+      `echo "Sandbox Path: ${ctx.sandboxPath}"`,
+      `echo "Workspace Path: ${ctx.workspacePath}"`,
+      `pwd`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: [
-      ":py",
+      // ":py",
       "//:package_json",
-      ":maturin_unwheel_core",
+      // ":maturin_unwheel_core",
       // ":maturin_unwheel_content",
     ],
     run: true,
@@ -192,21 +182,3 @@ execute("lint", (ctx) => ({
   cwd: ctx.workspacePath,
   run: true,
 }));
-
-execute("xd", (ctx) => {
-  const platform = os.platform();
-  const arch = os.arch();
-  return {
-    // command: `echo "${platform} | ${arch} | ${ctx.sandboxPath}"`,
-    command: [
-      `echo "Platform: ${platform}"`,
-      `echo "Architecture: ${arch}"`,
-      `echo "Sandbox Path: ${ctx.sandboxPath}"`,
-      `echo "Workspace Path: ${ctx.workspacePath}"`,
-      `pwd`,
-    ].join(" && "),
-    cwd: ctx.sandboxPath,
-    deps: [],
-    run: true,
-  };
-});
