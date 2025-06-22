@@ -246,6 +246,11 @@ jobs:
           maturin --version
           napi
 
+      - name: Prepare
+        run: |
+          mkdir -p target/nextest/default
+          ls -l
+
       - name: Build wasm
         run: |
           pnpm bazed run //core:wasm --verbose
