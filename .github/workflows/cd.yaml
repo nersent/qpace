@@ -114,5 +114,4 @@ jobs:
           ls -l
 
       - name: Xd
-        run: |
-          pnpm bazed run //:xd --verbose
+        run: pnpm bazed run //:xd --verbose
