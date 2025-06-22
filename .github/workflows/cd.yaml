@@ -135,7 +135,7 @@ jobs:
           pnpm bazed build //:wheel --verbose
 
       - name: List
-        run: ls build/_bazed
+        run: |
           echo 'Contents of build/_bazed:'
           ls build/_bazed
 
