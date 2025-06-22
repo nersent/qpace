@@ -201,7 +201,7 @@ execute("xd", (ctx) => {
       `echo "Architecture: ${arch}"`,
       `echo "Sandbox Path: ${ctx.sandboxPath}"`,
       `echo "Workspace Path: ${ctx.workspacePath}"`,
-      `echo "pwd`,
+      `pwd`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: [],
