@@ -1,5 +1,6 @@
 const { readFileSync, writeFileSync, mkdirSync } = require("fs");
 const { resolve } = require("path");
+const os = require("os");
 
 fileSet("package_json", {
   srcs: ["package.json", "README.md", "LICENSE.md"],
@@ -106,6 +107,8 @@ unpackWheel(`maturin_unwheel_core`, (ctx) => ({
 // }));
 
 execute("wheel", (ctx) => {
+  const platform = os.platform();
+  const arch = os.arch();
   // console.log("XDDDD", ctx.sandboxPath);
   // process.exit();
   mkdirSync(resolve(ctx.sandboxPath), { recursive: true });
@@ -127,12 +130,18 @@ execute("wheel", (ctx) => {
   );
   return {
     command: [
-      // "cp ../MANIFEST.in .",
-      // "cp ../setup.py .",
-      // "cp ../pyproject.toml .",
-      "copy ..\\MANIFEST.in .",
-      "copy ..\\setup.py .",
-      "copy ..\\pyproject.toml .",
+      ...(platform === "win32"
+        ? [
+            "copy ..\\MANIFEST.in .",
+            "copy ..\\setup.py .",
+            "copy ..\\pyproject.toml .",
+          ]
+        : [
+            "cp ../MANIFEST.in .",
+            "cp ../setup.py .",
+            "cp ../pyproject.toml .",
+          ]),
+
       // copy from ../ctx.sandboxPath to here
       // `node -e "require('fs').writeFileSync('MANIFEST.in', '${MANIFEST_IN.replaceAll(
       //   "\n",
@@ -147,7 +156,15 @@ execute("wheel", (ctx) => {
       // ).replaceAll(`"`, `""`)}')"`,
       // `python setup.py bdist_wheel --plat-name win_amd64`,
       // macos arm
-      `python setup.py bdist_wheel --plat-name win_amd64`,
+      `python setup.py bdist_wheel --plat-name ${(() => {
+        if (platform === "darwin") {
+          return `macosx_11_0_${arch}`;
+        } else if (platform === "linux") {
+          return `linux_${arch}`;
+        } else {
+          return `win_amd64`;
+        }
+      })()}`,
       // `python setup.py bdist_wheel --plat-name macosx_11_0_arm64`,
       // `python setup.py bdist_wheel --plat-name linux_x86_64`,
     ].join(" && "),
