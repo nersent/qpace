@@ -148,3 +148,29 @@ jobs:
           name: napi-${{ matrix.triplet }}
           path: build/_bazed/__core_napi/core/pkg_napi/*.node
           if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          mkdir -p build/artifacts
+
+      - name: Download NAPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: napi-*
+          path: build/artifacts
+
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: build/artifacts
+
+      - name: List artifacts
+        run: ls -R build/artifacts
