@@ -84,19 +84,6 @@ jobs:
           toolchain: "1.85.0"
           components: rustfmt, clippy
 
-      - name: Set up cargo cache
-        uses: actions/cache@v4
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
       - name: Install Rust tools
         uses: taiki-e/install-action@v2
         with:
@@ -125,6 +112,7 @@ jobs:
         run: |
           mkdir -p target/nextest/default
           ls -l
+          ls build/_bazed
 
       # - name: Build NAPI
       #   run: pnpm bazed build //core:napi --verbose
