@@ -169,7 +169,7 @@ execute("wheel", (ctx) => {
     cwd: ctx.sandboxPath,
     deps: [
       // ":py",
-      "//:package_json",
+      // "//:package_json",
       // ":maturin_unwheel_core",
       // ":maturin_unwheel_content",
     ],
