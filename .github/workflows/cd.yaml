@@ -65,53 +65,53 @@ jobs:
           pnpm install
           npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.89 --global
 
-      - name: Install Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+      # - name: Install Python 3.10
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.10"
 
-      - name: Upgrade Pip
-        run: |
-          python -m pip install --upgrade pip
+      # - name: Upgrade Pip
+      #   run: |
+      #     python -m pip install --upgrade pip
 
-      - name: Install Python dependencies
-        run: |
-          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+      # - name: Install Python dependencies
+      #   run: |
+      #     pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: "1.85.0"
-          components: rustfmt, clippy
+      # - name: Install Rust toolchain
+      #   uses: actions-rust-lang/setup-rust-toolchain@v1
+      #   with:
+      #     toolchain: "1.85.0"
+      #     components: rustfmt, clippy
 
-      - name: Install Rust tools
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-nextest
+      # - name: Install Rust tools
+      #   uses: taiki-e/install-action@v2
+      #   with:
+      #     tool: cargo-nextest
 
-      - name: Install wasm-pack
-        run: |
-          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      # - name: Install wasm-pack
+      #   run: |
+      #     curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Toolchain debug
-        run: |
-          pnpm bazed --version
-          node --version
-          npm --version
-          pnpm --version
-          python --version
-          python3 --version
-          rustc --version
-          cargo --version
-          cargo fmt --version
-          wasm-pack --version
-          maturin --version
-          napi
+      # - name: Toolchain debug
+      #   run: |
+      #     pnpm bazed --version
+      #     node --version
+      #     npm --version
+      #     pnpm --version
+      #     python --version
+      #     python3 --version
+      #     rustc --version
+      #     cargo --version
+      #     cargo fmt --version
+      #     wasm-pack --version
+      #     maturin --version
+      #     napi
 
-      - name: Prepare
-        run: |
-          mkdir -p target/nextest/default
-          ls -l
+      # - name: Prepare
+      #   run: |
+      #     mkdir -p target/nextest/default
+      #     ls -l
 
       - name: Build python
         run: |
