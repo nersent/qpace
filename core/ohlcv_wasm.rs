@@ -307,7 +307,7 @@ impl WasmOhlcv {
         self.inner.volume()
     }
 
-    #[wasm_bindgen(js_name = "bars")]
+    #[wasm_bindgen(getter = "bars")]
     #[inline]
     pub fn wasm_bars(&self) -> Vec<OhlcvBar> {
         self.inner.bars()
@@ -422,6 +422,12 @@ impl WasmOhlcv {
             Ok(_) => vec![],
             Err(e) => e,
         }
+    }
+
+    #[wasm_bindgen(js_name = "ref")]
+    #[inline]
+    pub fn wasm_ref(&self) -> Self {
+        self.clone()
     }
 }
 

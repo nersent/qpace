@@ -63,6 +63,9 @@ export namespace BuildTarget {
     if (buildTarget === "node" && isLinux() && arch === "x64") {
       return "node-x86_64-linux";
     }
+    if (buildTarget === "web") {
+      return "wasm-unknown-unknown";
+    }
     return;
   };
 }
@@ -186,6 +189,9 @@ const check = async ({
     pb.fail(`Failed`);
     process.exitCode = 1;
   }
+  if (verbose) {
+    console.log(`Request ID: ${chalk.magentaBright(res.getRequestId())}`);
+  }
 };
 
 const writeApiFile = async (
@@ -260,16 +266,11 @@ const build = async ({
   qpcConfig.emit ||= emit;
   qpcConfig.outDir = outDir ?? qpcConfig.outDir;
 
-  if (target?.startsWith("python")) {
-    if (skipInstall) qpcConfig.python!.install = false;
-    if (skipTest) qpcConfig.python!.test = false;
-  } else if (target?.startsWith("node")) {
-    if (skipInstall) qpcConfig.node!.install = false;
-    if (skipTest) qpcConfig.node!.test = false;
-  }
+  if (skipInstall) qpcConfig.install = false;
+  if (skipTest) qpcConfig.test = false;
 
   const pythonPath = await locatePython();
-  if (target?.startsWith("python") && qpcConfig.python?.install) {
+  if (target?.startsWith("python") && qpcConfig.install) {
     if (pythonPath == null)
       throw new CliError(`Python not found. Install python and or it to PATH`);
     {
@@ -314,6 +315,15 @@ const build = async ({
     });
 
     stream.on("data", async (e: compilerApi.BuildEvent) => {
+      if (e.hasCheckEnd()) {
+        const data = e.getCheckEnd()!;
+        const reqId = data.getRequestId();
+        if (verbose) {
+          console.log(
+            chalk.blackBright(`\nRequest ID: ${chalk.magentaBright(reqId)}`),
+          );
+        }
+      }
       if (e.hasBuildStart()) {
         pb.text = `Building ${chalk.blueBright(target)}`;
         return;
@@ -332,11 +342,10 @@ const build = async ({
             const pythonWheelFile = files.find(
               (f) => getApiFileFlags(f).pythonWheel,
             );
-            if (target?.startsWith("python-") && pythonWheelFile == null) {
+            if (pythonWheelFile == null) {
               fail(`Python wheel file not produced`);
             }
-
-            if (pythonWheelFile != null && qpcConfig.python?.install) {
+            if (pythonWheelFile != null && qpcConfig.install) {
               pb.text = `Installing Python wheel`;
               const path = resolve(cwd, pythonWheelFile.getPath());
               {
@@ -350,10 +359,12 @@ const build = async ({
                   process.stderr.write(res.stderr);
                 }
               }
-              if (ok && qpcConfig.python?.test) {
+              if (ok && qpcConfig.test) {
                 pb.text = `Testing Python wheel`;
                 const res = await exec({
-                  command: `${pythonPath} -c "import ${qpcConfig.python.package}"`,
+                  command: `${pythonPath} -c "import ${
+                    qpcConfig.python!.package
+                  }"`,
                   io: verbose,
                 });
                 if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
@@ -363,14 +374,14 @@ const build = async ({
                 }
               }
             }
-          } else if (target?.includes("node")) {
-            const nodeTarFile = files.find((f) => getApiFileFlags(f).npmTar);
-            if (target?.startsWith("python-") && nodeTarFile == null) {
+          } else if (target?.includes("node") || target?.includes("wasm")) {
+            const npmTarFile = files.find((f) => getApiFileFlags(f).npmTar);
+            if (npmTarFile == null) {
               fail(`NPM tar file not produced`);
             }
-            if (nodeTarFile != null && qpcConfig.python?.install) {
+            if (npmTarFile != null && qpcConfig.install) {
               pb.text = `Installing NPM package`;
-              const path = resolve(cwd, nodeTarFile.getPath());
+              const path = resolve(cwd, npmTarFile.getPath());
               const pkgManager = await detectNodePackageManager(cwd);
               const res = await installNodePackage(`"${path}"`, {
                 cwd,
@@ -398,6 +409,26 @@ const build = async ({
       }
     });
   });
+
+  if (ok && verbose) {
+    console.log(chalk.greenBright(`\nUse following:`));
+    if (target?.includes("python")) {
+      console.log(
+        chalk.greenBright(`import ${qpcConfig.python!.package} as pine;`),
+      );
+    } else if (target?.includes("node")) {
+      console.log(
+        chalk.greenBright(
+          `import * as pine from "${qpcConfig.node!.package}";`,
+        ),
+      );
+    } else if (target?.includes("wasm")) {
+      console.log(
+        chalk.greenBright(`import * as pine from "${qpcConfig.web!.package}";`),
+      );
+    }
+    console.log("");
+  }
 
   if (!ok) {
     process.exitCode = 1;

@@ -7,7 +7,7 @@ settings:
 overrides:
   qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
   '@nersent/bazed': link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
-  qpace_example_lib: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace_example_lib
+  qpace_example_lib: link:build/package
 
 importers:
 
@@ -71,8 +71,14 @@ importers:
         specifier: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
         version: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
       qpace_example_lib:
-        specifier: file:C:/projects/nersent/qpace_other/build/qpace_example_lib-1.0.0.tgz
-        version: file:build/qpace_example_lib-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace)
+        specifier: link:build/package
+        version: link:build/package
+      qpace_example_lib_node:
+        specifier: file:C:/projects/nersent/qpace_other/build/qpace_example_lib_node-1.0.0.tgz
+        version: file:build/qpace_example_lib_node-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace)
+      qpace_example_lib_wasm:
+        specifier: file:C:/projects/nersent/qpace_other/build/qpace_example_lib_wasm-1.0.0.tgz
+        version: file:build/qpace_example_lib_wasm-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace)
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -3569,8 +3575,14 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
-  qpace_example_lib@file:build/qpace_example_lib-1.0.0.tgz:
-    resolution: {integrity: sha512-rCGK45dhzSjRqHsJgx1ySpCe/AFDnItvDChOkDs5Xf0z5ahNyfJkayAzUYtQkfR5/IAsB2FScq7xvmOWgKKaGQ==, tarball: file:build/qpace_example_lib-1.0.0.tgz}
+  qpace_example_lib_node@file:build/qpace_example_lib_node-1.0.0.tgz:
+    resolution: {integrity: sha512-KPko8fPb1CQalNERqy/YYiCl2gBCLScxPWHZaQ4OYBzZOd2vX3iAepLxu54qXzUApgT8mID8Wc0mffICKFpDgg==, tarball: file:build/qpace_example_lib_node-1.0.0.tgz}
+    version: 1.0.0
+    peerDependencies:
+      qpace: latest
+
+  qpace_example_lib_wasm@file:build/qpace_example_lib_wasm-1.0.0.tgz:
+    resolution: {integrity: sha512-Xrpbc7Bg1tBtCeWgEFDMJ9rXBrJ9LDGWZiha/w4cdTsR+q4wEYmfc5/aaHyE13k/V9HzjGmaBhnjTv8Tvu4c0A==, tarball: file:build/qpace_example_lib_wasm-1.0.0.tgz}
     version: 1.0.0
     peerDependencies:
       qpace: latest
@@ -8285,7 +8297,11 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
-  qpace_example_lib@file:build/qpace_example_lib-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace):
+  qpace_example_lib_node@file:build/qpace_example_lib_node-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace):
+    dependencies:
+      qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
+
+  qpace_example_lib_wasm@file:build/qpace_example_lib_wasm-1.0.0.tgz(qpace@..+..+Users+xnerh+AppData+Local+pnpm+global+5+node_modules+qpace):
     dependencies:
       qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
 

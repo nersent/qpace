@@ -513,6 +513,12 @@ impl PyOhlcv {
             Err(e) => (false, e),
         }
     }
+
+    #[pyo3(name = "ref")]
+    #[inline]
+    pub fn py_ref(&self) -> Self {
+        self.clone()
+    }
 }
 
 #[gen_stub_pyfunction]

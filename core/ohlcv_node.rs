@@ -402,6 +402,12 @@ impl NodeOhlcv {
             Err(e) => e,
         }
     }
+
+    #[napi(js_name = "ref")]
+    #[inline]
+    pub fn node_ref(&self) -> Self {
+        self.clone()
+    }
 }
 
 #[cfg(feature = "polars")]

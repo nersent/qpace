@@ -55,6 +55,7 @@ fileSet("ts_src", {
   copy: true,
 });
 
+// --target bundler
 rustWasm("wasm", {
   deps: [":ts_src"],
   workspace: WORKSPACE,

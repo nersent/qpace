@@ -1,0 +1,4 @@
+fileSet("python", {
+  srcs: [glob("**/*.py")],
+  deps: ["//lib/content"],
+});

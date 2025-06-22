@@ -81,7 +81,7 @@ impl WasmCtx {
         self.ohlcv.clone()
     }
 
-    #[wasm_bindgen(js_name = fork)]
+    #[wasm_bindgen(js_name = copy)]
     #[inline]
     pub fn js_copy(&self) -> Self {
         self.copy()

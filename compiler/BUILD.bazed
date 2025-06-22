@@ -12,7 +12,7 @@ fileSet("py", {
 });
 
 tsLibrary("ts", {
-  srcs: ["config.ts", "driver.ts"],
+  srcs: ["config.ts"],
   deps: [":ts_schema"],
   compiler: "tsc",
 });

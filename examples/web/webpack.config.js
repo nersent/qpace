@@ -23,4 +23,11 @@ module.exports = {
     port: 3000,
     open: true,
   },
+  module: {
+    // rules: [{ test: /\.wasm$/, type: "webassembly/async" }],
+  },
+  experiments: {
+    // asyncWebAssembly: true,
+    // topLevelAwait: true,
+  },
 };

@@ -75,9 +75,8 @@ export rsi(series float src, int length = 14) =>
 export cci(series float src, int length = 14) =>
     ta.cci(src, length)
 
-// @TODO: default param
-// export stdev(series<float> src, int length, bool biased = true): float =>
-//     ta.stdev(src, length, biased)
+export stdev(series float src, int length, bool biased = true) =>
+    ta.stdev(src, length, biased)
 
 export aroon(int length = 14) =>
     ta.aroon(length)
@@ -133,28 +132,28 @@ export chande_kroll_stop(int atr_length = 10, float atr_coeff = 1.0, int stop_le
     stop_long = ta.lowest(first_low_stop, q)
     [stop_short, stop_long]
 
-// export choppiness_index(int length = 14) =>
-//     100 * math.log10(math.sum(ta.atr(1), length) / (ta.highest(length) - ta.lowest(length))) / math.log10(length)
+export choppiness_index(int length = 14) =>
+    100 * math.log10(math.sum(ta.atr(1), length) / (ta.highest(length) - ta.lowest(length))) / math.log10(length)
 
-// @TODO: ta.percentrank
-// connors_rsi_updown(series<float> s) =>
-// 	isEqual = s == s[1]
-// 	isGrowing = s > s[1]
-// 	ud = 0.0
-// 	ud := isEqual ? 0 : isGrowing ? (nz(ud[1]) <= 0 ? 1 : nz(ud[1])+1) : (nz(ud[1]) >= 0 ? -1 : nz(ud[1])-1)
-// 	ud
+// // @TODO: ta.percentrank
+// // connors_rsi_updown(series<float> s) =>
+// // 	isEqual = s == s[1]
+// // 	isGrowing = s > s[1]
+// // 	ud = 0.0
+// // 	ud := isEqual ? 0 : isGrowing ? (nz(ud[1]) <= 0 ? 1 : nz(ud[1])+1) : (nz(ud[1]) >= 0 ? -1 : nz(ud[1])-1)
+// // 	ud
 
-// export connors_rsi(series<float> src, int rsi_length = 3, int up_down_length = 2, int roc_length = 100) =>
-//     rsi = ta.rsi(src, lenrsi)
-//     updownrsi = ta.rsi(updown(src), lenupdown)
-//     percentrank = ta.percentrank(ta.roc(src, 1), lenroc)
+// export connors_rsi(series float src, int rsi_length = 3, int up_down_length = 2, int roc_length = 100) =>
+//     rsi = ta.rsi(src, rsi_length)
+//     updownrsi = ta.rsi(updown(src), up_down_length)
+//     percentrank = ta.percentrank(ta.roc(src, 1), roc_length)
 //     crsi = math.avg(rsi, updownrsi, percentrank)
 //     crsi
 
 export coppock_curve(series float src, int wma_length = 10, int long_roc_length = 14, int short_roc_length = 11) =>
     ta.wma(ta.roc(src, long_roc_length) + ta.roc(src, short_roc_length), wma_length)
 
-// @TODO: Directional Movement Index
+// // @TODO: Directional Movement Index
 
 export macd(series float src, int short_length = 12, int long_length = 26) =>
     macd = ta.ema(src, short_length) - ta.ema(src, long_length)
@@ -167,7 +166,7 @@ export price_oscillator(series float src, int short_length = 12, int long_length
     po
 
 export relative_vigor_index(int length = 14) =>
-    math.sum(ta.swma(close-open), length)/math.sum(ta.swma(high-low),length)
+    math.sum(ta.swma(close - open), length) / math.sum(ta.swma(high - low), length)
 
 export relative_volatility_index(series float src, int length = 14) =>
     stddev = ta.stdev(src, length)
@@ -197,9 +196,9 @@ export volume_oscillator(int short_length = 5, int long_length = 10) =>
     vo
 
 export vortex_indicator(int length = 14) =>
-    VMP = math.sum(math.abs(high -low[1]), length )
-    VMM = math.sum(math.abs(low - high[1]), length )
-    STR = math.sum(ta.atr(1), length )
+    VMP = math.sum(math.abs(high - low[1]), length)
+    VMM = math.sum(math.abs(low - high[1]), length)
+    STR = math.sum(ta.atr(1), length)
     VIP = VMP / STR
     VIM = VMM / STR
     [VIP, VIM]

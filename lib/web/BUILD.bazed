@@ -3,3 +3,8 @@ tsLibrary("web", {
   deps: ["//:package_json", "//core:wasm"],
   compiler: "tsc",
 });
+
+// fileSet("web", {
+//   srcs: ["index.js"],
+//   deps: ["//:package_json", "//core:wasm"],
+// });

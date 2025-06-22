@@ -1,4 +1,4 @@
 overrides:
   qpace: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace
   '@nersent/bazed': link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/@nersent/bazed
-  qpace_example_lib: link:../../../Users/xnerh/AppData/Local/pnpm/global/5/node_modules/qpace_example_lib
+  qpace_example_lib: link:build/package

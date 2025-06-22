@@ -1032,7 +1032,8 @@ proto.compiler.CheckResponse.prototype.toObject = function(opt_includeInstance) 
 proto.compiler.CheckResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     ok: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    message: jspb.Message.getFieldWithDefault(msg, 2, "")
+    requestId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    message: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1075,6 +1076,10 @@ proto.compiler.CheckResponse.deserializeBinaryFromReader = function(msg, reader)
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
+      msg.setRequestId(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
       msg.setMessage(value);
       break;
     default:
@@ -1113,10 +1118,17 @@ proto.compiler.CheckResponse.serializeBinaryToWriter = function(message, writer)
       f
     );
   }
-  f = /** @type {string} */ (jspb.Message.getField(message, 2));
-  if (f != null) {
+  f = message.getRequestId();
+  if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -1142,10 +1154,10 @@ proto.compiler.CheckResponse.prototype.setOk = function(value) {
 
 
 /**
- * optional string message = 2;
+ * optional string request_id = 2;
  * @return {string}
  */
-proto.compiler.CheckResponse.prototype.getMessage = function() {
+proto.compiler.CheckResponse.prototype.getRequestId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -1154,8 +1166,26 @@ proto.compiler.CheckResponse.prototype.getMessage = function() {
  * @param {string} value
  * @return {!proto.compiler.CheckResponse} returns this
  */
+proto.compiler.CheckResponse.prototype.setRequestId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string message = 3;
+ * @return {string}
+ */
+proto.compiler.CheckResponse.prototype.getMessage = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.compiler.CheckResponse} returns this
+ */
 proto.compiler.CheckResponse.prototype.setMessage = function(value) {
-  return jspb.Message.setField(this, 2, value);
+  return jspb.Message.setField(this, 3, value);
 };
 
 
@@ -1164,7 +1194,7 @@ proto.compiler.CheckResponse.prototype.setMessage = function(value) {
  * @return {!proto.compiler.CheckResponse} returns this
  */
 proto.compiler.CheckResponse.prototype.clearMessage = function() {
-  return jspb.Message.setField(this, 2, undefined);
+  return jspb.Message.setField(this, 3, undefined);
 };
 
 
@@ -1173,7 +1203,7 @@ proto.compiler.CheckResponse.prototype.clearMessage = function() {
  * @return {boolean}
  */
 proto.compiler.CheckResponse.prototype.hasMessage = function() {
-  return jspb.Message.getField(this, 2) != null;
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -1727,7 +1757,7 @@ proto.compiler.CheckEnd.prototype.toObject = function(opt_includeInstance) {
  */
 proto.compiler.CheckEnd.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    requestId: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
   if (includeInstance) {
@@ -1764,6 +1794,10 @@ proto.compiler.CheckEnd.deserializeBinaryFromReader = function(msg, reader) {
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRequestId(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1793,6 +1827,31 @@ proto.compiler.CheckEnd.prototype.serializeBinary = function() {
  */
 proto.compiler.CheckEnd.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getRequestId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string request_id = 1;
+ * @return {string}
+ */
+proto.compiler.CheckEnd.prototype.getRequestId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.compiler.CheckEnd} returns this
+ */
+proto.compiler.CheckEnd.prototype.setRequestId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 

@@ -116,6 +116,8 @@ export namespace CheckRequest {
 export class CheckResponse extends jspb.Message { 
     getOk(): boolean;
     setOk(value: boolean): CheckResponse;
+    getRequestId(): string;
+    setRequestId(value: string): CheckResponse;
 
     hasMessage(): boolean;
     clearMessage(): void;
@@ -135,6 +137,7 @@ export class CheckResponse extends jspb.Message {
 export namespace CheckResponse {
     export type AsObject = {
         ok: boolean,
+        requestId: string,
         message?: string,
     }
 }
@@ -216,6 +219,8 @@ export namespace BuildEvent {
 }
 
 export class CheckEnd extends jspb.Message { 
+    getRequestId(): string;
+    setRequestId(value: string): CheckEnd;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CheckEnd.AsObject;
@@ -229,6 +234,7 @@ export class CheckEnd extends jspb.Message {
 
 export namespace CheckEnd {
     export type AsObject = {
+        requestId: string,
     }
 }
 

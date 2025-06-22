@@ -9,12 +9,14 @@ export const TARGETS = [
   "python-x86_64-macos",
   "python-arm64-macos",
   "python-arm64-linux",
-  "wasm-unknown-unknown",
+  //
   "node-x86_64-linux",
   "node-x86_64-windows",
   "node-x86_64-macos",
   "node-arm64-macos",
   "node-arm64-linux",
+  //
+  "wasm-unknown-unknown",
 ] as const;
 
 export type Target = typeof TARGETS[number];
@@ -55,10 +57,10 @@ export interface Config {
   rust?: RustConfig;
   /* Python target config */
   python?: PythonConfig;
-  /* JS/Wasm target config */
-  wasm?: WasmConfig;
-  /* Node target config */
+  /* Node.js target config */
   node?: NodeConfig;
+  /* JS/WASM/Browser target config */
+  web?: WebConfig;
   /* Emits compiled code to directory. default: `false` */
   emit?: boolean;
   /* Directory to emit compiled code and artifacts. default: `build` */
@@ -67,6 +69,10 @@ export interface Config {
   include?: string[];
   /* Files excluded from the build. default: `["node_modules", "build", "dist", "target", "__pycache__"]` */
   exclude?: string[];
+  /* Installs artifact everytime after building using `pip install` or `npm install` ect. default: `true` */
+  install?: boolean;
+  /* Tests the artifact after building by running test code. default: `false` */
+  test?: boolean;
 }
 
 export interface RustConfig {
@@ -77,10 +83,6 @@ export interface RustConfig {
 export interface PythonConfig {
   /* Name of python package being built. default: `qpace_artifact` */
   package?: string;
-  /* Installs wheel everytime after building using `pip install`. default: `true` */
-  install?: boolean;
-  /* Tests the wheel after building by running test python code. default: `false` */
-  test?: boolean;
   /* Name of qpace python package. default: `qpace` */
   qpacePackage?: string;
 }
@@ -90,15 +92,14 @@ export type NodePackageManager = "auto" | "npm" | "yarn" | "pnpm" | "bun";
 export interface NodeConfig {
   /* Name of node package being built. default: `qpace_artifact` */
   package?: string;
-  /* Installs the package to the node_modules directory. default: `false` */
-  install?: boolean;
-  test?: boolean;
   packageManager?: NodePackageManager;
   qpacePackage?: string;
 }
 
-export interface WasmConfig {
-  bindings?: boolean;
+export interface WebConfig {
+  /* Name of node package being built. default: `qpace_artifact` */
+  package?: string;
+  qpacePackage?: string;
 }
 
 export const getDefaultConfig = (): Config => {
@@ -111,6 +112,10 @@ export const getDefaultConfig = (): Config => {
       qpacePackage: "qpace",
     },
     node: {
+      package: "qpace_artifact",
+      qpacePackage: "qpace",
+    },
+    web: {
       package: "qpace_artifact",
       qpacePackage: "qpace",
     },
@@ -131,16 +136,17 @@ export const getDefaultConfig = (): Config => {
 export const getInitConfig = (): Config => {
   const pckgName = `qpace_script_${md5(Date.now()).slice(0, 6)}`;
   return {
+    install: true,
+    test: true,
     python: {
       package: pckgName,
-      install: true,
-      test: true,
     },
     node: {
       package: pckgName,
-      install: true,
-      test: true,
       packageManager: "auto",
+    },
+    web: {
+      package: pckgName,
     },
     outDir: "build",
     include: ["**/*.pine"],
@@ -163,9 +169,9 @@ export const mergeConfigs = (config: Config, newConfig: Config): Config => {
       ...config.node,
       ...newConfig.node,
     },
-    wasm: {
-      ...config.wasm,
-      ...newConfig.wasm,
+    web: {
+      ...config.web,
+      ...newConfig.web,
     },
   };
 };

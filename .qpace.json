@@ -1,11 +1,16 @@
 {
+  "install": true,
+  "test": true,
   "python": {
     "package": "qpace_example_lib",
     "installWheel": true,
     "testWheel": true
   },
   "node": {
-    "package": "qpace_example_lib"
+    "package": "qpace_example_lib_node"
+  },
+  "web": {
+    "package": "qpace_example_lib_wasm"
   },
   "outDir": "build",
   "include": ["xd.pine"]

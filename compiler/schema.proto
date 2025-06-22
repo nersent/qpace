@@ -38,7 +38,8 @@ message CheckRequest {
 
 message CheckResponse {
   bool ok = 1;
-  optional string message = 2;
+  string request_id = 2;
+  optional string message = 3;
 }
 
 message BuildRequest {
@@ -55,7 +56,9 @@ message BuildEvent {
   }
 }
 
-message CheckEnd {}
+message CheckEnd {
+  string request_id = 1;
+}
 
 message BuildStart {}
 
