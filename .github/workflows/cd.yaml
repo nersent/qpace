@@ -171,6 +171,7 @@ jobs:
         with:
           pattern: wheel-*
           path: build/artifacts
+          merge-multiple: true
 
       - name: List artifacts
         run: ls -R build/artifacts
