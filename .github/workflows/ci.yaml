@@ -50,7 +50,7 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           pnpm install
-          npm install cross-env --global
+          npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.89 --global
 
       - name: Install Python 3.10
         uses: actions/setup-python@v5
@@ -71,10 +71,27 @@ jobs:
           toolchain: "1.85.0"
           components: rustfmt, clippy
 
+      - name: Set up cargo cache
+        uses: actions/cache@v4
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
       - name: Install Rust tools
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+
+      - name: Install wasm-pack
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Toolchain debug
         run: |
@@ -87,6 +104,9 @@ jobs:
           rustc --version
           cargo --version
           cargo fmt --version
+          wasm-pack --version
+          maturin --version
+          napi
 
       - name: Prepare
         run: |
@@ -100,8 +120,8 @@ jobs:
       - name: Build
         run: |
           pnpm bazed build //core:maturin --verbose
-          pnpm bazed build //core:napi --verbose
-          pnpm bazed build //core:wasm --verbose
+    # pnpm bazed build //core:napi --verbose
+    # pnpm bazed build //core:wasm --verbose
     # pnpm bazed build //content --verbose
     #  pnpm bazed build //lib --verbose
     # - name: Test
