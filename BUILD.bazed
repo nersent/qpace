@@ -28,12 +28,12 @@ fileSet("py", {
   deps: ["//lib:py"],
 });
 
+// include qpace_content/*
 const MANIFEST_IN = `
 include README.md
 include LICENSE.md
 include lib/*
 include qpace_core/*
-include qpace_content/*
 `;
 // .replaceAll("\n", "\\n");
 
@@ -55,16 +55,16 @@ setup(
     name="qpace",
     version="${packageJson.version}",
     package_dir={
-        "": "lib",
+        "": "lib/python",
         "lib": "lib",
         "qpace": "lib",
         "qpace_core": "qpace_core",
-        "qpace_content": "qpace_content",
+        #"qpace_content": "qpace_content",
     },
     packages=[*local_packages],
     package_data={
         "qpace_core": ["qpace_core.pyd", "qpace_core.abi3.so"],
-        "qpace_content": ["qpace_content.pyd", "qpace_content.abi3.so"],
+        #"qpace_content": ["qpace_content.pyd", "qpace_content.abi3.so"],
     },
     include_package_data=True,
     python_requires=">=3.10",
@@ -95,15 +95,15 @@ build-backend = "setuptools.build_meta"
 // .replaceAll("\n", "\\n")
 // .replaceAll(`"`, `""`);
 
-unpackWheel(`maturin_unwheel_core`, (ctx) => ({
-  deps: ["//core:maturin"],
-  dir: ctx.sandboxPath,
-}));
+// unpackWheel(`maturin_unwheel_core`, (ctx) => ({
+//   deps: ["//core:maturin"],
+//   dir: ctx.sandboxPath,
+// }));
 
-unpackWheel(`maturin_unwheel_content`, (ctx) => ({
-  deps: ["//lib/content:maturin"],
-  dir: ctx.sandboxPath,
-}));
+// unpackWheel(`maturin_unwheel_content`, (ctx) => ({
+//   deps: ["//lib/content:maturin"],
+//   dir: ctx.sandboxPath,
+// }));
 
 execute("wheel", (ctx) => {
   // console.log("XDDDD", ctx.sandboxPath);
@@ -155,8 +155,8 @@ execute("wheel", (ctx) => {
     deps: [
       ":py",
       "//:package_json",
-      ":maturin_unwheel_core",
-      ":maturin_unwheel_content",
+      // ":maturin_unwheel_core",
+      // ":maturin_unwheel_content",
     ],
     run: true,
   };

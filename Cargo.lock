@@ -1800,6 +1800,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "qpace"
+version = "0.0.1-dev.1"
+
+[[package]]
 name = "qpace_core"
 version = "0.0.1-dev.1"
 dependencies = [

@@ -3,6 +3,5 @@ fileSet("ts", {
 });
 
 fileSet("py", {
-  srcs: [glob("**/*.py")],
-  deps: ["//lib/content"],
+  deps: ["//lib/python"],
 });
