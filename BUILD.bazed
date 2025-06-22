@@ -204,7 +204,7 @@ execute("wheel", (ctx) => {
       `pwd`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
-    deps: ["//:package_json"],
+    deps: ["//:package_json", ":py"],
     run: true,
   };
 });
