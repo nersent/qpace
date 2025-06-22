@@ -140,7 +140,7 @@ execute("wheel", (ctx) => {
       `echo "Architecture: ${arch}"`,
       `echo "Sandbox Path: ${ctx.sandboxPath}"`,
       `echo "Workspace Path: ${ctx.workspacePath}"`,
-      `pwd`,
+      ...(platform === "win32" ? [] : [`pwd`]),
       ...(platform === "win32"
         ? [
             "copy ..\\MANIFEST.in .",

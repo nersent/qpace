@@ -147,6 +147,10 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-24.04
+    env:
+      TWINE_NON_INTERACTIVE: true
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PIP_TOKEN }}
 
     steps:
       - name: Cancel Previous Runs
@@ -214,7 +218,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+          pip install twine
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -258,3 +262,13 @@ jobs:
       - name: Build js
         run: |
           pnpm bazed run //:npm_link --verbose
+
+      - name: Copy NAPI artifacts
+        run: |
+          cp build/artifacts/*.node build/_bazed/___npm_link/core/pkg_napi
+          ls build/_bazed/___npm_link/core/pkg_napi
+
+      - name: Publish dry-run
+        run: |
+          npm publish build/_bazed/___npm_link --dry-run --access public
+          python -m twine check build/artifacts/*.whl
