@@ -60,7 +60,7 @@ rustWasm("wasm", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    "--target web --release --no-default-features --features=bindings_wasm",
+    `--target web --release --no-default-features --features="bindings_wasm"`,
   ],
 });
 
@@ -68,7 +68,7 @@ rustNapi("napi", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    `--release --cargo-name qpace_core --cargo-flags="--no-default-features`,
+    `--release --cargo-name qpace_core --cargo-flags="--no-default-features"`,
   ],
 });
 
