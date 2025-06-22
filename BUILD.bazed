@@ -158,13 +158,14 @@ execute("wheel", (ctx) => {
         }
       })()}`,
     ].join(" && "),*/
-    command: [
-      `echo "Platform: ${platform}"`,
-      `echo "Architecture: ${arch}"`,
-      `echo "Sandbox Path: ${ctx.sandboxPath}"`,
-      `echo "Workspace Path: ${ctx.workspacePath}"`,
-      `pwd`,
-    ].join(" && "),
+    // command: [
+    //   `echo "Platform: ${platform}"`,
+    //   `echo "Architecture: ${arch}"`,
+    //   `echo "Sandbox Path: ${ctx.sandboxPath}"`,
+    //   `echo "Workspace Path: ${ctx.workspacePath}"`,
+    //   `pwd`,
+    // ].join(" && "),
+    command: `echo "Platform: ${platform}"`,
     cwd: ctx.sandboxPath,
     deps: [
       // ":py",
