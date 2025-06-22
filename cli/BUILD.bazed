@@ -4,8 +4,8 @@ tsLibrary("src", {
     "//:package_json",
     "//base/js",
     "//base/node",
-    "//lib:ts",
-    "//compiler:ts",
+    "//lib:js",
+    "//compiler:js",
   ],
 });
 

@@ -1,4 +1,4 @@
-fileSet("ts", {
+fileSet("js", {
   deps: ["//lib/node", "//lib/web"],
 });
 

@@ -5,14 +5,14 @@ fileSet("package_json", {
   srcs: ["package.json", "README.md", "LICENSE.md"],
 });
 
-fileSet("ts", {
-  deps: [":package_json", "//lib:ts", "//compiler:ts", "//cli"],
+fileSet("js", {
+  deps: [":package_json", "//lib:js", "//compiler:js", "//cli"],
 });
 
 execute("npm_link", (ctx) => ({
   command: `cd ${ctx.sandboxPath} && pnpm link --global`,
   copyDeps: true,
-  deps: [":ts"],
+  deps: [":js"],
   run: true,
 }));
 
@@ -20,7 +20,7 @@ execute("npm_publish", (ctx) => ({
   // echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js
   command: `node -e "const fs = require('fs'); const path = require('path').resolve('./cli/main.bazed.js'); fs.writeFileSync(path, '#!/usr/bin/env node\\n' + fs.readFileSync(path, 'utf8'), 'utf8');" && cd ${ctx.sandboxPath} && rimraf core/pkg/.gitignore && npm publish --access public --force`, //  --dry-run
   copyDeps: true,
-  deps: [":ts"],
+  deps: [":js"],
   run: true,
 }));
 

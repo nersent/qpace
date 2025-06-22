@@ -1,4 +1,4 @@
-fileSet("ts_schema", {
+fileSet("schema", {
   srcs: [
     "schema_grpc_pb.d.ts",
     "schema_grpc_pb.js",
@@ -11,8 +11,8 @@ fileSet("py", {
   srcs: [glob("*.py")],
 });
 
-tsLibrary("ts", {
+tsLibrary("js", {
   srcs: ["config.ts"],
-  deps: [":ts_schema"],
+  deps: [":schema"],
   compiler: "tsc",
 });
