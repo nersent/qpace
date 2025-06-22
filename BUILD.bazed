@@ -111,23 +111,30 @@ execute("wheel", (ctx) => {
   const arch = os.arch();
   // console.log("XDDDD", ctx.sandboxPath);
   // process.exit();
-  mkdirSync(resolve(ctx.sandboxPath), { recursive: true });
-  // console.log("XDDDD", resolve(ctx.sandboxPath))
-  writeFileSync(
-    resolve(ctx.sandboxPath, "../MANIFEST.in"),
-    MANIFEST_IN,
-    "utf8",
-  );
-  writeFileSync(
-    resolve(ctx.sandboxPath, "../setup.py"),
-    GET_SETUP_PY(ctx),
-    "utf8",
-  );
-  writeFileSync(
-    resolve(ctx.sandboxPath, "../pyproject.toml"),
-    PYPROJECT_TOML,
-    "utf8",
-  );
+  try {
+    mkdirSync(resolve(ctx.sandboxPath), { recursive: true });
+    // console.log("XDDDD", resolve(ctx.sandboxPath))
+    writeFileSync(
+      resolve(ctx.sandboxPath, "../MANIFEST.in"),
+      MANIFEST_IN,
+      "utf8",
+    );
+    writeFileSync(
+      resolve(ctx.sandboxPath, "../setup.py"),
+      GET_SETUP_PY(ctx),
+      "utf8",
+    );
+    writeFileSync(
+      resolve(ctx.sandboxPath, "../pyproject.toml"),
+      PYPROJECT_TOML,
+      "utf8",
+    );
+  } catch (error) {
+    console.log(`Something went wrong while creating wheel`);
+    console.error(error);
+    process.exit(1);
+  }
+
   // console.log(
   //   "XDDDDDD",
   //   platform,
