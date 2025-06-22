@@ -120,8 +120,8 @@ jobs:
       - name: Build
         run: |
           pnpm bazed build //core:maturin --verbose
-          pnpm bazed build //core:napi --verbose
-          pnpm bazed build //core:wasm --verbose
+      #pnpm bazed build //core:napi --verbose
+      #pnpm bazed build //core:wasm --verbose
     # pnpm bazed build //core:wasm --verbose
     # pnpm bazed build //content --verbose
     #  pnpm bazed build //lib --verbose

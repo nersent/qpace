@@ -40,7 +40,7 @@ maturin("maturin", {
   deps: [":src"],
   scope: "qpace_core",
   workspace: WORKSPACE,
-  args: `--interpreter python3.12 --release --skip-auditwheel --features "bindings_py"`,
+  args: `--interpreter python3.12 --release --skip-auditwheel --no-default-features --features "bindings_py polars"`,
 });
 
 fileSet("core", {
@@ -68,7 +68,7 @@ rustNapi("napi", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    `--release --cargo-name qpace_core --cargo-flags="--no-default-features"`,
+    `--release --cargo-name qpace_core --cargo-flags="--no-default-features" --features="bindings_node polars"`,
   ],
 });
 
