@@ -106,61 +106,6 @@ unpackWheel(`maturin_unwheel_core`, (ctx) => ({
 //   dir: ctx.sandboxPath,
 // }));
 
-// execute("wheel", (ctx) => {
-//   // const platform = os.platform();
-//   // const arch = os.arch();
-//   // // console.log("XDDDD", ctx.sandboxPath);
-//   // // process.exit();
-
-//   // console.log(
-//   //   "XDDDDDD",
-//   //   platform,
-//   //   arch,
-//   //   ctx.sandboxPath,
-//   //   readdirSync(ctx.sandboxPath),
-//   // );
-//   return {
-//     /* command: [
-//       ...(platform === "win32"
-//         ? [
-//             "copy ..\\MANIFEST.in .",
-//             "copy ..\\setup.py .",
-//             "copy ..\\pyproject.toml .",
-//           ]
-//         : [
-//             "cp ../MANIFEST.in .",
-//             "cp ../setup.py .",
-//             "cp ../pyproject.toml .",
-//           ]),
-//       `python setup.py bdist_wheel --plat-name ${(() => {
-//         if (platform === "darwin") {
-//           return `macosx_11_0_${arch}`;
-//         } else if (platform === "linux") {
-//           return `linux_${arch}`;
-//         } else {
-//           return `win_amd64`;
-//         }
-//       })()}`,
-//     ].join(" && "),*/
-//     // command: [
-//     //   `echo "Platform: ${platform}"`,
-//     //   `echo "Architecture: ${arch}"`,
-//     //   `echo "Sandbox Path: ${ctx.sandboxPath}"`,
-//     //   `echo "Workspace Path: ${ctx.workspacePath}"`,
-//     //   `pwd`,
-//     // ].join(" && "),
-//     command: `echo "Platform: xddd"`,
-//     cwd: ctx.sandboxPath,
-//     deps: [
-//       // ":py",
-//       // "//:package_json",
-//       // ":maturin_unwheel_core",
-//       // ":maturin_unwheel_content",
-//     ],
-//     run: true,
-//   };
-// });
-
 execute("lint", (ctx) => ({
   // pnpm eslint "**/*.ts"
   command: [`cargo check`, `cargo fmt -- --check --verbose`].join("&&"),
