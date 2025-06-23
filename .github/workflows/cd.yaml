@@ -147,9 +147,13 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     env:
       TWINE_NON_INTERACTIVE: true
-      PYPI_API_TOKEN: ${{ secrets.PIP_TOKEN }}
+      TWINE_USERNAME: __token__
+      TWINE_PASSWORD: ${{ secrets.PIP_TOKEN }}
 
     steps:
       - name: Cancel Previous Runs
@@ -279,5 +283,5 @@ jobs:
 
       - name: Publish
         run: |
-          npm publish build/_bazed/___npm_link --access public
+          npm publish build/_bazed/___npm_link --access public --provenance
           python -m twine upload build/artifacts/*.whl
