@@ -149,7 +149,6 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       TWINE_NON_INTERACTIVE: true
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PIP_TOKEN }}
 
     steps:
@@ -188,6 +187,10 @@ jobs:
         with:
           node-version: 22
           cache: "pnpm"
+          always-auth: true
+          registry-url: "https://registry.npmjs.org"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Get pnpm store directory
         shell: bash
