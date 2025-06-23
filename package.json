@@ -1,6 +1,6 @@
 {
   "name": "qpace",
-  "version": "0.0.1-dev.27",
+  "version": "0.0.1-dev.28",
   "coreVersion": "0.0.1-dev.26",
   "bin": {
     "qpace": "cli/main.bazed.js",

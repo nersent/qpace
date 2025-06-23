@@ -113,6 +113,23 @@ execute("lint", (ctx) => ({
   run: true,
 }));
 
+const getPlatName = () => {
+  const platform = os.platform();
+  const arch = os.arch();
+  if (platform === "linux" && arch === "x64") {
+    return "manylinux2014_x86_64";
+  } else if (platform === "linux" && arch === "arm64") {
+    return "manylinux2014_aarch64";
+  } else if (platform === "darwin" && arch === "x64") {
+    return "macosx_11_0_x86_64";
+  } else if (platform === "darwin" && arch === "arm64") {
+    return "macosx_11_0_arm64";
+  } else if (platform === "win32" && arch === "x64") {
+    return "win_amd64";
+  }
+  throw new Error(`Unsupported platform: ${platform} ${arch}`);
+};
+
 execute("wheel", (ctx) => {
   const platform = os.platform();
   const arch = os.arch();
@@ -152,15 +169,7 @@ execute("wheel", (ctx) => {
             "cp ../setup.py .",
             "cp ../pyproject.toml .",
           ]),
-      `python setup.py bdist_wheel --plat-name ${(() => {
-        if (platform === "darwin") {
-          return `macosx_11_0_${arch}`;
-        } else if (platform === "linux") {
-          return `linux_${arch}`;
-        } else {
-          return `win_amd64`;
-        }
-      })()}`,
+      `python setup.py bdist_wheel --plat-name ${getPlatName()}`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
     deps: ["//:package_json", ":py", ":maturin_unwheel_core"],

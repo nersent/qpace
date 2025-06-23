@@ -278,10 +278,10 @@ jobs:
       - name: Publish dry-run
         run: |
           ls -lhS build/artifacts
-          npm publish build/_bazed/___npm_link --dry-run --access public
           python -m twine check build/artifacts/*.whl
+          npm publish build/_bazed/___npm_link --dry-run --access public
 
       - name: Publish
         run: |
-          npm publish build/_bazed/___npm_link --access public --provenance
           python -m twine upload build/artifacts/*.whl
+          npm publish build/_bazed/___npm_link --access public --provenance
