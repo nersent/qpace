@@ -20,10 +20,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-24.04
-            triplet: linux-x64-gnu
-          # - os: windows-latest
-          #   triplet: win32-x64-msvc
+          # - os: ubuntu-24.04
+          #   triplet: linux-x64-gnu
+          - os: windows-latest
+            triplet: win32-x64-msvc
           # - os: macos-14
           #   triplet: darwin-universal
 
