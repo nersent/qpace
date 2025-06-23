@@ -16,6 +16,11 @@
   "browser": {
     "./lib/web/index.js": "./lib/web/index.js"
   },
+  "homepage": "https://qpace.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nersent/qpace"
+  },
   "exports": {
     "./node": {
       "import": "./lib/node/index.js",
