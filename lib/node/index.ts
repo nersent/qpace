@@ -51,12 +51,6 @@ export {
 } from "../../core/pkg_napi";
 export { Client, ClientConfig } from "./client";
 
-import { _getCoreVersion } from "../../core/pkg_napi";
-import { version } from "../../package.json";
+import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
-export const CORE_VERSION = _getCoreVersion();
-
-// export const VERSION = "1.0.0";
-// export const CORE_VERSION = "1.0.0";
-
-// export const node = 1;
+export const CORE_VERSION = coreVersion;

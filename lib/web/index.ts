@@ -53,7 +53,6 @@ export {
 import init from "../../core/pkg/qpace_core";
 export { init };
 
-// import { _getCoreVersion } from "../../core/pkg/qpace_core";
-import { version } from "../../package.json";
+import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
-// export const CORE_VERSION = _getCoreVersion();
+export const CORE_VERSION = coreVersion;

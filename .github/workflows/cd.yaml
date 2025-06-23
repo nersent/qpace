@@ -20,8 +20,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-24.04
-          #   triplet: linux-x64-gnu
+          - os: ubuntu-24.04
+            triplet: linux-x64-gnu
           - os: windows-latest
             triplet: win32-x64-msvc
           # - os: macos-14
@@ -270,5 +270,11 @@ jobs:
 
       - name: Publish dry-run
         run: |
+          ls -lhS build/artifacts
           npm publish build/_bazed/___npm_link --dry-run --access public
           python -m twine check build/artifacts/*.whl
+
+      - name: Publish
+        run: |
+          npm publish build/_bazed/___npm_link --access public
+          python -m twine upload build/artifacts/*.whl
