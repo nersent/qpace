@@ -16,12 +16,9 @@ pub fn round_to_min_tick(value: f64, min_tick: f64) -> f64 {
 }
 
 #[inline]
-pub fn round_contracts(size: f64, price_scale: f64) -> f64 {
-    if size.is_nan() {
-        return 0.0;
-    }
+pub fn round_contracts(size: f64, min_qty: f64, price_scale: f64) -> f64 {
     // @TODO: assert
-    if price_scale.is_nan() || price_scale == 0.0 {
+    if min_qty.is_nan() {
         return size;
     }
     return ((size * price_scale) + f64::EPSILON).round() / price_scale;
@@ -183,7 +180,11 @@ impl OrderBook {
         let id = self.create_id();
         let order = Order {
             id,
-            size: round_contracts(order_opts.size, self.config.price_scale),
+            size: round_contracts(
+                order_opts.size,
+                self.config.min_size,
+                self.config.price_scale,
+            ),
             tag: order_opts.tag,
         };
         self.orders.insert(id, order);

@@ -15,8 +15,8 @@ pub fn py_round_to_min_tick(value: f64, min_tick: f64) -> f64 {
 #[gen_stub_pyfunction]
 #[pyfunction(name = "round_contracts")]
 #[inline]
-pub fn py_round_contracts(size: f64, price_scale: f64) -> f64 {
-    return round_contracts(size, price_scale);
+pub fn py_round_contracts(size: f64, min_qty: f64, price_scale: f64) -> f64 {
+    return round_contracts(size, min_qty, price_scale);
 }
 
 #[gen_stub_pyfunction]

@@ -165,9 +165,13 @@ impl NodeBacktest {
     #[napi(js_name = "next")]
     #[inline]
     pub fn node_next(&mut self) -> Option<i32> {
-        let bt = self.inner.borrow();
+        let mut bt = self.inner.borrow_mut();
         let next = bt.ctx().borrow_mut().next();
-        return next.map(|n| n as i32);
+        if next.is_none() {
+            return None;
+        }
+        bt.on_bar_open();
+        return Some(next.unwrap() as i32);
     }
 
     #[napi(js_name = "toPine")]

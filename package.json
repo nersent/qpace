@@ -63,7 +63,7 @@
     "bazed:clean": "rimraf build",
     "wasm": "wasm-pack build ./core --target web --no-default-features --features=bindings_wasm",
     "wasm:bundler": "wasm-pack build ./core --target bundler --no-default-features --features=bindings_wasm",
-    "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py --features=polars",
+    "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py,polars",
     "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler"
   },
   "devDependencies": {

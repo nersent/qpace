@@ -77,6 +77,16 @@ impl BacktestConfig {
     pub fn set_process_orders_on_close(&mut self, process_orders_on_close: bool) {
         self.process_orders_on_close = process_orders_on_close;
     }
+
+    #[inline]
+    pub fn debug(&self) -> bool {
+        self.debug
+    }
+
+    #[inline]
+    pub fn set_debug(&mut self, debug: bool) {
+        self.debug = debug;
+    }
 }
 
 pub struct Backtest {
@@ -157,12 +167,15 @@ impl Backtest {
 
     #[inline]
     pub fn equity(&self) -> f64 {
-        self.equity.last().cloned().unwrap_or(f64::NAN)
+        self.equity.last().cloned().unwrap_or(self.initial_capital)
     }
 
     #[inline]
     pub fn net_equity(&self) -> f64 {
-        self.net_equity.last().cloned().unwrap_or(f64::NAN)
+        self.net_equity
+            .last()
+            .cloned()
+            .unwrap_or(self.initial_capital)
     }
 
     #[inline]
@@ -287,7 +300,7 @@ impl Backtest {
     fn set_position_size(&mut self, size: f64) {
         let ctx = self.ctx.borrow();
         let sym_info = ctx.sym();
-        self.position_size = round_contracts(size, sym_info.price_scale());
+        self.position_size = round_contracts(size, sym_info.min_qty(), sym_info.price_scale());
     }
 
     fn set_metrics(&mut self) -> Result<(), TradeError> {
@@ -344,7 +357,8 @@ impl Backtest {
                     1.0,
                 );
 
-                let order_size = round_contracts(order_size, ctx.sym().price_scale());
+                let order_size =
+                    round_contracts(order_size, ctx.sym().min_qty(), ctx.sym().price_scale());
 
                 if order_size == 0.0 {
                     return None;

@@ -1,4 +1,4 @@
-use crate::backtest::BacktestSummary;
+use crate::backtest::{BacktestSummary, BacktestSummaryConfig};
 use crate::ctx_py::{PyCtx, PyCtxSkip};
 use crate::signal_py::PySignal;
 use crate::{
@@ -30,13 +30,19 @@ impl PyBacktest {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyBacktest {
-    #[pyo3(signature = (ctx, initial_capital=1000.0, process_orders_on_close=false))]
+    #[pyo3(signature = (ctx, initial_capital=1000.0, process_orders_on_close=false, debug=false))]
     #[new]
     #[inline]
-    pub fn py_new(ctx: PyCtx, initial_capital: f64, process_orders_on_close: bool) -> Self {
+    pub fn py_new(
+        ctx: PyCtx,
+        initial_capital: f64,
+        process_orders_on_close: bool,
+        debug: bool,
+    ) -> Self {
         let mut config = BacktestConfig::default();
         config.set_initial_capital(initial_capital);
         config.set_process_orders_on_close(process_orders_on_close);
+        config.set_debug(debug);
         Self {
             inner: Rc::new(RefCell::new(Backtest::new(ctx.inner().clone(), config))),
             ctx,
@@ -177,11 +183,12 @@ impl PyBacktest {
     #[pyo3(name = "__next__")]
     #[inline]
     pub fn py_next(&mut self) -> PyResult<usize> {
-        let bt = self.inner.borrow();
+        let mut bt = self.inner.borrow_mut();
         let next = bt.ctx().borrow_mut().next();
         if next.is_none() {
             return Err(PyStopIteration::new_err("No more items"));
         }
+        bt.on_bar_open();
         return Ok(next.unwrap());
     }
 
@@ -195,6 +202,15 @@ impl PyBacktest {
     #[inline]
     pub fn py_to_pine(&self) -> String {
         self.inner.borrow().to_pine()
+    }
+
+    #[pyo3(name = "summary", signature = (risk_free_rate=0.0))]
+    #[inline]
+    pub fn py_summary(&self, risk_free_rate: f64) -> PyBacktestSummary {
+        self.inner
+            .borrow()
+            .summary(&BacktestSummaryConfig { risk_free_rate })
+            .into()
     }
 }
 

@@ -211,9 +211,13 @@ impl WasmBacktest {
     #[wasm_bindgen(js_name = "next")]
     #[inline]
     pub fn wasm_next(&mut self) -> Option<usize> {
-        let bt = self.inner.borrow();
+        let mut bt = self.inner.borrow_mut();
         let next = bt.ctx().borrow_mut().next();
-        return next;
+        if next.is_none() {
+            return None;
+        }
+        bt.on_bar_open();
+        return Some(next.unwrap());
     }
 
     #[wasm_bindgen(js_name = "toPine")]

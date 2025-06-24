@@ -22,7 +22,7 @@ class Backtest:
     gross_loss: builtins.float
     position_size: builtins.float
     trades: builtins.list[Trade]
-    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False): ...
+    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False): ...
     def on_bar_open(self) -> None:
         ...
 
@@ -51,6 +51,9 @@ class Backtest:
         ...
 
     def to_pine(self) -> builtins.str:
+        ...
+
+    def summary(self, risk_free_rate:builtins.float=0.0) -> BacktestSummary:
         ...
 
 
@@ -568,7 +571,7 @@ def py_zip_ohlcv_bars(open_time:typing.Optional[typing.Sequence[typing.Optional[
 def recall(tp_count:builtins.float, fn_count:builtins.float) -> builtins.float:
     ...
 
-def round_contracts(size:builtins.float, price_scale:builtins.float) -> builtins.float:
+def round_contracts(size:builtins.float, min_qty:builtins.float, price_scale:builtins.float) -> builtins.float:
     ...
 
 def round_to_min_tick(value:builtins.float, min_tick:builtins.float) -> builtins.float:
