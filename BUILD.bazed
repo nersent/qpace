@@ -7,7 +7,7 @@ fileSet("package_json", {
 });
 
 fileSet("js", {
-  deps: [":package_json", "//lib:js", "//compiler:js", "//cli"],
+  deps: [":package_json", "//lib:js", "//compiler:js", "//cli"], // , "//content"
 });
 
 execute("npm_link", (ctx) => ({

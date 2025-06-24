@@ -1,12 +1,6 @@
 tsLibrary("src", {
   srcs: glob("**/*.ts"),
-  deps: [
-    "//:package_json",
-    "//base/js",
-    "//base/node",
-    "//lib:js",
-    "//compiler:js",
-  ],
+  deps: ["//:package_json", "//base/js", "//base/node", "//compiler:js"],
 });
 
 nodeEntry("main", {

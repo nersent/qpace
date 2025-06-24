@@ -19,7 +19,7 @@ path = "pyi.rs"
 
 [features]
 # default = []
-default = ["polars", "bindings_wasm", "bindings_node", "json"]
+default = ["polars", "bindings_wasm", "bindings_node", "bindings_py", "json"]
 # default = ["bindings_wasm"]
 # default = ["bindings_py", "bindings_wasm", "console_error_panic_hook"]
 bindings_py = [

@@ -9,12 +9,14 @@ export const TARGETS = [
   "python-x86_64-macos",
   "python-arm64-macos",
   "python-arm64-linux",
+  "python-universal",
   //
   "node-x86_64-linux",
   "node-x86_64-windows",
   "node-x86_64-macos",
   "node-arm64-macos",
   "node-arm64-linux",
+  "node-universal",
   //
   "wasm-unknown-unknown",
 ] as const;

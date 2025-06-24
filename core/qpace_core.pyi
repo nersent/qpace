@@ -68,7 +68,7 @@ class Ctx:
     is_initialized: builtins.bool
     sym: Sym
     ohlcv: Ohlcv
-    def __new__(cls,ohlcv:Ohlcv, sym:typing.Optional[Sym]=None): ...
+    def __new__(cls,ohlcv:typing.Optional[Ohlcv]=None, sym:typing.Optional[Sym]=None): ...
     def copy(self) -> Ctx:
         ...
 
@@ -200,6 +200,9 @@ class Ohlcv:
     def sanity_check(self) -> tuple[builtins.bool, builtins.list[builtins.str]]:
         ...
 
+    def ref(self) -> Ohlcv:
+        ...
+
 
 class OhlcvBar:
     open_time: typing.Optional[datetime.datetime]
@@ -251,34 +254,34 @@ class OhlcvBar:
 class Signal:
     id: typing.Optional[builtins.str]
     comment: typing.Optional[builtins.str]
+    @staticmethod
+    def Hold() -> Signal:
+        ...
+
+    @staticmethod
+    def Size(size:builtins.float) -> Signal:
+        ...
+
+    @staticmethod
+    def Equity_pct(equity_pct:builtins.float) -> Signal:
+        ...
+
+    @staticmethod
+    def Close_all() -> Signal:
+        ...
+
+    @staticmethod
+    def Long() -> Signal:
+        ...
+
+    @staticmethod
+    def Short() -> Signal:
+        ...
+
     def py_set_id(self, id:typing.Optional[builtins.str]) -> None:
         ...
 
     def py_set_comment(self, comment:typing.Optional[builtins.str]) -> None:
-        ...
-
-    @staticmethod
-    def hold() -> Signal:
-        ...
-
-    @staticmethod
-    def size(size:builtins.float) -> Signal:
-        ...
-
-    @staticmethod
-    def equity_pct(equity_pct:builtins.float) -> Signal:
-        ...
-
-    @staticmethod
-    def close_all() -> Signal:
-        ...
-
-    @staticmethod
-    def long() -> Signal:
-        ...
-
-    @staticmethod
-    def short() -> Signal:
         ...
 
 
@@ -521,9 +524,6 @@ def expectancy_score(expectancy:builtins.float, opportunity_bars:builtins.float)
     ...
 
 def f1(precision:builtins.float, recall:builtins.float) -> builtins.float:
-    ...
-
-def get_version() -> builtins.str:
     ...
 
 def gross_loss_pct(gross_loss:builtins.float, initial_capital:builtins.float) -> builtins.float:

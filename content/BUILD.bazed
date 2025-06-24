@@ -1,0 +1,25 @@
+fileSet("content", {
+  srcs: ["index.js"],
+});
+
+const { mkdirSync } = require("fs");
+const { resolve } = require("path");
+const tar = require("tar");
+
+execute("node", (ctx) => {
+  const buildDir = resolve(ctx.workspacePath, `build`);
+  const srcPath = resolve(buildDir, `qpace_example_lib_node-1.0.0.tgz`);
+  const destPath = resolve(buildDir, `content_node`);
+  mkdirSync(destPath, { recursive: true });
+  tar.x({
+    file: srcPath,
+    cwd: destPath,
+    sync: true,
+    strip: 1,
+  });
+  return {
+    command: `pnpm qpace`,
+    run: true,
+    deps: ["//:npm_link"],
+  };
+});
