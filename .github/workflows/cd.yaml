@@ -16,6 +16,8 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    env:
+      QPACE_API_KEY: ${{ secrets.QPACE_API_KEY }}
 
     strategy:
       matrix:
@@ -162,6 +164,7 @@ jobs:
       TWINE_NON_INTERACTIVE: true
       TWINE_USERNAME: __token__
       TWINE_PASSWORD: ${{ secrets.PIP_TOKEN }}
+      QPACE_API_KEY: ${{ secrets.QPACE_API_KEY }}
 
     steps:
       - name: Cancel Previous Runs
