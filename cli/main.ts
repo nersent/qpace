@@ -17,13 +17,17 @@ const main = async (): Promise<void> => {
         qpaceCore: CORE_VERSION,
       };
       if (!skipRemote) {
-        const [compilerClient] = await compiler.getCompilerClient();
-        const compilerInfo = await compiler.fetchInfo(compilerClient);
-        data = {
-          ...data,
-          compiler: compilerInfo.version,
-          compilerDate: compilerInfo.buildDate.toLocaleString(),
-        };
+        try {
+          const [compilerClient] = await compiler.getCompilerClient();
+          const compilerInfo = await compiler.fetchInfo(compilerClient);
+          data = {
+            ...data,
+            compiler: compilerInfo.version,
+            compilerDate: compilerInfo.buildDate.toLocaleString(),
+          };
+        } catch (e) {
+          console.log(e);
+        }
       }
       console.table(data);
     });
