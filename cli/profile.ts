@@ -8,6 +8,7 @@ import axios from "axios";
 import { CliError } from "./exceptions";
 import chalk from "chalk";
 import { QPACE_BG_PREFIX } from "./common";
+import { ChannelCredentials } from "@grpc/grpc-js";
 
 export type ProfileData = {
   apiKey?: string;
@@ -23,7 +24,11 @@ export class Profile {
 
   constructor(public readonly id: string, public readonly data: ProfileData) {}
 
-  public static async load(id = "prod"): Promise<Profile> {
+  public static async load(id?: string): Promise<Profile> {
+    if (process.env["DEV"]) {
+      id ??= "dev";
+    }
+    id ??= "prod";
     const path = getProfileDataPath(id);
     let data: ProfileData = {};
     if (await exists(path)) {
@@ -46,10 +51,12 @@ export class Profile {
       let apiBase = "https://api.qpace.dev/v1";
       let grpcApiBase = "grpc.qpace.dev";
       let apiKey = this.data.apiKey;
+      let grpcCredentials = ChannelCredentials.createSsl();
 
       if (process.env["DEV"]) {
         apiBase = "http://0.0.0.0:3000/v1";
         grpcApiBase = "0.0.0.0:3001";
+        grpcCredentials = ChannelCredentials.createInsecure();
       }
 
       if (process.env["QPACE_API_KEY"]?.length) {
@@ -70,6 +77,7 @@ export class Profile {
         apiKey,
         apiBase,
         grpcApiBase,
+        grpcCredentials,
       });
     }
     return this.client;

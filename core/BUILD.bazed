@@ -60,7 +60,7 @@ rustWasm("wasm", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    `--target web --release --no-default-features --features="bindings_wasm"`,
+    `--target web --release --weak-refs --reference-types --no-default-features --features="bindings_wasm"`,
   ],
 });
 

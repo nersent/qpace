@@ -22,8 +22,8 @@ jobs:
         include:
           - os: ubuntu-24.04
             triplet: linux-x64-gnu
-          - os: windows-latest
-            triplet: win32-x64-msvc
+          # - os: windows-latest
+          #   triplet: win32-x64-msvc
           # - os: macos-14
           #   triplet: darwin-universal
 
@@ -273,7 +273,17 @@ jobs:
       - name: Copy NAPI artifacts
         run: |
           cp build/artifacts/*.node build/_bazed/___npm_link/core/pkg_napi
-          ls build/_bazed/___npm_link/core/pkg_napi
+
+      - name: List
+        run: |
+          echo "Contents of build/___npm_link:"
+          ls -l build/_bazed/___npm_link
+
+          echo "Contents of build/___npm_link/core/pkg:"
+          ls -l build/_bazed/___npm_link/core/pkg
+
+          echo "Contents of build/___npm_link/core/pkg_napi:"
+          ls -l build/_bazed/___npm_link/core/pkg_napi
 
       - name: Publish dry-run
         run: |
@@ -281,7 +291,7 @@ jobs:
           python -m twine check build/artifacts/*.whl
           npm publish build/_bazed/___npm_link --dry-run --access public
 
-      - name: Publish
-        run: |
-          python -m twine upload build/artifacts/*.whl
-          npm publish build/_bazed/___npm_link --access public --provenance
+      # - name: Publish
+      #   run: |
+      #     python -m twine upload build/artifacts/*.whl
+      #     npm publish build/_bazed/___npm_link --access public --provenance
