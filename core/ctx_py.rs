@@ -145,6 +145,12 @@ impl PyCtx {
     pub fn py_skip(&mut self, skip: PyCtxSkip) {
         self.inner.borrow_mut().skip(skip.into());
     }
+
+    #[pyo3(name = "ref")]
+    #[inline]
+    pub fn py_ref(&self) -> Self {
+        self.clone()
+    }
 }
 
 #[gen_stub_pyclass]

@@ -28,7 +28,13 @@ import { getPythonVersion, locatePython } from "~/base/node/python";
 import { exec } from "~/base/node/exec";
 import { detectNodePackageManager, installNodePackage } from "./utils";
 
-export const BUILD_TARGETS = [...TARGETS, "python", "node", "web"] as const;
+export const BUILD_TARGETS = [
+  ...TARGETS,
+  "python",
+  "node",
+  "web",
+  "wasm",
+] as const;
 export type BuildTarget = typeof BUILD_TARGETS[number];
 
 export namespace BuildTarget {
@@ -63,7 +69,7 @@ export namespace BuildTarget {
     if (buildTarget === "node" && isLinux() && arch === "x64") {
       return "node-x86_64-linux";
     }
-    if (buildTarget === "web") {
+    if (buildTarget === "web" || buildTarget === "wasm") {
       return "wasm-unknown-unknown";
     }
     return;
@@ -157,6 +163,7 @@ const check = async ({
   verbose?: boolean;
 }): Promise<void> => {
   cwd ??= process.cwd();
+  verbose && console.log(chalk.blackBright(`CWD: ${cwd}`));
   const [compilerClient, grpcMetadata] = await getCompilerClient();
   const qpcConfig = await loadQpcConfig(
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
@@ -257,6 +264,7 @@ const build = async ({
     if (target == null) throw new CliError(`Invalid target: ${rawTarget}`);
   }
   cwd ??= process.cwd();
+  verbose && console.log(chalk.blackBright(`CWD: ${cwd}`));
 
   const pythonPath = await locatePython();
   const pythonVersion = await getPythonVersion(pythonPath);

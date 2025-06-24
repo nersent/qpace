@@ -3,7 +3,7 @@ use crate::ohlcv::{
     OhlcvWriterOps,
 };
 use crate::timeframe_node::NodeTimeframe;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use napi::bindgen_prelude::*;
 use napi::{Error, Result, Status};
 use napi_derive::napi;
@@ -408,12 +408,164 @@ impl NodeOhlcv {
     pub fn node_ref(&self) -> Self {
         self.clone()
     }
+
+    // #[napi(js_name = toJSON)]
+    // pub fn node_to_json(&self, env: Env) -> Result<Object> {
+    //     let mut obj = Object::new(&env)?;
+
+    //     // ------------------------------------------------------------------
+    //     // sym — not available on NodeOhlcv yet → null placeholder
+    //     // ------------------------------------------------------------------
+    //     obj.set("sym", Null)?;
+
+    //     // ------------------------------------------------------------------
+    //     // Helper: Vec<f64> → JS array, translating NaN → null
+    //     // ------------------------------------------------------------------
+    //     let make_f64_array = |vec: &Vec<f64>| -> Result<Array> {
+    //         let mut arr = env.create_array(vec.len() as u32)?;
+    //         for (i, v) in vec.iter().enumerate() {
+    //             if v.is_nan() {
+    //                 arr.set(i as u32, Null)?;
+    //             } else {
+    //                 arr.set(i as u32, env.create_double(*v)?)?;
+    //             }
+    //         }
+    //         Ok(arr)
+    //     };
+
+    //     // ------------------------------------------------------------------
+    //     // open_time (Unix seconds, Option)
+    //     // ------------------------------------------------------------------
+    //     let ot = self.node_open_time();
+    //     let mut ot_arr = env.create_array(ot.len() as u32)?;
+    //     for (i, maybe_dt) in ot.iter().enumerate() {
+    //         if let Some(dt) = maybe_dt {
+    //             ot_arr.set(i as u32, env.create_double(dt.timestamp() as f64)?)?;
+    //         } else {
+    //             ot_arr.set(i as u32, Null)?;
+    //         }
+    //     }
+    //     obj.set("open_time", ot_arr)?;
+
+    //     // ------------------------------------------------------------------
+    //     // Standard OHLCV vectors
+    //     // ------------------------------------------------------------------
+    //     obj.set("open", make_f64_array(&self.node_open())?)?;
+    //     obj.set("high", make_f64_array(&self.node_high())?)?;
+    //     obj.set("low", make_f64_array(&self.node_low())?)?;
+    //     obj.set("close", make_f64_array(&self.node_close())?)?;
+    //     obj.set("volume", make_f64_array(&self.node_volume())?)?;
+
+    //     Ok(obj)
+    // }
+
+    // #[napi(js_name = fromJSON)]
+    // pub fn node_from_json(json: Object) -> Result<NodeOhlcv> {
+    //     //------------------------------------------------------------------
+    //     // Helper: Option<Vec<f64>>
+    //     //------------------------------------------------------------------
+    //     fn opt_vec_f64(obj: &Object, key: &str) -> Result<Option<Vec<f64>>> {
+    //         if obj.has_named_property(key)? {
+    //             let raw: Vec<Option<f64>> = obj.get(key)?; // null → None
+    //             Ok(Some(
+    //                 raw.into_iter()
+    //                     .map(|v| v.unwrap_or(f64::NAN))
+    //                     .collect::<Vec<f64>>(),
+    //             ))
+    //         } else {
+    //             Ok(None)
+    //         }
+    //     }
+
+    //     //------------------------------------------------------------------
+    //     // open_time (Option<Vec<Option<DateTime<Utc>>>>)
+    //     //------------------------------------------------------------------
+    //     let open_time_secs: Option<Vec<Option<i64>>> = if json.has_named_property("open_time")? {
+    //         json.get("open_time")?
+    //     } else {
+    //         None
+    //     };
+    //     let open_time_opt = open_time_secs.map(|vec| {
+    //         vec.into_iter()
+    //             .map(|opt_sec| {
+    //                 opt_sec.map(|sec| {
+    //                     DateTime::<Utc>::from_utc(
+    //                         NaiveDateTime::from_timestamp_opt(sec, 0).unwrap(),
+    //                         Utc,
+    //                     )
+    //                 })
+    //             })
+    //             .collect::<Vec<Option<DateTime<Utc>>>>()
+    //     });
+
+    //     //------------------------------------------------------------------
+    //     // OHLCV numerical series
+    //     //------------------------------------------------------------------
+    //     let open = opt_vec_f64(&json, "open")?;
+    //     let high = opt_vec_f64(&json, "high")?;
+    //     let low = opt_vec_f64(&json, "low")?;
+    //     let close = opt_vec_f64(&json, "close")?;
+    //     let volume = opt_vec_f64(&json, "volume")?;
+
+    //     //------------------------------------------------------------------
+    //     // Determine canonical length and assert consistency
+    //     //------------------------------------------------------------------
+    //     let canonical_len = open_time_opt
+    //         .as_ref()
+    //         .map(|v| v.len())
+    //         .or_else(|| open.as_ref().map(|v| v.len()))
+    //         .or_else(|| high.as_ref().map(|v| v.len()))
+    //         .or_else(|| low.as_ref().map(|v| v.len()))
+    //         .or_else(|| close.as_ref().map(|v| v.len()))
+    //         .or_else(|| volume.as_ref().map(|v| v.len()))
+    //         .ok_or_else(|| Error::new(Status::InvalidArg, "no OHLCV arrays supplied"))?;
+
+    //     macro_rules! assert_len {
+    //         ($vec_opt:expr, $name:literal) => {
+    //             if let Some(ref v) = $vec_opt {
+    //                 if v.len() != canonical_len {
+    //                     return Err(Error::new(
+    //                         Status::InvalidArg,
+    //                         format!(
+    //                             "array length mismatch for '{}': expected {}, got {}",
+    //                             $name,
+    //                             canonical_len,
+    //                             v.len()
+    //                         ),
+    //                     ));
+    //                 }
+    //             }
+    //         };
+    //     }
+
+    //     assert_len!(open_time_opt, "open_time");
+    //     assert_len!(open, "open");
+    //     assert_len!(high, "high");
+    //     assert_len!(low, "low");
+    //     assert_len!(close, "close");
+    //     assert_len!(volume, "volume");
+
+    //     //------------------------------------------------------------------
+    //     // Build bars and wrap into NodeOhlcv
+    //     //------------------------------------------------------------------
+    //     let bars = zip_ohlcv_bars(
+    //         open_time_opt,
+    //         None, // close_time not provided in this JSON schema
+    //         open,
+    //         high,
+    //         low,
+    //         close,
+    //         volume,
+    //     );
+
+    //     Ok(ArcOhlcv::from_bars(bars).into())
+    // }
 }
 
 #[cfg(feature = "polars")]
 #[napi]
 impl NodeOhlcv {
-    #[napi(js_name = "read_csv")]
+    #[napi(js_name = "readCsv")]
     #[inline]
     pub fn node_read_csv(path: String) -> Self {
         let mut ohlcv = Ohlcv::new();
@@ -422,7 +574,7 @@ impl NodeOhlcv {
         return ohlcv.into();
     }
 
-    #[napi(js_name = "read_parquet")]
+    #[napi(js_name = "readParquet")]
     #[inline]
     pub fn node_read_parquet(path: String) -> Self {
         let mut ohlcv = Ohlcv::new();
@@ -431,13 +583,13 @@ impl NodeOhlcv {
         return ohlcv.into();
     }
 
-    #[napi(js_name = "write_csv")]
+    #[napi(js_name = "writeCsv")]
     #[inline]
     pub fn node_write_csv(&self, path: String) {
         self.inner.write_csv(Path::new(&path));
     }
 
-    #[napi(js_name = "write_parquet")]
+    #[napi(js_name = "writeParquet")]
     #[inline]
     pub fn node_write_parquet(&self, path: String) {
         self.inner.write_parquet(Path::new(&path));

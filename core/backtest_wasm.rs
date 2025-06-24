@@ -295,9 +295,9 @@ impl Into<BacktestSummary> for WasmBacktestSummary {
 
 #[wasm_bindgen(js_class=BacktestSummary)]
 impl WasmBacktestSummary {
-    #[wasm_bindgen(js_name = "print")]
+    #[wasm_bindgen(js_name = "display")]
     #[inline]
-    pub fn wasm_print(&self) {
+    pub fn wasm_display(&self) {
         let obj = Object::new();
 
         let _ = Reflect::set(

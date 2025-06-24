@@ -236,10 +236,10 @@ impl Into<BacktestSummary> for PyBacktestSummary {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyBacktestSummary {
-    #[pyo3(name = "print")]
+    #[pyo3(name = "display")]
     #[inline]
-    pub fn py_print(&self) {
-        self.inner.print(None);
+    pub fn py_display(&self) {
+        self.inner.display(None);
     }
 
     #[pyo3(name = "to_dict")]

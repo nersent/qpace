@@ -225,10 +225,10 @@ impl Into<BacktestSummary> for NodeBacktestSummary {
 
 #[napi]
 impl NodeBacktestSummary {
-    #[napi(js_name = "print")]
+    #[napi(js_name = "display")]
     #[inline]
     pub fn node_print(&self) {
-        self.inner.print(None);
+        self.inner.display(None);
     }
 
     #[napi(js_name = "toJSON")]

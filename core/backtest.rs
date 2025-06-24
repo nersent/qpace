@@ -1254,7 +1254,7 @@ impl BacktestSummary {
     }
 
     #[cfg(feature = "pretty_table")]
-    pub fn print(&self, plot: Option<(u32, u32)>) {
+    pub fn display(&self, plot: Option<(u32, u32)>) {
         self.print_table();
         let plot = plot.unwrap_or((120_u32, 60_u32));
         let f_price = with_suffix(&format!(" {}", self.sym._currency()));

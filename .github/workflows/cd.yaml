@@ -112,6 +112,10 @@ jobs:
       #   run: |
       #     pnpm pyi
 
+      - name: Compile wheel content
+        run: |
+          pnpm bazed run //content:py --verbose
+
       - name: Build wheel
         run: |
           pnpm bazed run //:wheel --verbose
@@ -269,6 +273,14 @@ jobs:
       - name: Build wasm
         run: |
           pnpm bazed run //core:wasm --verbose
+
+      - name: Compile node content
+        run: |
+          pnpm bazed run //content:node --verbose
+
+      - name: Compile web content
+        run: |
+          pnpm bazed run //content:web --verbose
 
       - name: Build js
         run: |

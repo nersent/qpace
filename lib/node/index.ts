@@ -54,3 +54,5 @@ export { Client, ClientConfig } from "./client";
 import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
 export const CORE_VERSION = coreVersion;
+
+export * as _ta from "../../content/node/ta";

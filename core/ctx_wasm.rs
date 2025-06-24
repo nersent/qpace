@@ -104,6 +104,12 @@ impl WasmCtx {
     pub fn wasm_length(&self) -> usize {
         self.inner.borrow().len()
     }
+
+    #[wasm_bindgen(js_name = "ref")]
+    #[inline]
+    pub fn wasm_ref(&self) -> Self {
+        self.clone()
+    }
 }
 
 #[wasm_bindgen(js_name=CtxSkip)]

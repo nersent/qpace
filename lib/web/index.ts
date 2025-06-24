@@ -49,10 +49,15 @@ export {
   roundToMinTick,
   zipOhlcvBars,
 } from "../../core/pkg/qpace_core";
-
 import init from "../../core/pkg/qpace_core";
 export { init };
 
 import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
 export const CORE_VERSION = coreVersion;
+
+import * as _ta from "../../content/node/ta";
+import initTa from "../../content/node/ta";
+export const ta = { ..._ta, init: initTa } as typeof _ta & {
+  init: typeof initTa;
+};

@@ -1,9 +1,9 @@
 <svg viewBox="0 0 1800 600" xmlns="http://www.w3.org/2000/svg" width="1800" height="600">
   <defs>
-    <!-- Chart Area Gradient -->
-    <linearGradient id="exp-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7FEE64" stop-opacity="0.1" />
-      <stop offset="100%" stop-color="#7FEE64" stop-opacity="0.5" />
+    <!-- Gradient for price‑series fill -->
+    <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7FEE64" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#7FEE64" stop-opacity="0" />
     </linearGradient>
   </defs>
 
@@ -11,35 +11,44 @@
   <rect width="100%" height="100%" fill="#000" />
 
   <!-- Grid Lines -->
-  <line x1="300" y1="0" x2="300" y2="600" stroke="#212525" stroke-width="1" />
-<line x1="600" y1="0" x2="600" y2="600" stroke="#212525" stroke-width="1" />
-<line x1="900" y1="0" x2="900" y2="600" stroke="#212525" stroke-width="1" />
-<line x1="1200" y1="0" x2="1200" y2="600" stroke="#212525" stroke-width="1" />
-<line x1="1500" y1="0" x2="1500" y2="600" stroke="#212525" stroke-width="1" />
-<line x1="0" y1="300" x2="1800" y2="300" stroke="#212525" stroke-width="1" />
-<line x1="0" y1="600" x2="1800" y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="300"  y1="0"   x2="300"  y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="600"  y1="0"   x2="600"  y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="900"  y1="0"   x2="900"  y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="1200" y1="0"   x2="1200" y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="1500" y1="0"   x2="1500" y2="600" stroke="#212525" stroke-width="1" />
+  <line x1="0"    y1="300" x2="1800" y2="300" stroke="#212525" stroke-width="1" />
+  <line x1="0"    y1="600" x2="1800" y2="600" stroke="#212525" stroke-width="1" />
 
-  <!-- Smooth Bezier Chart Area (No Drops, 50% Opacity) -->
-  <path d="M 0,600 C 90.0,496.0 180.0,486.08 270.0,481.12 S 450.0,476.15999999999997 540.0,471.2 S 720.0,466.23999999999995 810.0,461.28000000000003 S 990.0000000000001,451.36 1080.0,446.40000000000003 S 1260.0,360.0 1350.0,341.99999999999994 S 1530.0,330.0 1800,144.0 L 1800,600 L 0,600 Z" fill="url(#exp-gradient)" opacity="0.5" />
+  <!-- Area fill under price‑series (drawn first so the line remains on top) -->
+  <path d="M0,600 L0,500 L180,450 L360,530 L540,380 L720,420 L900,300 L1080,270 L1260,220 L1440,300 L1620,200 L1800,120 L1800,600 Z"
+        fill="url(#priceGradient)"
+        opacity="0.5" />
 
-  <!-- Logo -->
-  <g transform="translate(900.0, 300.0) scale(3.0) translate(-32.0, -32.0)">
-    <ns0:rect xmlns:ns0="http://www.w3.org/2000/svg" width="64" height="64" rx="20" fill="url(#paint0_linear_9_4)" />
-<ns0:g xmlns:ns0="http://www.w3.org/2000/svg" clip-path="url(#clip0_9_4)">
-<ns0:rect x="4" y="4" width="56" height="56" rx="16" fill="black" />
-<ns0:path d="M32 15.3333C27 23.6667 18.6666 27 18.6666 35.3333C18.6666 38.6667 22 42 25.3333 42C27 42 28.6666 42 30.3333 40.3333C30.3333 40.3333 30.8666 43.6667 27 48.6667H37C33.6666 43.6667 33.6666 40.3333 33.6666 40.3333C35.3333 42 37 42 38.6666 42C42 42 45.3333 38.6667 45.3333 35.3333C45.3333 27 37 23.6667 32 15.3333Z" fill="url(#paint1_linear_9_4)" />
-</ns0:g>
-<ns0:defs xmlns:ns0="http://www.w3.org/2000/svg">
-<ns0:linearGradient id="paint0_linear_9_4" x1="0.463769" y1="-0.927537" x2="64.4638" y2="63.5362" gradientUnits="userSpaceOnUse">
-<ns0:stop offset="0.158558" stop-color="#7FEE64" />
-</ns0:linearGradient>
-<ns0:linearGradient id="paint1_linear_9_4" x1="-19.6667" y1="-21.3333" x2="82" y2="83.6667" gradientUnits="userSpaceOnUse">
-<ns0:stop offset="0.45023" stop-color="#7FEE64" />
-</ns0:linearGradient>
-<ns0:clipPath id="clip0_9_4">
-<ns0:rect x="4" y="4" width="56" height="56" rx="16" fill="white" />
-</ns0:clipPath>
-</ns0:defs>
+  <!-- Price‑Series Line (up‑trend with occasional dips, crossing logo centre) -->
+  <path d="M0,500 L180,450 L360,530 L540,380 L720,420 L900,300 L1080,270 L1260,220 L1440,300 L1620,200 L1800,120"
+        fill="none"
+        stroke="#7FEE64"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round" />
 
+  <!-- Logo (scaled and centred) -->
+  <g transform="translate(900 300) scale(3) translate(-32 -32)">
+    <rect width="64" height="64" rx="20" fill="url(#paint0_linear_9_4)" />
+    <g clip-path="url(#clip0_9_4)">
+      <rect x="4" y="4" width="56" height="56" rx="16" fill="black" />
+      <path d="M32 15.3333C27 23.6667 18.6666 27 18.6666 35.3333C18.6666 38.6667 22 42 25.3333 42C27 42 28.6666 42 30.3333 40.3333C30.3333 40.3333 30.8666 43.6667 27 48.6667H37C33.6666 43.6667 33.6666 40.3333 33.6666 40.3333C35.3333 42 37 42 38.6666 42C42 42 45.3333 38.6667 45.3333 35.3333C45.3333 27 37 23.6667 32 15.3333Z" fill="url(#paint1_linear_9_4)" />
+    </g>
+    <defs>
+      <linearGradient id="paint0_linear_9_4" x1="0.463769" y1="-0.927537" x2="64.4638" y2="63.5362" gradientUnits="userSpaceOnUse">
+        <stop offset="0.158558" stop-color="#7FEE64" />
+      </linearGradient>
+      <linearGradient id="paint1_linear_9_4" x1="-19.6667" y1="-21.3333" x2="82" y2="83.6667" gradientUnits="userSpaceOnUse">
+        <stop offset="0.45023" stop-color="#7FEE64" />
+      </linearGradient>
+      <clipPath id="clip0_9_4">
+        <rect x="4" y="4" width="56" height="56" rx="16" fill="white" />
+      </clipPath>
+    </defs>
   </g>
 </svg>

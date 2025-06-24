@@ -77,32 +77,32 @@ export interface Config {
   test?: boolean;
 }
 
-export interface RustConfig {
+export type RustConfig = Record<string, any> & {
   /* Name of qpace core cargo crate. default: `qpace_core` */
   qpaceCoreCrate?: string;
-}
+};
 
-export interface PythonConfig {
+export type PythonConfig = Record<string, any> & {
   /* Name of python package being built. default: `qpace_artifact` */
   package?: string;
   /* Name of qpace python package. default: `qpace` */
   qpacePackage?: string;
-}
+};
 
 export type NodePackageManager = "auto" | "npm" | "yarn" | "pnpm" | "bun";
 
-export interface NodeConfig {
+export type NodeConfig = Record<string, any> & {
   /* Name of node package being built. default: `qpace_artifact` */
   package?: string;
   packageManager?: NodePackageManager;
   qpacePackage?: string;
-}
+};
 
-export interface WebConfig {
+export type WebConfig = Record<string, any> & {
   /* Name of node package being built. default: `qpace_artifact` */
   package?: string;
   qpacePackage?: string;
-}
+};
 
 export const getDefaultConfig = (): Config => {
   return {

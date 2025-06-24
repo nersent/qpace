@@ -114,6 +114,12 @@ impl NodeCtx {
     pub fn node_skip(&mut self, skip: &NodeCtxSkip) {
         self.inner.borrow_mut().skip(skip.into());
     }
+
+    #[napi(js_name = "ref")]
+    #[inline]
+    pub fn node_ref(&self) -> Self {
+        self.clone()
+    }
 }
 
 impl Generator for NodeCtx {

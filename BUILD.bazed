@@ -10,12 +10,39 @@ fileSet("js", {
   deps: [":package_json", "//lib:js", "//compiler:js", "//cli"], // , "//content"
 });
 
-execute("npm_link", (ctx) => ({
-  command: `cd ${ctx.sandboxPath} && pnpm link --global`,
-  copyDeps: true,
-  deps: [":js"],
-  run: true,
-}));
+execute("npm_link", (ctx) => {
+  const platform = os.platform();
+  return {
+    command: [
+      `cd ${ctx.sandboxPath}`,
+      ...(platform === "win32"
+        ? [
+            `xcopy ${resolve(ctx.workspacePath, "content/node")} ${resolve(
+              ctx.sandboxPath,
+              "content/node",
+            )} /E /I /Y`,
+            `xcopy ${resolve(ctx.workspacePath, "content/web")} ${resolve(
+              ctx.sandboxPath,
+              "content/web",
+            )} /E /I /Y`,
+          ]
+        : [
+            `cp -R ${resolve(ctx.workspacePath, "content/node")} ${resolve(
+              ctx.sandboxPath,
+              "content/node",
+            )}`,
+            `cp -R ${resolve(ctx.workspacePath, "content/web")} ${resolve(
+              ctx.sandboxPath,
+              "content/web",
+            )}`,
+          ]),
+      `pnpm link --global`,
+    ].join(" && "),
+    copyDeps: true,
+    deps: [":js"],
+    run: true,
+  };
+});
 
 execute("npm_publish", (ctx) => ({
   // echo "#!/usr/bin/env node\\n" | cat - ./lib/cli.bazed.js
@@ -35,6 +62,7 @@ include README.md
 include LICENSE.md
 include lib/*
 include qpace_core/*
+include content/*
 `;
 // .replaceAll("\n", "\\n");
 
@@ -49,6 +77,7 @@ from setuptools import setup, find_packages
 local_packages = [
   *find_packages("."),
   "qpace",
+  "qpace_content"
 ]
 print(local_packages)
 
@@ -60,12 +89,12 @@ setup(
         "lib": "lib",
         "qpace": "lib",
         "qpace_core": "qpace_core",
-        #"qpace_content": "qpace_content",
+        "qpace_content": "qpace_content",
     },
     packages=[*local_packages],
     package_data={
         "qpace_core": ["qpace_core.pyd", "qpace_core.abi3.so"],
-        #"qpace_content": ["qpace_content.pyd", "qpace_content.abi3.so"],
+        "qpace_content": ["_lib.pyd", "_lib.abi3.so"],
     },
     include_package_data=True,
     python_requires=">=3.10",
@@ -150,6 +179,7 @@ execute("wheel", (ctx) => {
     PYPROJECT_TOML,
     "utf8",
   );
+  const contentDir = resolve(ctx.workspacePath, "content/python");
   return {
     // command: `echo "${platform} | ${arch} | ${ctx.sandboxPath}"`,
     command: [
@@ -163,11 +193,13 @@ execute("wheel", (ctx) => {
             "copy ..\\MANIFEST.in .",
             "copy ..\\setup.py .",
             "copy ..\\pyproject.toml .",
+            `xcopy ${contentDir} qpace_content /E /I /Y`,
           ]
         : [
             "cp ../MANIFEST.in .",
             "cp ../setup.py .",
             "cp ../pyproject.toml .",
+            `cp -R ${contentDir} qpace_content`,
           ]),
       `python setup.py bdist_wheel --plat-name ${getPlatName()}`,
     ].join(" && "),

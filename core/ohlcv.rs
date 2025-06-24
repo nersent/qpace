@@ -344,8 +344,10 @@ pub trait OhlcvReader: fmt::Debug {
         let mut volume = Vec::with_capacity(len);
         for i in 0..len {
             let bar = self.get(i).unwrap();
-            open_time.push(bar.open_time.as_ref().map(|x| x.timestamp_millis()));
-            close_time.push(bar.close_time.as_ref().map(|x| x.timestamp_millis()));
+            // open_time.push(bar.open_time.as_ref().map(|x| x.timestamp_millis()));
+            // close_time.push(bar.close_time.as_ref().map(|x| x.timestamp_millis()));
+            open_time.push(bar.open_time().map(|x| x.timestamp()));
+            close_time.push(bar.close_time().map(|x| x.timestamp()));
             open.push(bar.open);
             high.push(bar.high);
             low.push(bar.low);
