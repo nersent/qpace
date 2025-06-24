@@ -24,7 +24,7 @@ import { mkdirSync } from "fs";
 import { downloadFileToPath } from "~/base/node/network";
 import { Profile } from "./profile";
 import axios, { AxiosInstance } from "axios";
-import { locatePython } from "~/base/node/python";
+import { getPythonVersion, locatePython } from "~/base/node/python";
 import { exec } from "~/base/node/exec";
 import { detectNodePackageManager, installNodePackage } from "./utils";
 
@@ -257,6 +257,14 @@ const build = async ({
     if (target == null) throw new CliError(`Invalid target: ${rawTarget}`);
   }
   cwd ??= process.cwd();
+
+  const pythonPath = await locatePython();
+  const pythonVersion = await getPythonVersion(pythonPath);
+  const profile = await Profile.load();
+  const client = await profile.getClient();
+
+  client["_clientInfo"]["python"] = pythonVersion;
+
   const [compilerClient, grpcMetadata] = await getCompilerClient();
   const qpcConfig = await loadQpcConfig(
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
@@ -269,7 +277,6 @@ const build = async ({
   if (skipInstall) qpcConfig.install = false;
   if (skipTest) qpcConfig.test = false;
 
-  const pythonPath = await locatePython();
   if (target?.startsWith("python") && qpcConfig.install) {
     if (pythonPath == null)
       throw new CliError(`Python not found. Install python and or it to PATH`);
