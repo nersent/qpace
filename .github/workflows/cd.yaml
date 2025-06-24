@@ -255,8 +255,7 @@ jobs:
           cargo fmt --version
           wasm-pack --version
           maturin --version
-          napi
-
+      #napi
       - name: Prepare
         run: |
           mkdir -p target/nextest/default
