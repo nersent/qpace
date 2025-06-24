@@ -63,7 +63,7 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           pnpm install
-          pnpm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.85 --global
+          pnpm install rimraf cross-env --global
 
       - name: Install Python 3.10
         uses: actions/setup-python@v5
@@ -212,7 +212,7 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           pnpm install
-          npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.90 --global
+          npm install rimraf cross-env --global
 
       - name: Install Python 3.10
         uses: actions/setup-python@v5
