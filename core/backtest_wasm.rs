@@ -1,4 +1,4 @@
-use crate::backtest::BacktestSummary;
+use crate::backtest::{BacktestSummary, BacktestSummaryConfig};
 use crate::ctx_wasm::{WasmCtx, WasmCtxSkip};
 use crate::signal::Signal;
 use crate::signal_wasm::WasmSignal;
@@ -224,6 +224,16 @@ impl WasmBacktest {
     #[inline]
     pub fn wasm_to_pine(&self) -> String {
         self.inner.borrow().to_pine()
+    }
+
+    #[wasm_bindgen(js_name = "summary")]
+    #[inline]
+    pub fn wasm_summary(&self, risk_free_rate: Option<f64>) -> WasmBacktestSummary {
+        let risk_free_rate = risk_free_rate.unwrap_or(0.0);
+        self.inner
+            .borrow()
+            .summary(&BacktestSummaryConfig { risk_free_rate })
+            .into()
     }
 
     // #[wasm_bindgen(js_namespace = Symbol, js_name = iterator)]

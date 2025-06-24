@@ -70,7 +70,7 @@ importers:
         version: 5.0.0
     devDependencies:
       '@napi-rs/cli':
-        specifier: ^3.0.0-alpha.91
+        specifier: ^3.0.0-alpha.90
         version: 3.0.0-alpha.91(@emnapi/runtime@1.4.3)(@types/node@20.19.1)
       '@nersent/bazed':
         specifier: ^0.0.62

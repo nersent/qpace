@@ -1,5 +1,5 @@
 use crate::{
-    backtest::{Backtest, BacktestConfig, BacktestSummary},
+    backtest::{Backtest, BacktestConfig, BacktestSummary, BacktestSummaryConfig},
     ctx_node::{NodeCtx, NodeCtxSkip},
     signal_node::NodeSignal,
     trade_node::NodeTrade,
@@ -178,6 +178,16 @@ impl NodeBacktest {
     #[inline]
     pub fn node_to_pine(&self) -> String {
         self.inner.borrow().to_pine()
+    }
+
+    #[napi(js_name = "summary")]
+    #[inline]
+    pub fn node_summary(&self, risk_free_rate: Option<f64>) -> NodeBacktestSummary {
+        let risk_free_rate = risk_free_rate.unwrap_or(0.0);
+        self.inner
+            .borrow()
+            .summary(&BacktestSummaryConfig { risk_free_rate })
+            .into()
     }
 }
 

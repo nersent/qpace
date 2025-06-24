@@ -67,7 +67,7 @@
     "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.0.0-alpha.91",
+    "@napi-rs/cli": "^3.0.0-alpha.90",
     "@nersent/bazed": "^0.0.62",
     "@swc/cli": "^0.3.6",
     "@swc/core": "^1.3.96",
