@@ -9,7 +9,7 @@ export const TARGETS = [
   "python-x86_64-macos",
   "python-arm64-macos",
   "python-arm64-linux",
-  "python-universal",
+  // "python-universal",
   //
   "node-x86_64-linux",
   "node-x86_64-windows",
