@@ -8,11 +8,13 @@ fileSet("qpc", {
   srcs: [".qpace.json"],
 });
 
+// cross-env DEV=true
+
 execute("py_compile", (ctx) => {
   const outDir = resolve(ctx.workspacePath, "content/.tmp/python");
   mkdirSync(outDir, { recursive: true });
   return {
-    command: `cross-env DEV=true npx qpace build --target python --out-dir ${outDir} --verbose`,
+    command: `npx qpace build --target python --out-dir ${outDir} --verbose`,
     run: true,
     deps: [":qpc"],
     cwd: resolve(ctx.workspacePath, "content"),
@@ -62,7 +64,7 @@ execute("node_compile", (ctx) => {
   const outDir = resolve(ctx.workspacePath, "content/.tmp/node");
   mkdirSync(outDir, { recursive: true });
   return {
-    command: `cross-env DEV=true npx qpace build --target node-universal --out-dir ${outDir} --verbose`,
+    command: `npx qpace build --target node-universal --out-dir ${outDir} --verbose`,
     run: true,
     deps: [":qpc"],
     cwd: resolve(ctx.workspacePath, "content"),
@@ -96,7 +98,7 @@ execute("web_compile", (ctx) => {
   const outDir = resolve(ctx.workspacePath, "content/.tmp/web");
   mkdirSync(outDir, { recursive: true });
   return {
-    command: `cross-env DEV=true npx qpace build --target web --out-dir ${outDir} --verbose`,
+    command: `npx qpace build --target web --out-dir ${outDir} --verbose`,
     run: true,
     deps: [":qpc"],
     cwd: resolve(ctx.workspacePath, "content"),
