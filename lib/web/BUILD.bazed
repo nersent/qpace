@@ -1,6 +1,6 @@
 tsLibrary("web", {
   srcs: glob("**/*.ts"),
-  deps: ["//:package_json", "//core:wasm"],
+  deps: ["//:package_json", "//core:wasm", "//content:web"],
   compiler: "tsc",
 });
 

@@ -56,8 +56,8 @@ import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
 export const CORE_VERSION = coreVersion;
 
-import * as _ta from "../../content/node/ta";
-import initTa from "../../content/node/ta";
+import * as _ta from "../../content/web/ta";
+import initTa from "../../content/web/ta";
 export const ta = { ..._ta, init: initTa } as typeof _ta & {
   init: typeof initTa;
 };

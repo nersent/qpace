@@ -114,9 +114,9 @@ jobs:
       #   run: |
       #     pnpm pyi
 
-      - name: Compile wheel content
+      - name: Compile content (wheel)
         run: |
-          pnpm bazed run //content:py --verbose
+          pnpm bazed run //content:setup --verbose -- -- py
 
       - name: Build wheel
         run: |
@@ -277,13 +277,21 @@ jobs:
         run: |
           pnpm bazed run //core:wasm --verbose
 
-      - name: Compile node content
+      - name: Compile content
         run: |
-          pnpm bazed run //content:node --verbose
+          pnpm bazed run //content:setup --verbose -- -- node
+          pnpm bazed run //content:setup --verbose -- -- web
 
-      - name: Compile web content
+      - name: List content
         run: |
-          pnpm bazed run //content:web --verbose
+          echo "Contents of content:"
+          ls -l content
+
+          echo "Contents of content/node:"
+          ls -l content/node
+
+          echo "Contents of content/web:"
+          ls -l content/web
 
       - name: Build js
         run: |

@@ -1,133 +1,23 @@
-const { mkdirSync, readdirSync, cpSync } = require("fs");
-const { resolve } = require("path");
-const tar = require("tar");
-const { execSync } = require("child_process");
-const { writeFileSync } = require("fs");
-
-fileSet("qpc", {
-  srcs: [".qpace.json"],
+tsLibrary("setup_src", {
+  srcs: ["setup.ts"],
 });
 
-// cross-env DEV=true
-//
-
-execute("py_compile", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/python");
-  mkdirSync(outDir, { recursive: true });
-  return {
-    command: `pnpm dlx qpace build --target python --out-dir ${outDir} --verbose`,
-    run: true,
-    deps: [":qpc"],
-    cwd: resolve(ctx.workspacePath, "content"),
-  };
-});
-
-execute("py_unwheel", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/python");
-  const wheelFilename = readdirSync(outDir).find((f) => f.endsWith(".whl"));
-  execSync(
-    `python -m wheel unpack ${resolve(outDir, wheelFilename)} -d ${outDir}`,
-    {
-      stdio: "inherit",
-    },
-  );
-  const destPath = resolve(ctx.workspacePath, `content/python`);
-  mkdirSync(destPath, { recursive: true });
-  {
-    const files = readdirSync(resolve(outDir), {
-      withFileTypes: true,
-    });
-    const dir = files.find(
-      (f) => f.isDirectory() && f.name.startsWith("qpace_content"),
-    );
-    if (!dir) {
-      throw new Error("qpace_content directory not found in build/qpc");
-    }
-    const relPath = resolve(outDir, dir.name, "qpace_content");
-    cpSync(relPath, destPath, {
-      recursive: true,
-    });
-  }
-  writeFileSync(resolve(destPath, "py.typed"), "", "utf8");
-  return {
-    command: `echo ${destPath}`,
-    run: true,
-    deps: [":py_compile"],
-  };
+nodeEntry("setup", {
+  main: "setup.js",
+  deps: [":setup_src", "//base/node"],
 });
 
 fileSet("py", {
-  deps: [":py_compile", ":py_unwheel"],
-});
-
-//
-execute("node_compile", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/node");
-  mkdirSync(outDir, { recursive: true });
-  return {
-    command: `pnpm dlx qpace build --target node-universal --out-dir ${outDir} --verbose`,
-    run: true,
-    deps: [":qpc"],
-    cwd: resolve(ctx.workspacePath, "content"),
-  };
-});
-
-execute("node_unzip", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/node");
-  const srcPath = resolve(outDir, `qpace_content-1.0.0.tgz`);
-  const destPath = resolve(ctx.workspacePath, `content/node`);
-  mkdirSync(destPath, { recursive: true });
-  tar.x({
-    file: srcPath,
-    cwd: destPath,
-    sync: true,
-    strip: 1,
-  });
-  return {
-    command: `echo "${destPath}"`,
-    run: true,
-    deps: [":node_compile"],
-  };
+  srcs: glob("python/**/*.*"),
+  copy: true,
 });
 
 fileSet("node", {
-  deps: [":node_compile", ":node_unzip"],
-});
-
-//
-execute("web_compile", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/web");
-  mkdirSync(outDir, { recursive: true });
-  return {
-    command: `pnpm dlx qpace build --target web --out-dir ${outDir} --verbose`,
-    run: true,
-    deps: [":qpc"],
-    cwd: resolve(ctx.workspacePath, "content"),
-  };
-});
-
-execute("web_unzip", (ctx) => {
-  const outDir = resolve(ctx.workspacePath, "content/.tmp/web");
-  const srcPath = resolve(outDir, `qpace_content-1.0.0.tgz`);
-  const destPath = resolve(ctx.workspacePath, `content/web`);
-  mkdirSync(destPath, { recursive: true });
-  tar.x({
-    file: srcPath,
-    cwd: destPath,
-    sync: true,
-    strip: 1,
-  });
-  return {
-    command: `echo "${destPath}"`,
-    run: true,
-    deps: [":web_compile"],
-  };
+  srcs: glob("node/**/*.*"),
+  copy: true,
 });
 
 fileSet("web", {
-  deps: [":web_compile", ":web_unzip"],
-});
-
-fileSet("content", {
-  srcs: ["index.js"],
+  srcs: glob("web/**/*.*"),
+  copy: true,
 });

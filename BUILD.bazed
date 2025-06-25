@@ -49,27 +49,27 @@ execute("npm_link", (ctx) => {
   return {
     command: [
       `cd ${ctx.sandboxPath}`,
-      ...(platform === "win32"
-        ? [
-            `xcopy ${resolve(ctx.workspacePath, "content/node")} ${resolve(
-              ctx.sandboxPath,
-              "content/node",
-            )} /E /I /Y`,
-            `xcopy ${resolve(ctx.workspacePath, "content/web")} ${resolve(
-              ctx.sandboxPath,
-              "content/web",
-            )} /E /I /Y`,
-          ]
-        : [
-            `cp -R ${resolve(ctx.workspacePath, "content/node")} ${resolve(
-              ctx.sandboxPath,
-              "content/node",
-            )}`,
-            `cp -R ${resolve(ctx.workspacePath, "content/web")} ${resolve(
-              ctx.sandboxPath,
-              "content/web",
-            )}`,
-          ]),
+      // ...(platform === "win32"
+      //   ? [
+      //       `xcopy ${resolve(ctx.workspacePath, "content/node")} ${resolve(
+      //         ctx.sandboxPath,
+      //         "content/node",
+      //       )} /E /I /Y`,
+      //       `xcopy ${resolve(ctx.workspacePath, "content/web")} ${resolve(
+      //         ctx.sandboxPath,
+      //         "content/web",
+      //       )} /E /I /Y`,
+      //     ]
+      //   : [
+      //       `cp -R ${resolve(ctx.workspacePath, "content/node")} ${resolve(
+      //         ctx.sandboxPath,
+      //         "content/node",
+      //       )}`,
+      //       `cp -R ${resolve(ctx.workspacePath, "content/web")} ${resolve(
+      //         ctx.sandboxPath,
+      //         "content/web",
+      //       )}`,
+      //     ]),
       `pnpm link --global`,
     ].join(" && "),
     copyDeps: true,
@@ -213,7 +213,7 @@ execute("wheel", (ctx) => {
     PYPROJECT_TOML,
     "utf8",
   );
-  const contentDir = resolve(ctx.workspacePath, "content/python");
+  const contentDir = resolve(ctx.sandboxPath, "content/python");
   return {
     // command: `echo "${platform} | ${arch} | ${ctx.sandboxPath}"`,
     command: [
@@ -238,7 +238,7 @@ execute("wheel", (ctx) => {
       `python setup.py bdist_wheel --plat-name ${getPlatName()}`,
     ].join(" && "),
     cwd: ctx.sandboxPath,
-    deps: ["//:package_json", ":py", ":maturin_unwheel_core"],
+    deps: ["//:package_json", ":py", ":maturin_unwheel_core", "//content:py"],
     run: true,
   };
 });
