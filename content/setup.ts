@@ -1,5 +1,5 @@
 import { readdirSync } from "fs";
-import { cp, mkdir, writeFile } from "fs/promises";
+import { cp, mkdir, unlink, writeFile } from "fs/promises";
 import { resolve } from "path";
 import { exec } from "~/base/node/exec";
 import * as tar from "tar";
@@ -41,6 +41,7 @@ const main = async (): Promise<void> => {
       sync: true,
       strip: 1,
     });
+    await unlink(resolve(destDir, "package.json"));
   } else if (target === "web") {
     const tmpDir = resolve(CONTENT_DIR, ".tmp/web");
     const destDir = resolve(CONTENT_DIR, "web");
@@ -57,6 +58,7 @@ const main = async (): Promise<void> => {
       sync: true,
       strip: 1,
     });
+    await unlink(resolve(destDir, "package.json"));
   } else if (target === "py") {
     const tmpDir = resolve(CONTENT_DIR, ".tmp/python");
     const destDir = resolve(CONTENT_DIR, "python");

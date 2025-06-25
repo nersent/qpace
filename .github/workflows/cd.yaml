@@ -315,6 +315,7 @@ jobs:
       - name: Publish dry-run
         run: |
           rm build/_bazed/___npm_link/core/pkg/package.json
+          rm build/_bazed/___npm_link/core/pkg/.gitignore
           ls -lhS build/artifacts
           python -m twine check build/artifacts/*.whl
           npm publish build/_bazed/___npm_link --dry-run --access public
