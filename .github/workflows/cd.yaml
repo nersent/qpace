@@ -306,10 +306,10 @@ jobs:
           echo "Contents of build/___npm_link:"
           ls -l build/_bazed/___npm_link
 
-          echo "Contents of build/___npm_link/core/pkg:"
+          echo "Contents of build/_bazed/___npm_link/core/pkg:"
           ls -l build/_bazed/___npm_link/core/pkg
 
-          echo "Contents of build/___npm_link/core/pkg_napi:"
+          echo "Contents of build/_bazed/___npm_link/core/pkg_napi:"
           ls -l build/_bazed/___npm_link/core/pkg_napi
 
       - name: Publish dry-run
