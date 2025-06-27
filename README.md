@@ -2,12 +2,12 @@
   <img src="static/banner.svg" alt="qPACE banner" />
   <h1>qPACE</h1>
   <p><strong>The Quant SDK for Python&nbsp;·&nbsp;JavaScript&nbsp;·&nbsp;Rust</strong></p>
-
+  <em>From research to production - all in one toolkit.</em>
+  <br/>
   <a href="https://pypi.org/project/qpace/"><img src="https://img.shields.io/pypi/v/qpace?color=blue&label=pypi" alt="PyPI"></a>
   <a href="https://www.npmjs.com/package/qpace"><img src="https://img.shields.io/npm/v/qpace?color=red&label=npm" alt="NPM"></a>
   <a href="https://qpace.dev/discord"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord"></a>
-  <br/><br/>
-  <em>From research to production - all in one toolkit.</em>
+  <br/>
 </div>
 
 ---
