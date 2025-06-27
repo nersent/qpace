@@ -118,6 +118,15 @@ print(local_packages)
 setup(
     name="qpace",
     version="${packageJson.version}",
+    description="${packageJson.description}",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="${packageJson.homepage}",
+    author="Nersent",
+    project_urls={
+        "Homepage": "${packageJson.homepage}",
+        "Source": "${packageJson.repository.url}",
+    },
     package_dir={
         "": "lib",
         "lib": "lib",

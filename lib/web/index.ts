@@ -6,7 +6,6 @@ export {
   Ctx,
   CtxSkip,
   Backtest,
-  BacktestSummary,
   Signal,
   Timeframe,
   Trade,

@@ -2,6 +2,12 @@
   "name": "qpace",
   "version": "0.0.1-dev.32",
   "coreVersion": "0.0.1-dev.29",
+  "description": "The Quant SDK for Python and Javascript. Written in Rust.",
+  "homepage": "https://qpace.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nersent/qpace"
+  },
   "bin": {
     "qpace": "cli/main.bazed.js",
     "qpc": "cli/main.bazed.js"
@@ -16,11 +22,6 @@
   ],
   "browser": {
     "./lib/web/index.js": "./lib/web/index.js"
-  },
-  "homepage": "https://qpace.dev",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nersent/qpace"
   },
   "exports": {
     "./node": {

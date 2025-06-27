@@ -6,7 +6,6 @@ export {
   NodeCtx as Ctx,
   NodeCtxSkip as CtxSkip,
   NodeBacktest as Backtest,
-  NodeBacktestSummary as BacktestSummary,
   NodeSignal as Signal,
   NodeTimeframe as Timeframe,
   NodeTrade as Trade,

@@ -41,14 +41,14 @@ impl PySignal {
     }
 
     #[staticmethod]
-    #[pyo3(name = "Equity_pct")]
+    #[pyo3(name = "EquityPct")]
     #[inline]
     pub fn py_equity_pct(equity_pct: f64) -> Self {
         Signal::equity_pct(equity_pct).into()
     }
 
     #[staticmethod]
-    #[pyo3(name = "Close_all")]
+    #[pyo3(name = "CloseAll")]
     #[inline]
     pub fn py_close_all() -> Self {
         Signal::close_all().into()
