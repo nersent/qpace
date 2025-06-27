@@ -90,3 +90,9 @@ We designed and developed in-house Pine Script compiler that takes your original
 - Highest/Lowest/Bars
 - Standard Deviation (DEV)
 - Volume Oscillator (VO)
+
+## Community
+
+Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology! Our Discord server is the perfect place to share ideas, ask questions, and collaborate with devs and traders.
+
+[Discord](https://qpace.dev/discord)
