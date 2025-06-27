@@ -1,4 +1,3 @@
-use crate::backtest::{BacktestSummary, BacktestSummaryConfig};
 use crate::ctx_wasm::{WasmCtx, WasmCtxSkip};
 use crate::signal::Signal;
 use crate::signal_wasm::WasmSignal;
@@ -79,16 +78,16 @@ impl WasmBacktest {
         self.inner.borrow().equity()
     }
 
-    #[wasm_bindgen(getter = netEquity)]
-    #[inline]
-    pub fn wasm_net_equity(&self) -> f64 {
-        self.inner.borrow().net_equity()
-    }
-
     #[wasm_bindgen(getter = equityList)]
     #[inline]
     pub fn wasm_equity_list(&self) -> Vec<f64> {
         self.inner.borrow().equity_list().to_vec()
+    }
+
+    #[wasm_bindgen(getter = netEquity)]
+    #[inline]
+    pub fn wasm_net_equity(&self) -> f64 {
+        self.inner.borrow().net_equity()
     }
 
     #[wasm_bindgen(getter = netEquityList)]
@@ -115,10 +114,22 @@ impl WasmBacktest {
         self.inner.borrow().net_profit()
     }
 
+    #[wasm_bindgen(getter = netProfitPct)]
+    #[inline]
+    pub fn wasm_net_profit_pct(&self) -> f64 {
+        self.inner.borrow().net_profit_pct()
+    }
+
     #[wasm_bindgen(getter = grossProfit)]
     #[inline]
     pub fn wasm_gross_profit(&self) -> f64 {
         self.inner.borrow().gross_profit()
+    }
+
+    #[wasm_bindgen(getter = grossProfitPct)]
+    #[inline]
+    pub fn wasm_gross_profit_pct(&self) -> f64 {
+        self.inner.borrow().gross_profit_pct()
     }
 
     #[wasm_bindgen(getter = grossLoss)]
@@ -127,16 +138,146 @@ impl WasmBacktest {
         self.inner.borrow().gross_loss()
     }
 
+    #[wasm_bindgen(getter = grossLossPct)]
+    #[inline]
+    pub fn wasm_gross_loss_pct(&self) -> f64 {
+        self.inner.borrow().gross_loss_pct()
+    }
+
+    #[wasm_bindgen(getter = winRate)]
+    #[inline]
+    pub fn wasm_win_rate(&self) -> f64 {
+        self.inner.borrow().win_rate()
+    }
+
+    #[wasm_bindgen(getter = profitFactor)]
+    #[inline]
+    pub fn wasm_profit_factor(&self) -> f64 {
+        self.inner.borrow().profit_factor()
+    }
+
+    #[wasm_bindgen(getter = avgTrade)]
+    #[inline]
+    pub fn wasm_avg_trade(&self) -> f64 {
+        self.inner.borrow().avg_trade()
+    }
+
+    #[wasm_bindgen(getter = avgWinningTrade)]
+    #[inline]
+    pub fn wasm_avg_winning_trade(&self) -> f64 {
+        self.inner.borrow().avg_winning_trade()
+    }
+
+    #[wasm_bindgen(getter = avgLosingTrade)]
+    #[inline]
+    pub fn wasm_avg_losing_trade(&self) -> f64 {
+        self.inner.borrow().avg_losing_trade()
+    }
+
+    #[wasm_bindgen(getter = avgWinLossRatio)]
+    #[inline]
+    pub fn wasm_avg_win_loss_ratio(&self) -> f64 {
+        self.inner.borrow().avg_win_loss_ratio()
+    }
+
+    #[wasm_bindgen(getter = returnsList)]
+    #[inline]
+    pub fn wasm_returns_list(&self) -> Vec<f64> {
+        self.inner.borrow().returns_list().to_vec()
+    }
+
+    #[wasm_bindgen(js_name = "sharpeRatio")]
+    #[inline]
+    pub fn wasm_sharpe_ratio(&self, rfr: f64) -> f64 {
+        self.inner.borrow().sharpe_ratio(rfr)
+    }
+
+    #[wasm_bindgen(js_name = "sortinoRatio")]
+    #[inline]
+    pub fn wasm_sortino_ratio(&self, rfr: f64) -> f64 {
+        self.inner.borrow().sortino_ratio(rfr)
+    }
+
+    #[wasm_bindgen(getter = winningTradesCount)]
+    #[inline]
+    pub fn wasm_winning_trades_count(&self) -> usize {
+        self.inner.borrow().winning_trades_count()
+    }
+
+    #[wasm_bindgen(getter = losingTradesCount)]
+    #[inline]
+    pub fn wasm_losing_trades_count(&self) -> usize {
+        self.inner.borrow().losing_trades_count()
+    }
+
     #[wasm_bindgen(getter = positionSize)]
     #[inline]
     pub fn wasm_position_size(&self) -> f64 {
         self.inner.borrow().position_size()
     }
 
+    #[wasm_bindgen(getter = openTrades)]
+    #[inline]
+    pub fn wasm_open_trades(&self) -> Vec<Trade> {
+        self.inner
+            .borrow()
+            .open_trades()
+            .into_iter()
+            .cloned()
+            .collect()
+    }
+
+    #[wasm_bindgen(getter = closedTrades)]
+    #[inline]
+    pub fn wasm_closed_trades(&self) -> Vec<Trade> {
+        self.inner
+            .borrow()
+            .closed_trades()
+            .into_iter()
+            .cloned()
+            .collect()
+    }
+
     #[wasm_bindgen(getter = trades)]
     #[inline]
     pub fn wasm_trades(&self) -> Vec<Trade> {
         self.inner.borrow().trades().into_iter().cloned().collect()
+    }
+
+    #[wasm_bindgen(getter = openLongsCount)]
+    #[inline]
+    pub fn wasm_open_longs_count(&self) -> usize {
+        self.inner.borrow().open_longs_count()
+    }
+
+    #[wasm_bindgen(getter = openShortsCount)]
+    #[inline]
+    pub fn wasm_open_shorts_count(&self) -> usize {
+        self.inner.borrow().open_shorts_count()
+    }
+
+    #[wasm_bindgen(getter = closedLongsCount)]
+    #[inline]
+    pub fn wasm_closed_longs_count(&self) -> usize {
+        self.inner.borrow().closed_longs_count()
+    }
+
+    #[wasm_bindgen(getter = closedShortsCount)]
+    #[inline]
+    pub fn wasm_closed_shorts_count(&self) -> usize {
+        self.inner.borrow().closed_shorts_count()
+    }
+
+    #[wasm_bindgen(getter = firstEntryBarIndex)]
+    #[inline]
+    pub fn wasm_first_entry_bar_index(&self) -> Option<usize> {
+        self.inner.borrow().first_entry_bar_index()
+    }
+
+    #[wasm_bindgen(getter = instrumentSize)]
+    #[inline]
+    pub fn wasm_instrument_size(&self) -> f64 {
+        self.inner.borrow().instrument_size()
     }
 
     #[wasm_bindgen(js_name = "onBarOpen")]
@@ -226,15 +367,63 @@ impl WasmBacktest {
         self.inner.borrow().to_pine()
     }
 
-    #[wasm_bindgen(js_name = "summary")]
+    #[wasm_bindgen(js_name = "display")]
     #[inline]
-    pub fn wasm_summary(&self, risk_free_rate: Option<f64>) -> WasmBacktestSummary {
-        let risk_free_rate = risk_free_rate.unwrap_or(0.0);
-        self.inner
-            .borrow()
-            .summary(&BacktestSummaryConfig { risk_free_rate })
-            .into()
+    pub fn wasm_display(&self) {
+        let obj = Object::new();
+        let inner = self.inner.borrow();
+
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("equity"),
+            &JsValue::from_f64(inner.equity()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("netEquity"),
+            &JsValue::from_f64(inner.net_equity()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("netProfit"),
+            &JsValue::from_f64(inner.net_profit()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("profitFactor"),
+            &JsValue::from_f64(inner.profit_factor()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("winRate"),
+            &JsValue::from_f64(inner.win_rate()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("positionSize"),
+            &JsValue::from_f64(inner.position_size()),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("openTrades"),
+            &JsValue::from_f64(inner.open_trades().len() as f64),
+        );
+        let _ = Reflect::set(
+            &obj,
+            &JsValue::from_str("closedTrades"),
+            &JsValue::from_f64(inner.closed_trades().len() as f64),
+        );
+        js_console_table(&obj);
     }
+    // #[wasm_bindgen(js_name = "summary")]
+    // #[inline]
+    // pub fn wasm_summary(&self, risk_free_rate: Option<f64>) -> WasmBacktestSummary {
+    //     let risk_free_rate = risk_free_rate.unwrap_or(0.0);
+    //     self.inner
+    //         .borrow()
+    //         .summary(&BacktestSummaryConfig { risk_free_rate })
+    //         .into()
+    // }
 
     // #[wasm_bindgen(js_namespace = Symbol, js_name = iterator)]
     // #[inline]
@@ -275,84 +464,84 @@ impl WasmBacktest {
 //     }
 // }
 
-#[wasm_bindgen(js_name=BacktestSummary)]
-#[derive(Clone)]
-pub struct WasmBacktestSummary {
-    inner: BacktestSummary,
-}
+// #[wasm_bindgen(js_name=BacktestSummary)]
+// #[derive(Clone)]
+// pub struct WasmBacktestSummary {
+//     inner: BacktestSummary,
+// }
 
-impl Into<WasmBacktestSummary> for BacktestSummary {
-    fn into(self) -> WasmBacktestSummary {
-        WasmBacktestSummary { inner: self }
-    }
-}
+// impl Into<WasmBacktestSummary> for BacktestSummary {
+//     fn into(self) -> WasmBacktestSummary {
+//         WasmBacktestSummary { inner: self }
+//     }
+// }
 
-impl Into<BacktestSummary> for WasmBacktestSummary {
-    fn into(self) -> BacktestSummary {
-        self.inner
-    }
-}
+// impl Into<BacktestSummary> for WasmBacktestSummary {
+//     fn into(self) -> BacktestSummary {
+//         self.inner
+//     }
+// }
 
-#[wasm_bindgen(js_class=BacktestSummary)]
-impl WasmBacktestSummary {
-    #[wasm_bindgen(js_name = "display")]
-    #[inline]
-    pub fn wasm_display(&self) {
-        let obj = Object::new();
+// #[wasm_bindgen(js_class=BacktestSummary)]
+// impl WasmBacktestSummary {
+//     #[wasm_bindgen(js_name = "display")]
+//     #[inline]
+//     pub fn wasm_display(&self) {
+//         let obj = Object::new();
 
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("equity"),
-            &JsValue::from_f64(self.inner.equity),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("netEquity"),
-            &JsValue::from_f64(self.inner.net_equity),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("netProfit"),
-            &JsValue::from_f64(self.inner.net_profit),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("profitFactor"),
-            &JsValue::from_f64(self.inner.profit_factor),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("winRate"),
-            &JsValue::from_f64(self.inner.win_rate),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("positionSize"),
-            &JsValue::from_f64(self.inner.position_size),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("openTrades"),
-            &JsValue::from_f64(self.inner.open_trades as f64),
-        );
-        let _ = Reflect::set(
-            &obj,
-            &JsValue::from_str("closedTrades"),
-            &JsValue::from_f64(self.inner.closed_trades as f64),
-        );
-        js_console_table(&obj);
-    }
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("equity"),
+//             &JsValue::from_f64(self.inner.equity),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("netEquity"),
+//             &JsValue::from_f64(self.inner.net_equity),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("netProfit"),
+//             &JsValue::from_f64(self.inner.net_profit),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("profitFactor"),
+//             &JsValue::from_f64(self.inner.profit_factor),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("winRate"),
+//             &JsValue::from_f64(self.inner.win_rate),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("positionSize"),
+//             &JsValue::from_f64(self.inner.position_size),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("openTrades"),
+//             &JsValue::from_f64(self.inner.open_trades as f64),
+//         );
+//         let _ = Reflect::set(
+//             &obj,
+//             &JsValue::from_str("closedTrades"),
+//             &JsValue::from_f64(self.inner.closed_trades as f64),
+//         );
+//         js_console_table(&obj);
+//     }
 
-    #[wasm_bindgen(js_name = "toJSON")]
-    #[inline]
-    pub fn wasm_to_json(&self) -> JsValue {
-        let obj = Object::new();
-        Reflect::set(
-            &obj,
-            &JsValue::from_str("equity"),
-            &JsValue::from_f64(self.inner.equity),
-        )
-        .unwrap();
-        obj.into()
-    }
-}
+//     #[wasm_bindgen(js_name = "toJSON")]
+//     #[inline]
+//     pub fn wasm_to_json(&self) -> JsValue {
+//         let obj = Object::new();
+//         Reflect::set(
+//             &obj,
+//             &JsValue::from_str("equity"),
+//             &JsValue::from_f64(self.inner.equity),
+//         )
+//         .unwrap();
+//         obj.into()
+//     }
+// }

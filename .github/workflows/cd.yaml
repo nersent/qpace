@@ -1,13 +1,20 @@
 name: CD
 
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-  # workflow_run:
-  #   workflows: ["CI"]
-  #   types: [completed]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Triplet to build (linux-x64-gnu / win32-x64-msvc)"
+        required: false
+        type: string
+# on:
+#   pull_request:
+#   push:
+#     branches:
+#       - master
+# workflow_run:
+#   workflows: ["CI"]
+#   types: [completed]
 
 env:
   CARGO_TERM_COLOR: always
@@ -116,7 +123,7 @@ jobs:
 
       - name: Compile content (wheel)
         run: |
-          pnpm bazed run //content:setup --verbose -- -- py
+          pnpm bazed run //content:build --verbose -- -- py
 
       - name: Build wheel
         run: |
@@ -279,8 +286,8 @@ jobs:
 
       - name: Compile content
         run: |
-          pnpm bazed run //content:setup --verbose -- -- node
-          pnpm bazed run //content:setup --verbose -- -- web
+          pnpm bazed run //content:build --verbose -- -- node
+          pnpm bazed run //content:build --verbose -- -- web
 
       - name: List content
         run: |

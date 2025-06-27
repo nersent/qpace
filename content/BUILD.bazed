@@ -1,10 +1,10 @@
-tsLibrary("setup_src", {
-  srcs: ["setup.ts"],
+tsLibrary("build_src", {
+  srcs: ["build.ts"],
 });
 
-nodeEntry("setup", {
-  main: "setup.js",
-  deps: [":setup_src", "//base/node"],
+nodeEntry("build", {
+  main: "build.js",
+  deps: [":build_src", "//base/node"],
 });
 
 fileSet("py", {

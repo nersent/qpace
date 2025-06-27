@@ -1,4 +1,3 @@
-use crate::backtest::{BacktestSummary, BacktestSummaryConfig};
 use crate::ctx_py::{PyCtx, PyCtxSkip};
 use crate::signal_py::PySignal;
 use crate::{
@@ -73,17 +72,17 @@ impl PyBacktest {
         self.inner.borrow().equity()
     }
 
+    #[getter(equity_list)]
+    #[inline]
+    pub fn py_equity_list(&self) -> Vec<f64> {
+        self.inner.borrow().equity_list().to_vec()
+    }
+
     #[getter(net_equity)]
     #[inline]
     #[doc = "`initial_capital + net_profit`"]
     pub fn py_net_equity(&self) -> f64 {
         self.inner.borrow().net_equity()
-    }
-
-    #[getter(equity_list)]
-    #[inline]
-    pub fn py_equity_list(&self) -> Vec<f64> {
-        self.inner.borrow().equity_list().to_vec()
     }
 
     #[getter(net_equity_list)]
@@ -110,10 +109,22 @@ impl PyBacktest {
         self.inner.borrow().net_profit()
     }
 
+    #[getter(net_profit_pct)]
+    #[inline]
+    pub fn py_net_profit_pct(&self) -> f64 {
+        self.inner.borrow().net_profit_pct()
+    }
+
     #[getter(gross_profit)]
     #[inline]
     pub fn py_gross_profit(&self) -> f64 {
         self.inner.borrow().gross_profit()
+    }
+
+    #[getter(gross_profit_pct)]
+    #[inline]
+    pub fn py_gross_profit_pct(&self) -> f64 {
+        self.inner.borrow().gross_profit_pct()
     }
 
     #[getter(gross_loss)]
@@ -122,10 +133,92 @@ impl PyBacktest {
         self.inner.borrow().gross_loss()
     }
 
+    #[getter(gross_loss_pct)]
+    #[inline]
+    pub fn py_gross_loss_pct(&self) -> f64 {
+        self.inner.borrow().gross_loss_pct()
+    }
+
+    #[getter(win_rate)]
+    #[inline]
+    pub fn py_win_rate(&self) -> f64 {
+        self.inner.borrow().win_rate()
+    }
+
+    #[getter(profit_factor)]
+    #[inline]
+    pub fn py_profit_factor(&self) -> f64 {
+        self.inner.borrow().profit_factor()
+    }
+
+    #[getter(avg_trade)]
+    #[inline]
+    pub fn py_avg_trade(&self) -> f64 {
+        self.inner.borrow().avg_trade()
+    }
+
+    #[getter(avg_winning_trade)]
+    #[inline]
+    pub fn py_avg_winning_trade(&self) -> f64 {
+        self.inner.borrow().avg_winning_trade()
+    }
+
+    #[getter(avg_losing_trade)]
+    #[inline]
+    pub fn py_avg_losing_trade(&self) -> f64 {
+        self.inner.borrow().avg_losing_trade()
+    }
+
+    #[getter(avg_win_loss_ratio)]
+    #[inline]
+    pub fn py_avg_win_loss_ratio(&self) -> f64 {
+        self.inner.borrow().avg_win_loss_ratio()
+    }
+
+    #[getter(returns_list)]
+    #[inline]
+    pub fn py_returns_list(&self) -> Vec<f64> {
+        self.inner.borrow().returns_list().to_vec()
+    }
+
+    #[pyo3(name = "sharpe_ratio")]
+    #[inline]
+    pub fn py_sharpe_ratio(&self, rfr: f64) -> f64 {
+        self.inner.borrow().sharpe_ratio(rfr)
+    }
+
+    #[pyo3(name = "sortino_ratio")]
+    #[inline]
+    pub fn py_sortino_ratio(&self, rfr: f64) -> f64 {
+        self.inner.borrow().sortino_ratio(rfr)
+    }
+
     #[getter(position_size)]
     #[inline]
     pub fn py_position_size(&self) -> f64 {
         self.inner.borrow().position_size()
+    }
+
+    #[getter(open_trades)]
+    #[inline]
+    pub fn py_open_trades(&self) -> Vec<Trade> {
+        self.inner
+            .borrow()
+            .open_trades()
+            .into_iter()
+            .cloned()
+            .collect()
+    }
+
+    #[getter(closed_trades)]
+    #[inline]
+    pub fn py_closed_trades(&self) -> Vec<Trade> {
+        self.inner
+            .borrow()
+            .closed_trades()
+            .into_iter()
+            .cloned()
+            .collect()
     }
 
     #[getter(trades)]
@@ -204,56 +297,130 @@ impl PyBacktest {
         self.inner.borrow().to_pine()
     }
 
-    #[pyo3(name = "summary", signature = (risk_free_rate=0.0))]
-    #[inline]
-    pub fn py_summary(&self, risk_free_rate: f64) -> PyBacktestSummary {
-        self.inner
-            .borrow()
-            .summary(&BacktestSummaryConfig { risk_free_rate })
-            .into()
-    }
-}
-
-#[gen_stub_pyclass]
-#[pyclass(name = "BacktestSummary", unsendable)]
-#[derive(Clone)]
-pub struct PyBacktestSummary {
-    inner: BacktestSummary,
-}
-
-impl Into<PyBacktestSummary> for BacktestSummary {
-    fn into(self) -> PyBacktestSummary {
-        PyBacktestSummary { inner: self }
-    }
-}
-
-impl Into<BacktestSummary> for PyBacktestSummary {
-    fn into(self) -> BacktestSummary {
-        self.inner
-    }
-}
-
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyBacktestSummary {
     #[pyo3(name = "display")]
     #[inline]
     pub fn py_display(&self) {
-        self.inner.display(None);
+        self.inner.borrow().display(None);
     }
-
-    #[pyo3(name = "to_dict")]
-    #[inline]
-    pub fn py_to_dict(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let dict = PyDict::new_bound(py);
-        dict.set_item("equity", self.inner.equity)?;
-        dict.set_item("net_equity", self.inner.net_equity)?;
-        dict.set_item("net_profit", self.inner.net_profit)?;
-        dict.set_item("profit_factor", self.inner.profit_factor)?;
-        dict.set_item("win_rate", self.inner.win_rate)?;
-        dict.set_item("position_size", self.inner.position_size)?;
-        dict.set_item("closed_trades", self.inner.closed_trades)?;
-        dict.set_item("open_trades", self.inner.open_trades)?;
-        return Ok(dict.to_object(py));
-    }
+    // #[pyo3(name = "summary", signature = (risk_free_rate=0.0))]
+    // #[inline]
+    // pub fn py_summary(&self, risk_free_rate: f64) -> PyBacktestSummary {
+    //     self.inner
+    //         .borrow()
+    //         .summary(&BacktestSummaryConfig { risk_free_rate })
+    //         .into()
+    // }
 }
+
+// #[gen_stub_pyclass]
+// #[pyclass(name = "BacktestSummary", unsendable)]
+// #[derive(Clone)]
+// pub struct PyBacktestSummary {
+//     inner: BacktestSummary,
+// }
+
+// impl Into<PyBacktestSummary> for BacktestSummary {
+//     fn into(self) -> PyBacktestSummary {
+//         PyBacktestSummary { inner: self }
+//     }
+// }
+
+// impl Into<BacktestSummary> for PyBacktestSummary {
+//     fn into(self) -> BacktestSummary {
+//         self.inner
+//     }
+// }
+
+// #[gen_stub_pymethods]
+// #[pymethods]
+// impl PyBacktestSummary {
+//     #[pyo3(name = "display")]
+//     #[inline]
+//     pub fn py_display(&self) {
+//         self.inner.display(None);
+//     }
+
+//     #[getter(initial_capital)]
+//     #[inline]
+//     pub fn py_initial_capital(&self) -> f64 {
+//         self.inner.initial_capital
+//     }
+
+//     #[getter(equity)]
+//     #[inline]
+//     pub fn py_equity(&self) -> f64 {
+//         self.inner.equity
+//     }
+
+//     #[getter(equity_list)]
+//     #[inline]
+//     pub fn py_equity_list(&self) -> Vec<f64> {
+//         self.inner.equity_list.clone()
+//     }
+
+//     #[getter(net_equity)]
+//     #[inline]
+//     pub fn py_net_equity(&self) -> f64 {
+//         self.inner.net_equity
+//     }
+
+//     #[getter(net_equity_list)]
+//     #[inline]
+//     pub fn py_net_equity_list(&self) -> Vec<f64> {
+//         self.inner.net_equity_list.clone()
+//     }
+
+//     #[getter(net_profit)]
+//     #[inline]
+//     pub fn py_net_profit(&self) -> f64 {
+//         self.inner.net_profit
+//     }
+
+//     #[getter(net_profit_pct)]
+//     #[inline]
+//     pub fn py_net_profit_pct(&self) -> f64 {
+//         self.inner.net_profit_pct
+//     }
+
+//     #[getter(open_profit)]
+//     #[inline]
+//     pub fn py_open_profit(&self) -> f64 {
+//         self.inner.open_profit
+//     }
+
+//     #[getter(gross_profit)]
+//     #[inline]
+//     pub fn py_gross_profit(&self) -> f64 {
+//         self.inner.gross_profit
+//     }
+
+//     #[getter(gross_profit_pct)]
+//     #[inline]
+//     pub fn py_gross_profit_pct(&self) -> f64 {
+//         self.inner.gross_profit_pct
+//     }
+
+//     #[getter(gross_loss)]
+//     #[inline]
+//     pub fn py_gross_loss(&self) -> f64 {
+//         self.inner.gross_loss
+//     }
+
+//     #[getter(gross_loss_pct)]
+//     #[inline]
+//     pub fn py_gross_loss_pct(&self) -> f64 {
+//         self.inner.gross_loss_pct
+//     }
+
+//     #[getter(trades)]
+//     #[inline]
+//     pub fn py_trades(&self) -> Vec<Trade> {
+//         self.inner.trades.clone()
+//     }
+
+//     #[getter(winning_trades)]
+//     #[inline]
+//     pub fn py_winning_trades(&self) -> usize {
+//         self.inner.winning_trades
+//     }
+// }

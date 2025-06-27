@@ -57,7 +57,7 @@ export const VERSION = version;
 export const CORE_VERSION = coreVersion;
 
 import * as _ta from "../../content/web/ta";
-import initTa from "../../content/web/ta";
+import { init as initTa } from "../../content/web";
 export const ta = { ..._ta, init: initTa } as typeof _ta & {
   init: typeof initTa;
 };

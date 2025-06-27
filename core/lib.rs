@@ -56,7 +56,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   use sym_py::PySymKind;
   use ohlcv_py::PyOhlcv;
   use ctx_py::PyCtx;
-  use backtest_py::{PyBacktest, PyBacktestSummary};
+  use backtest_py::{PyBacktest};
   use signal_py::PySignal;
 }}
 // cfg_if::cfg_if! { if #[cfg(all(feature = "bindings_wasm", target_arch = "wasm32"))] {
@@ -121,7 +121,6 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TradeEvent>()?;
     m.add_class::<TradeDirection>()?;
     m.add_class::<PyBacktest>()?;
-    m.add_class::<PyBacktestSummary>()?;
     m.add_class::<PySignal>()?;
     m.add_class::<ohlcv::OhlcvBar>()?;
     m.add_function(wrap_pyfunction!(get_version, m)?)?;

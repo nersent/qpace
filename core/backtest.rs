@@ -171,16 +171,16 @@ impl Backtest {
     }
 
     #[inline]
+    pub fn equity_list(&self) -> &[f64] {
+        &self.equity
+    }
+
+    #[inline]
     pub fn net_equity(&self) -> f64 {
         self.net_equity
             .last()
             .cloned()
             .unwrap_or(self.initial_capital)
-    }
-
-    #[inline]
-    pub fn equity_list(&self) -> &[f64] {
-        &self.equity
     }
 
     #[inline]
@@ -208,8 +208,18 @@ impl Backtest {
     }
 
     #[inline]
+    pub fn net_profit_pct(&self) -> f64 {
+        net_profit_pct(self.net_profit, self.initial_capital)
+    }
+
+    #[inline]
     pub fn gross_profit(&self) -> f64 {
         self.gross_profit
+    }
+
+    #[inline]
+    pub fn gross_profit_pct(&self) -> f64 {
+        gross_profit_pct(self.gross_profit, self.initial_capital)
     }
 
     #[inline]
@@ -218,12 +228,62 @@ impl Backtest {
     }
 
     #[inline]
-    pub fn winning_trades(&self) -> usize {
+    pub fn gross_loss_pct(&self) -> f64 {
+        gross_loss_pct(self.gross_loss, self.initial_capital)
+    }
+
+    #[inline]
+    pub fn win_rate(&self) -> f64 {
+        win_rate(self.winning_trades, self.losing_trades)
+    }
+
+    #[inline]
+    pub fn profit_factor(&self) -> f64 {
+        profit_factor(self.gross_profit, self.gross_loss)
+    }
+
+    #[inline]
+    pub fn avg_trade(&self) -> f64 {
+        avg_trade(self.net_profit, self.closed_trades.len())
+    }
+
+    #[inline]
+    pub fn avg_winning_trade(&self) -> f64 {
+        avg_winning_trade(self.gross_profit, self.winning_trades)
+    }
+
+    #[inline]
+    pub fn avg_losing_trade(&self) -> f64 {
+        avg_losing_trade(self.gross_loss, self.losing_trades)
+    }
+
+    #[inline]
+    pub fn avg_win_loss_ratio(&self) -> f64 {
+        avg_win_loss_ratio(self.avg_winning_trade(), self.avg_losing_trade())
+    }
+
+    #[inline]
+    pub fn returns_list(&self) -> Vec<f64> {
+        returns(&self.equity, true)
+    }
+
+    #[inline]
+    pub fn sharpe_ratio(&self, rfr: f64) -> f64 {
+        sharpe_ratio_from_returns(&self.returns_list(), rfr)
+    }
+
+    #[inline]
+    pub fn sortino_ratio(&self, rfr: f64) -> f64 {
+        sortino_ratio_from_returns(&self.returns_list(), rfr)
+    }
+
+    #[inline]
+    pub fn winning_trades_count(&self) -> usize {
         self.winning_trades
     }
 
     #[inline]
-    pub fn losing_trades(&self) -> usize {
+    pub fn losing_trades_count(&self) -> usize {
         self.losing_trades
     }
 
@@ -251,22 +311,22 @@ impl Backtest {
     }
 
     #[inline]
-    pub fn open_longs(&self) -> usize {
+    pub fn open_longs_count(&self) -> usize {
         self.open_longs
     }
 
     #[inline]
-    pub fn open_shorts(&self) -> usize {
+    pub fn open_shorts_count(&self) -> usize {
         self.open_shorts
     }
 
     #[inline]
-    pub fn closed_longs(&self) -> usize {
+    pub fn closed_longs_count(&self) -> usize {
         self.closed_longs
     }
 
     #[inline]
-    pub fn closed_shorts(&self) -> usize {
+    pub fn closed_shorts_count(&self) -> usize {
         self.closed_shorts
     }
 
@@ -718,9 +778,193 @@ for i = 0 to array.size(trades) - 1
         BacktestBarDump::dump(self)
     }
 
-    #[inline]
-    pub fn summary(&self, config: &BacktestSummaryConfig) -> BacktestSummary {
-        return BacktestSummary::generate(&self, config);
+    #[cfg(feature = "pretty_table")]
+    fn print_table(&self) {
+        let rfr = 0.0;
+        let sym = self.ctx.borrow().sym().clone();
+        let f_price = with_suffix(&format!(" {}", sym._currency()));
+        let f_percent = with_suffix("%");
+        let f = |price: f64, percent: f64| format!("{}\n{}", f_price(price), f_percent(percent));
+        let f_raw = |value: f64| format!("{:0.2}", value);
+
+        let mut table = ComfyTable::new();
+        table
+            .set_content_arrangement(ContentArrangement::DynamicFullWidth)
+            .set_header(vec!["Metric", "Value"]);
+
+        table.add_row(Row::from(vec![
+            Cell::new("Net Profit"),
+            Cell::new(f(self.net_profit, self.net_profit_pct() * 100.0)),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Gross Profit"),
+            Cell::new(f(self.gross_profit, self.gross_profit_pct() * 100.0)),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Gross Loss"),
+            Cell::new(f(self.gross_loss, self.gross_loss_pct() * 100.0)),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Sharpe Ratio"),
+            Cell::new(format!("{:0.3}", self.sharpe_ratio(rfr))),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Sortino Ratio"),
+            Cell::new(format!("{:0.3}", self.sortino_ratio(rfr))),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Profit Factor"),
+            Cell::new(format!("{:0.3}", self.profit_factor())),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Open P/L"),
+            Cell::new(f_price(self.open_profit)),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Total Closed Trades"),
+            Cell::new(self.closed_trades.len().to_string()),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Number Winning Trades"),
+            Cell::new(self.winning_trades_count().to_string()),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Number Losing Trades"),
+            Cell::new(self.losing_trades_count().to_string()),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("% Profitable"),
+            Cell::new(f_percent(self.win_rate() * 100.0)),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Avg Trade"),
+            Cell::new(f_price(self.avg_trade())),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Avg Winning Trade"),
+            Cell::new(f_price(self.avg_winning_trade())),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Avg Losing Trade"),
+            Cell::new(f_price(self.avg_losing_trade())),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Ratio Avg Win / Avg Loss"),
+            Cell::new(f_raw(self.avg_win_loss_ratio())),
+        ]));
+
+        // Print the table
+        println!("{}", table);
+    }
+
+    #[cfg(feature = "pretty_table")]
+    pub fn display(&self, plot: Option<(u32, u32)>) {
+        self.print_table();
+        let sym = self.ctx.borrow().sym().clone();
+        let plot = plot.unwrap_or((120_u32, 60_u32));
+        let f_price = with_suffix(&format!(" {}", sym._currency()));
+        let f_percent = with_suffix("%");
+        let f = |price: f64, percent: f64| format!("{} {}", f_price(price), f_percent(percent));
+        let f_raw = |value: f64| format!("{:0.2}", value);
+
+        let value_cell = |text: &str, theme: i32| {
+            let mut cell = Cell::new(text)
+                .set_alignment(CellAlignment::Left)
+                .add_attribute(Attribute::Bold);
+
+            cell = cell.fg(Color::White);
+
+            match theme {
+                1 => cell = cell.fg(Color::Green),
+                -1 => cell = cell.fg(Color::Red),
+                _ => {}
+            }
+
+            cell
+        };
+
+        let mut table = ComfyTable::new();
+        table
+            .load_preset(UTF8_FULL_CONDENSED)
+            .apply_modifier(UTF8_FULL)
+            .set_content_arrangement(ContentArrangement::DynamicFullWidth);
+
+        // Add a header row
+        table.add_row(Row::from(vec![
+            Cell::new("Net Profit").add_attribute(Attribute::Bold),
+            Cell::new("Total Closed Trades").add_attribute(Attribute::Bold),
+            Cell::new("% Profitable").add_attribute(Attribute::Bold),
+            Cell::new("Profit Factor").add_attribute(Attribute::Bold),
+            // Cell::new("Max Drawdown").add_attribute(Attribute::Bold),
+            Cell::new("Avg Trade").add_attribute(Attribute::Bold),
+        ]));
+
+        table.add_row(vec![
+            value_cell(
+                &f(self.net_profit, self.net_profit_pct() * 100.0),
+                match self.net_profit {
+                    x if x > 0.0 => 1,
+                    x if x < 0.0 => -1,
+                    _ => 0,
+                },
+            ),
+            value_cell(&self.closed_trades.len().to_string(), 0),
+            value_cell(
+                &f_percent(self.win_rate() * 100.0),
+                match self.win_rate() {
+                    x if x > 0.5 => 1,
+                    x if x < 0.5 => -1,
+                    _ => 0,
+                },
+            ),
+            value_cell(
+                &format!("{:0.3}", self.profit_factor()),
+                match self.profit_factor() {
+                    x if x > 1.0 => 1,
+                    x if x < 1.0 => -1,
+                    _ => 0,
+                },
+            ),
+            // value_cell(
+            //     &f(self.max_drawdown, self.max_drawdown_percent * 100.0),
+            //     match self.max_drawdown {
+            //         x if x < 0.2 => 1,
+            //         x if x > 0.2 => -1,
+            //         _ => 0,
+            //     },
+            // ),
+            value_cell(&f_price(self.avg_trade()), 0),
+        ]);
+
+        println!("{}", table);
+        let net_equity_line: Vec<(f32, f32)> = self
+            .net_equity_list()
+            .iter()
+            .enumerate()
+            .map(|(i, &value)| (i as f32 + 1.0, value as f32))
+            .collect();
+        // let (w, h) = plot;
+        // Chart::new(w, h, 1.0, self.net_equity_list().len() as f32)
+        //     .lineplot(&Shape::Lines(&net_equity_line))
+        //     .nice();
+        // auto width
+        Chart::default()
+            .lineplot(&Shape::Lines(&net_equity_line))
+            .display();
     }
 }
 
@@ -773,8 +1017,8 @@ impl BacktestBarDump {
         dump.gross_loss = bt.gross_loss();
         dump.open_trades = bt.open_trades().len();
         dump.closed_trades = bt.closed_trades().len();
-        dump.winning_trades = bt.winning_trades();
-        dump.losing_trades = bt.losing_trades();
+        dump.winning_trades = bt.winning_trades_count();
+        dump.losing_trades = bt.losing_trades_count();
         dump.trades = bt.trades().into_iter().cloned().collect();
         return dump;
     }
@@ -1036,311 +1280,311 @@ impl BacktestBarDump {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct BacktestSummary {
-    pub initial_capital: f64,
-    pub equity: f64,
-    pub net_equity: f64,
-    pub open_profit: f64,
-    pub net_profit: f64,
-    pub net_profit_pct: f64,
-    pub gross_profit: f64,
-    pub gross_profit_pct: f64,
-    pub gross_loss: f64,
-    pub gross_loss_pct: f64,
-    pub winning_trades: usize,
-    pub losing_trades: usize,
-    pub position_size: f64,
-    pub open_trades: usize,
-    pub closed_trades: usize,
-    pub open_longs: usize,
-    pub open_shorts: usize,
-    pub closed_longs: usize,
-    pub closed_shorts: usize,
-    pub total_longs: usize,
-    pub total_shorts: usize,
-    pub total_trades: usize,
-    pub win_rate: f64,
-    pub profit_factor: f64,
-    pub avg_trade: f64,
-    pub avg_winning_trade: f64,
-    pub avg_losing_trade: f64,
-    pub avg_win_loss_ratio: f64,
-    pub equity_list: Vec<f64>,
-    pub net_equity_list: Vec<f64>,
-    pub trades: Vec<Trade>,
-    pub sym: Sym,
-    pub sharpe_ratio: f64,
-    pub sortino_ratio: f64,
-    pub risk_free_rate: f64,
-}
+// #[derive(Debug, Clone)]
+// pub struct BacktestSummary {
+//     pub initial_capital: f64,
+//     pub equity: f64,
+//     pub net_equity: f64,
+//     pub open_profit: f64,
+//     pub net_profit: f64,
+//     pub net_profit_pct: f64,
+//     pub gross_profit: f64,
+//     pub gross_profit_pct: f64,
+//     pub gross_loss: f64,
+//     pub gross_loss_pct: f64,
+//     pub winning_trades: usize,
+//     pub losing_trades: usize,
+//     pub position_size: f64,
+//     pub open_trades: usize,
+//     pub closed_trades: usize,
+//     pub open_longs: usize,
+//     pub open_shorts: usize,
+//     pub closed_longs: usize,
+//     pub closed_shorts: usize,
+//     pub total_longs: usize,
+//     pub total_shorts: usize,
+//     pub total_trades: usize,
+//     pub win_rate: f64,
+//     pub profit_factor: f64,
+//     pub avg_trade: f64,
+//     pub avg_winning_trade: f64,
+//     pub avg_losing_trade: f64,
+//     pub avg_win_loss_ratio: f64,
+//     pub equity_list: Vec<f64>,
+//     pub net_equity_list: Vec<f64>,
+//     pub trades: Vec<Trade>,
+//     pub sym: Sym,
+//     pub sharpe_ratio: f64,
+//     pub sortino_ratio: f64,
+//     pub risk_free_rate: f64,
+// }
 
-pub struct BacktestSummaryConfig {
-    pub risk_free_rate: f64,
-}
+// pub struct BacktestSummaryConfig {
+//     pub risk_free_rate: f64,
+// }
 
-impl Default for BacktestSummaryConfig {
-    fn default() -> Self {
-        Self {
-            risk_free_rate: 0.0,
-        }
-    }
-}
+// impl Default for BacktestSummaryConfig {
+//     fn default() -> Self {
+//         Self {
+//             risk_free_rate: 0.0,
+//         }
+//     }
+// }
 
-impl BacktestSummary {
-    pub fn generate(bt: &Backtest, config: &BacktestSummaryConfig) -> Self {
-        let risk_free_rate = config.risk_free_rate;
-        let initial_capital = bt.initial_capital();
-        let equity = bt.equity();
-        let net_equity = bt.net_equity();
-        let open_profit = bt.open_profit();
-        let net_profit = bt.net_profit();
-        let net_profit_pct = net_profit_pct(net_profit, initial_capital);
-        let gross_profit = bt.gross_profit();
-        let gross_profit_pct = gross_profit_pct(gross_profit, initial_capital);
-        let gross_loss = bt.gross_loss();
-        let gross_loss_pct = gross_loss_pct(gross_loss, initial_capital);
-        let winning_trades = bt.winning_trades();
-        let losing_trades = bt.losing_trades();
-        let position_size = bt.position_size();
-        let open_longs = bt.open_longs();
-        let open_shorts = bt.open_shorts();
-        let closed_longs = bt.closed_longs();
-        let closed_shorts = bt.closed_shorts();
-        let open_trades = bt.open_trades().len();
-        let closed_trades = bt.closed_trades().len();
-        let total_longs = open_longs + closed_longs;
-        let total_shorts = open_shorts + closed_shorts;
-        let total_trades = open_trades + closed_trades;
-        let win_rate = win_rate(winning_trades, total_trades);
-        let profit_factor = profit_factor(gross_profit, gross_loss);
-        let avg_trade = avg_trade(net_profit, closed_trades);
-        let avg_winning_trade = avg_winning_trade(gross_profit, winning_trades);
-        let avg_losing_trade = avg_losing_trade(gross_loss, losing_trades);
-        let avg_win_loss_ratio = avg_win_loss_ratio(avg_winning_trade, avg_losing_trade);
-        let equity_list: Vec<f64> = bt.equity_list().to_vec();
-        let net_equity_list: Vec<f64> = bt.net_equity_list().to_vec();
-        let returns = returns(&equity_list, true);
-        let sharpe_ratio = sharpe_ratio_from_returns(&returns, risk_free_rate);
-        let sortino_ratio = sortino_ratio_from_returns(&returns, risk_free_rate);
-        Self {
-            initial_capital,
-            equity,
-            net_equity,
-            open_profit,
-            net_profit,
-            net_profit_pct,
-            gross_profit,
-            gross_profit_pct,
-            gross_loss,
-            gross_loss_pct,
-            winning_trades,
-            losing_trades,
-            position_size,
-            open_longs,
-            open_shorts,
-            closed_trades,
-            open_trades,
-            closed_longs,
-            closed_shorts,
-            total_longs,
-            total_shorts,
-            total_trades,
-            win_rate,
-            profit_factor,
-            avg_trade,
-            avg_winning_trade,
-            avg_losing_trade,
-            avg_win_loss_ratio,
-            equity_list,
-            net_equity_list,
-            trades: bt.trades().into_iter().cloned().collect(),
-            sym: bt.ctx.borrow().sym().clone(),
-            sharpe_ratio,
-            sortino_ratio,
-            risk_free_rate,
-        }
-    }
+// impl BacktestSummary {
+//     pub fn generate(bt: &Backtest, config: &BacktestSummaryConfig) -> Self {
+//         let risk_free_rate = config.risk_free_rate;
+//         let initial_capital = bt.initial_capital();
+//         let equity = bt.equity();
+//         let net_equity = bt.net_equity();
+//         let open_profit = bt.open_profit();
+//         let net_profit = bt.net_profit();
+//         let net_profit_pct = net_profit_pct(net_profit, initial_capital);
+//         let gross_profit = bt.gross_profit();
+//         let gross_profit_pct = gross_profit_pct(gross_profit, initial_capital);
+//         let gross_loss = bt.gross_loss();
+//         let gross_loss_pct = gross_loss_pct(gross_loss, initial_capital);
+//         let winning_trades = bt.winning_trades();
+//         let losing_trades = bt.losing_trades();
+//         let position_size = bt.position_size();
+//         let open_longs = bt.open_longs();
+//         let open_shorts = bt.open_shorts();
+//         let closed_longs = bt.closed_longs();
+//         let closed_shorts = bt.closed_shorts();
+//         let open_trades = bt.open_trades().len();
+//         let closed_trades = bt.closed_trades().len();
+//         let total_longs = open_longs + closed_longs;
+//         let total_shorts = open_shorts + closed_shorts;
+//         let total_trades = open_trades + closed_trades;
+//         let win_rate = win_rate(winning_trades, total_trades);
+//         let profit_factor = profit_factor(gross_profit, gross_loss);
+//         let avg_trade = avg_trade(net_profit, closed_trades);
+//         let avg_winning_trade = avg_winning_trade(gross_profit, winning_trades);
+//         let avg_losing_trade = avg_losing_trade(gross_loss, losing_trades);
+//         let avg_win_loss_ratio = avg_win_loss_ratio(avg_winning_trade, avg_losing_trade);
+//         let equity_list: Vec<f64> = bt.equity_list().to_vec();
+//         let net_equity_list: Vec<f64> = bt.net_equity_list().to_vec();
+//         let returns = returns(&equity_list, true);
+//         let sharpe_ratio = sharpe_ratio_from_returns(&returns, risk_free_rate);
+//         let sortino_ratio = sortino_ratio_from_returns(&returns, risk_free_rate);
+//         Self {
+//             initial_capital,
+//             equity,
+//             net_equity,
+//             open_profit,
+//             net_profit,
+//             net_profit_pct,
+//             gross_profit,
+//             gross_profit_pct,
+//             gross_loss,
+//             gross_loss_pct,
+//             winning_trades,
+//             losing_trades,
+//             position_size,
+//             open_longs,
+//             open_shorts,
+//             closed_trades,
+//             open_trades,
+//             closed_longs,
+//             closed_shorts,
+//             total_longs,
+//             total_shorts,
+//             total_trades,
+//             win_rate,
+//             profit_factor,
+//             avg_trade,
+//             avg_winning_trade,
+//             avg_losing_trade,
+//             avg_win_loss_ratio,
+//             equity_list,
+//             net_equity_list,
+//             trades: bt.trades().into_iter().cloned().collect(),
+//             sym: bt.ctx.borrow().sym().clone(),
+//             sharpe_ratio,
+//             sortino_ratio,
+//             risk_free_rate,
+//         }
+//     }
 
-    #[cfg(feature = "pretty_table")]
-    fn print_table(&self) {
-        let f_price = with_suffix(&format!(" {}", self.sym._currency()));
-        let f_percent = with_suffix("%");
-        let f = |price: f64, percent: f64| format!("{}\n{}", f_price(price), f_percent(percent));
-        let f_raw = |value: f64| format!("{:0.2}", value);
+//     #[cfg(feature = "pretty_table")]
+//     fn print_table(&self) {
+//         let f_price = with_suffix(&format!(" {}", self.sym._currency()));
+//         let f_percent = with_suffix("%");
+//         let f = |price: f64, percent: f64| format!("{}\n{}", f_price(price), f_percent(percent));
+//         let f_raw = |value: f64| format!("{:0.2}", value);
 
-        let mut table = ComfyTable::new();
-        table
-            .set_content_arrangement(ContentArrangement::DynamicFullWidth)
-            .set_header(vec!["Metric", "Value"]);
+//         let mut table = ComfyTable::new();
+//         table
+//             .set_content_arrangement(ContentArrangement::DynamicFullWidth)
+//             .set_header(vec!["Metric", "Value"]);
 
-        table.add_row(Row::from(vec![
-            Cell::new("Net Profit"),
-            Cell::new(f(self.net_profit, self.net_profit_pct * 100.0)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Net Profit"),
+//             Cell::new(f(self.net_profit, self.net_profit_pct * 100.0)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Gross Profit"),
-            Cell::new(f(self.gross_profit, self.gross_profit_pct * 100.0)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Gross Profit"),
+//             Cell::new(f(self.gross_profit, self.gross_profit_pct * 100.0)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Gross Loss"),
-            Cell::new(f(self.gross_loss, self.gross_loss_pct * 100.0)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Gross Loss"),
+//             Cell::new(f(self.gross_loss, self.gross_loss_pct * 100.0)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Sharpe Ratio"),
-            Cell::new(format!("{:0.3}", self.sharpe_ratio)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Sharpe Ratio"),
+//             Cell::new(format!("{:0.3}", self.sharpe_ratio)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Sortino Ratio"),
-            Cell::new(format!("{:0.3}", self.sortino_ratio)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Sortino Ratio"),
+//             Cell::new(format!("{:0.3}", self.sortino_ratio)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Profit Factor"),
-            Cell::new(format!("{:0.3}", self.profit_factor)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Profit Factor"),
+//             Cell::new(format!("{:0.3}", self.profit_factor)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Open P/L"),
-            Cell::new(f_price(self.open_profit)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Open P/L"),
+//             Cell::new(f_price(self.open_profit)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Total Closed Trades"),
-            Cell::new(self.closed_trades.to_string()),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Total Closed Trades"),
+//             Cell::new(self.closed_trades.to_string()),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Number Winning Trades"),
-            Cell::new(self.winning_trades.to_string()),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Number Winning Trades"),
+//             Cell::new(self.winning_trades.to_string()),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Number Losing Trades"),
-            Cell::new(self.losing_trades.to_string()),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Number Losing Trades"),
+//             Cell::new(self.losing_trades.to_string()),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("% Profitable"),
-            Cell::new(f_percent(self.win_rate * 100.0)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("% Profitable"),
+//             Cell::new(f_percent(self.win_rate * 100.0)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Avg Trade"),
-            Cell::new(f_price(self.avg_trade)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Avg Trade"),
+//             Cell::new(f_price(self.avg_trade)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Avg Winning Trade"),
-            Cell::new(f_price(self.avg_winning_trade)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Avg Winning Trade"),
+//             Cell::new(f_price(self.avg_winning_trade)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Avg Losing Trade"),
-            Cell::new(f_price(self.avg_losing_trade)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Avg Losing Trade"),
+//             Cell::new(f_price(self.avg_losing_trade)),
+//         ]));
 
-        table.add_row(Row::from(vec![
-            Cell::new("Ratio Avg Win / Avg Loss"),
-            Cell::new(f_raw(self.avg_win_loss_ratio)),
-        ]));
+//         table.add_row(Row::from(vec![
+//             Cell::new("Ratio Avg Win / Avg Loss"),
+//             Cell::new(f_raw(self.avg_win_loss_ratio)),
+//         ]));
 
-        // Print the table
-        println!("{}", table);
-    }
+//         // Print the table
+//         println!("{}", table);
+//     }
 
-    #[cfg(feature = "pretty_table")]
-    pub fn display(&self, plot: Option<(u32, u32)>) {
-        self.print_table();
-        let plot = plot.unwrap_or((120_u32, 60_u32));
-        let f_price = with_suffix(&format!(" {}", self.sym._currency()));
-        let f_percent = with_suffix("%");
-        let f = |price: f64, percent: f64| format!("{} {}", f_price(price), f_percent(percent));
-        let f_raw = |value: f64| format!("{:0.2}", value);
+//     #[cfg(feature = "pretty_table")]
+//     pub fn display(&self, plot: Option<(u32, u32)>) {
+//         self.print_table();
+//         let plot = plot.unwrap_or((120_u32, 60_u32));
+//         let f_price = with_suffix(&format!(" {}", self.sym._currency()));
+//         let f_percent = with_suffix("%");
+//         let f = |price: f64, percent: f64| format!("{} {}", f_price(price), f_percent(percent));
+//         let f_raw = |value: f64| format!("{:0.2}", value);
 
-        let value_cell = |text: &str, theme: i32| {
-            let mut cell = Cell::new(text)
-                .set_alignment(CellAlignment::Left)
-                .add_attribute(Attribute::Bold);
+//         let value_cell = |text: &str, theme: i32| {
+//             let mut cell = Cell::new(text)
+//                 .set_alignment(CellAlignment::Left)
+//                 .add_attribute(Attribute::Bold);
 
-            cell = cell.fg(Color::White);
+//             cell = cell.fg(Color::White);
 
-            match theme {
-                1 => cell = cell.fg(Color::Green),
-                -1 => cell = cell.fg(Color::Red),
-                _ => {}
-            }
+//             match theme {
+//                 1 => cell = cell.fg(Color::Green),
+//                 -1 => cell = cell.fg(Color::Red),
+//                 _ => {}
+//             }
 
-            cell
-        };
+//             cell
+//         };
 
-        let mut table = ComfyTable::new();
-        table
-            .load_preset(UTF8_FULL_CONDENSED)
-            .apply_modifier(UTF8_FULL)
-            .set_content_arrangement(ContentArrangement::DynamicFullWidth);
+//         let mut table = ComfyTable::new();
+//         table
+//             .load_preset(UTF8_FULL_CONDENSED)
+//             .apply_modifier(UTF8_FULL)
+//             .set_content_arrangement(ContentArrangement::DynamicFullWidth);
 
-        // Add a header row
-        table.add_row(Row::from(vec![
-            Cell::new("Net Profit").add_attribute(Attribute::Bold),
-            Cell::new("Total Closed Trades").add_attribute(Attribute::Bold),
-            Cell::new("% Profitable").add_attribute(Attribute::Bold),
-            Cell::new("Profit Factor").add_attribute(Attribute::Bold),
-            // Cell::new("Max Drawdown").add_attribute(Attribute::Bold),
-            Cell::new("Avg Trade").add_attribute(Attribute::Bold),
-        ]));
+//         // Add a header row
+//         table.add_row(Row::from(vec![
+//             Cell::new("Net Profit").add_attribute(Attribute::Bold),
+//             Cell::new("Total Closed Trades").add_attribute(Attribute::Bold),
+//             Cell::new("% Profitable").add_attribute(Attribute::Bold),
+//             Cell::new("Profit Factor").add_attribute(Attribute::Bold),
+//             // Cell::new("Max Drawdown").add_attribute(Attribute::Bold),
+//             Cell::new("Avg Trade").add_attribute(Attribute::Bold),
+//         ]));
 
-        table.add_row(vec![
-            value_cell(
-                &f(self.net_profit, self.net_profit_pct * 100.0),
-                match self.net_profit {
-                    x if x > 0.0 => 1,
-                    x if x < 0.0 => -1,
-                    _ => 0,
-                },
-            ),
-            value_cell(&self.closed_trades.to_string(), 0),
-            value_cell(
-                &f_percent(self.win_rate * 100.0),
-                match self.win_rate {
-                    x if x > 0.5 => 1,
-                    x if x < 0.5 => -1,
-                    _ => 0,
-                },
-            ),
-            value_cell(
-                &format!("{:0.3}", self.profit_factor),
-                match self.profit_factor {
-                    x if x > 1.0 => 1,
-                    x if x < 1.0 => -1,
-                    _ => 0,
-                },
-            ),
-            // value_cell(
-            //     &f(self.max_drawdown, self.max_drawdown_percent * 100.0),
-            //     match self.max_drawdown {
-            //         x if x < 0.2 => 1,
-            //         x if x > 0.2 => -1,
-            //         _ => 0,
-            //     },
-            // ),
-            value_cell(&f_price(self.avg_trade), 0),
-        ]);
+//         table.add_row(vec![
+//             value_cell(
+//                 &f(self.net_profit, self.net_profit_pct * 100.0),
+//                 match self.net_profit {
+//                     x if x > 0.0 => 1,
+//                     x if x < 0.0 => -1,
+//                     _ => 0,
+//                 },
+//             ),
+//             value_cell(&self.closed_trades.to_string(), 0),
+//             value_cell(
+//                 &f_percent(self.win_rate * 100.0),
+//                 match self.win_rate {
+//                     x if x > 0.5 => 1,
+//                     x if x < 0.5 => -1,
+//                     _ => 0,
+//                 },
+//             ),
+//             value_cell(
+//                 &format!("{:0.3}", self.profit_factor),
+//                 match self.profit_factor {
+//                     x if x > 1.0 => 1,
+//                     x if x < 1.0 => -1,
+//                     _ => 0,
+//                 },
+//             ),
+//             // value_cell(
+//             //     &f(self.max_drawdown, self.max_drawdown_percent * 100.0),
+//             //     match self.max_drawdown {
+//             //         x if x < 0.2 => 1,
+//             //         x if x > 0.2 => -1,
+//             //         _ => 0,
+//             //     },
+//             // ),
+//             value_cell(&f_price(self.avg_trade), 0),
+//         ]);
 
-        println!("{}", table);
-        let net_equity_line: Vec<(f32, f32)> = self
-            .net_equity_list
-            .iter()
-            .enumerate()
-            .map(|(i, &value)| (i as f32 + 1.0, value as f32))
-            .collect();
-        let (w, h) = plot;
-        Chart::new(w, h, 1.0, self.net_equity_list.len() as f32)
-            .lineplot(&Shape::Lines(&net_equity_line))
-            .nice();
-    }
-}
+//         println!("{}", table);
+//         let net_equity_line: Vec<(f32, f32)> = self
+//             .net_equity_list
+//             .iter()
+//             .enumerate()
+//             .map(|(i, &value)| (i as f32 + 1.0, value as f32))
+//             .collect();
+//         let (w, h) = plot;
+//         Chart::new(w, h, 1.0, self.net_equity_list.len() as f32)
+//             .lineplot(&Shape::Lines(&net_equity_line))
+//             .nice();
+//     }
+// }
