@@ -6,10 +6,12 @@
   <br/>
   <a href="https://pypi.org/project/qpace/"><img src="https://img.shields.io/pypi/v/qpace?color=blue&label=pypi" alt="PyPI"></a>
   <a href="https://www.npmjs.com/package/qpace"><img src="https://img.shields.io/npm/v/qpace?color=red&label=npm" alt="NPM"></a>
-  <a href="https://qpace.dev/discord"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord"></a>
+  <a href="https://qpace.dev/discord"><img src="https://discordapp.com/api/guilds/1238782377229160498/widget.png?style=shield" alt="Discord"></a>
   <br/>
 </div>
 
+  <!-- <a href="https://qpace.dev/discord"><img src="https://cdn.nersent.com/public/badges/discord.svg" alt="Discord"></a> -->
+<!-- <iframe src="https://discord.com/widget?id=1238782377229160498&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe> -->
 ---
 
 **qPACE**: The all-in-one quantitative toolkit powered by Rust - usable from Python, Node.js, and the browser.
@@ -93,6 +95,6 @@ We designed and developed in-house Pine Script compiler that takes your original
 
 ## Community
 
-Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology! Our Discord server is the perfect place to share ideas, ask questions, and collaborate with devs and traders.
+Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology!
 
-[Discord](https://qpace.dev/discord)
+[Join Discord](https://qpace.dev/discord).
