@@ -12,17 +12,35 @@ class Backtest:
     process_orders_on_close: builtins.bool
     ctx: Ctx
     equity: builtins.float
-    net_equity: builtins.float
     equity_list: builtins.list[builtins.float]
+    net_equity: builtins.float
     net_equity_list: builtins.list[builtins.float]
     pnl_list: builtins.list[builtins.float]
     open_profit: builtins.float
     net_profit: builtins.float
+    net_profit_pct: builtins.float
     gross_profit: builtins.float
+    gross_profit_pct: builtins.float
     gross_loss: builtins.float
+    gross_loss_pct: builtins.float
+    win_rate: builtins.float
+    profit_factor: builtins.float
+    avg_trade: builtins.float
+    avg_winning_trade: builtins.float
+    avg_losing_trade: builtins.float
+    avg_win_loss_ratio: builtins.float
+    returns_list: builtins.list[builtins.float]
     position_size: builtins.float
+    open_trades: builtins.list[Trade]
+    closed_trades: builtins.list[Trade]
     trades: builtins.list[Trade]
     def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False): ...
+    def sharpe_ratio(self, rfr:builtins.float) -> builtins.float:
+        ...
+
+    def sortino_ratio(self, rfr:builtins.float) -> builtins.float:
+        ...
+
     def on_bar_open(self) -> None:
         ...
 
@@ -53,15 +71,7 @@ class Backtest:
     def to_pine(self) -> builtins.str:
         ...
 
-    def summary(self, risk_free_rate:builtins.float=0.0) -> BacktestSummary:
-        ...
-
-
-class BacktestSummary:
-    def print(self) -> None:
-        ...
-
-    def to_dict(self) -> typing.Any:
+    def display(self) -> None:
         ...
 
 
@@ -91,6 +101,9 @@ class Ctx:
         ...
 
     def skip(self, skip:CtxSkip) -> None:
+        ...
+
+    def ref(self) -> Ctx:
         ...
 
 
