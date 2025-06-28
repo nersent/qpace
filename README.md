@@ -4,6 +4,7 @@
   <p><strong>The Quant SDK for Python&nbsp;·&nbsp;JavaScript&nbsp;·&nbsp;Rust</strong></p>
   <em>From research to production - all in one toolkit.</em>
   <br/>
+  <br/>
   <a href="https://pypi.org/project/qpace/"><img src="https://img.shields.io/pypi/v/qpace?color=blue&label=pypi" alt="PyPI"></a>
   <a href="https://www.npmjs.com/package/qpace"><img src="https://img.shields.io/npm/v/qpace?color=red&label=npm" alt="NPM"></a>
   <a href="https://qpace.dev/discord"><img src="https://discordapp.com/api/guilds/1238782377229160498/widget.png?style=shield" alt="Discord"></a>
@@ -53,6 +54,28 @@ We designed and developed in-house Pine Script compiler that takes your original
 
 [Get started](https://qpace.dev)
 
+## Quick Example
+
+Python
+
+```python
+import qpace as qp
+
+ohlcv = qp.Ohlcv.read_csv("btc.csv")
+ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
+rsi = qp.ta.rsi(ctx.copy(), ohlcv.close, 14)
+```
+
+Node.js
+
+```javascript
+import * as qp from "qpace/node";
+
+const ohlcv = qp.Ohlcv.readCsv("btc.csv");
+const ctx = new qp.Ctx(ohlcv, qp.Sym.BTC_USD());
+const rsi = qp.ta.rsi(ctx.copy(), ohlcv.close, 14);
+```
+
 ## TA
 
 - Accumulation/Distribution (ACCDIST)
@@ -92,9 +115,10 @@ We designed and developed in-house Pine Script compiler that takes your original
 - Highest/Lowest/Bars
 - Standard Deviation (DEV)
 - Volume Oscillator (VO)
+- And more coming soon!
 
 ## Community
 
 Become a part of the qPACE community and connect with like-minded individuals who are passionate about trading, finance, and technology!
 
-[Join Discord](https://qpace.dev/discord).
+[Join Discord](https://qpace.dev/discord)
