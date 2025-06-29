@@ -1,6 +1,6 @@
 {
   "name": "qpace",
-  "version": "0.0.1-dev.38",
+  "version": "0.0.1-dev.39",
   "coreVersion": "0.0.1-dev.35",
   "description": "📊 The Quant SDK for Python and Javascript. Written in Rust.",
   "homepage": "https://qpace.dev",

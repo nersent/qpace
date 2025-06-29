@@ -34,9 +34,9 @@ jobs:
             triplet: linux-x64-gnu
           - os: windows-latest
             triplet: win32-x64-msvc
-          - os: macos-13
-            triplet: x86_64-apple-darwin
-          - os: macos-13
+          # - os: macos-13
+          #   triplet: x86_64-apple-darwin
+          - os: macos-14
             triplet: aarch64-apple-darwin
 
     steps:
