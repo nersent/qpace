@@ -19,6 +19,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS:
+  MACOSX_DEPLOYMENT_TARGET: "13.0"
 
 jobs:
   build:
@@ -119,6 +120,10 @@ jobs:
           maturin --version
           napi
 
+      - name: Configure Cargo for macOS
+        if: matrix.os == "macos-13"
+        run: mkdir -p "$HOME/.cargo" && printf '[target.x86_64-apple-darwin]\nrustflags = ["-C","link-arg=-undefined","-C","link-arg=dynamic_lookup","-C","link-arg=-s"]\n\n[target.aarch64-apple-darwin]\nrustflags = ["-C","link-arg=-undefined","-C","link-arg=dynamic_lookup","-C","link-arg=-s"]\n' > "$HOME/.cargo/config.toml"
+
       # - name: Generate pyi
       #   run: |
       #     pnpm pyi
@@ -128,34 +133,34 @@ jobs:
           pnpm bazed run //cli:main --verbose
           pnpm bazed run //content:build --verbose -- -- py
 
-      - name: Build wheel
-        run: |
-          pnpm bazed run //:wheel --verbose
+      # - name: Build wheel
+      #   run: |
+      #     pnpm bazed run //:wheel --verbose
 
       - name: Build NAPI
         run: |
           pnpm bazed build //core:napi --verbose
 
-      - name: List
-        run: |
-          echo "Contents of build/_bazed:"
-          ls build/_bazed
+      # - name: List
+      #   run: |
+      #     echo "Contents of build/_bazed:"
+      #     ls build/_bazed
 
-          echo "Contents of build/_bazed/___wheel:"
-          ls build/_bazed/___wheel
+      #     echo "Contents of build/_bazed/___wheel:"
+      #     ls build/_bazed/___wheel
 
-          echo "Contents of build/_bazed/___wheel/dist:"
-          ls build/_bazed/___wheel/dist
+      #     echo "Contents of build/_bazed/___wheel/dist:"
+      #     ls build/_bazed/___wheel/dist
 
-          echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
-          ls build/_bazed/__core_napi/core/pkg_napi
+      #     echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
+      #     ls build/_bazed/__core_napi/core/pkg_napi
 
-      - name: Upload wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheel-${{ matrix.triplet }}
-          path: build/_bazed/___wheel/dist/*.whl
-          if-no-files-found: error
+      # - name: Upload wheel
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: wheel-${{ matrix.triplet }}
+      #     path: build/_bazed/___wheel/dist/*.whl
+      #     if-no-files-found: error
 
       - name: Upload NAPI
         uses: actions/upload-artifact@v4
