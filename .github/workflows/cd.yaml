@@ -33,10 +33,10 @@ jobs:
             triplet: linux-x64-gnu
           - os: windows-latest
             triplet: win32-x64-msvc
-          # - os: macos-13
-          #   triplet: x86_64-apple-darwin
-          # - os: macos-13
-          #   triplet: aarch64-apple-darwin
+          - os: macos-13
+            triplet: x86_64-apple-darwin
+          - os: macos-13
+            triplet: aarch64-apple-darwin
 
     steps:
       - name: Cancel Previous Runs
@@ -164,173 +164,174 @@ jobs:
           path: build/_bazed/__core_napi/core/pkg_napi/*.node
           if-no-files-found: error
 
-  # publish:
-  #   needs: build
-  #   runs-on: ubuntu-24.04
-  #   permissions:
-  #     contents: read
-  #     id-token: write
-  #   env:
-  #     TWINE_NON_INTERACTIVE: true
-  #     TWINE_USERNAME: __token__
-  #     TWINE_PASSWORD: ${{ secrets.PIP_TOKEN }}
-  #     QPACE_API_KEY: ${{ secrets.QPACE_API_KEY }}
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TWINE_NON_INTERACTIVE: true
+      TWINE_USERNAME: __token__
+      TWINE_PASSWORD: ${{ secrets.PIP_TOKEN }}
+      QPACE_API_KEY: ${{ secrets.QPACE_API_KEY }}
 
-  #   steps:
-  #     - name: Cancel Previous Runs
-  #       uses: styfle/cancel-workflow-action@0.9.1
-  #       with:
-  #         access_token: ${{ github.token }}
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
 
-  #     - name: Check out Git repository
-  #       uses: actions/checkout@v3
+      - name: Check out Git repository
+        uses: actions/checkout@v3
 
-  #     - name: Download NAPI artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: napi-*
-  #         path: build/artifacts
-  #         merge-multiple: true
+      - name: Download NAPI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: napi-*
+          path: build/artifacts
+          merge-multiple: true
 
-  #     - name: Download wheel artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: wheel-*
-  #         path: build/artifacts
-  #         merge-multiple: true
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: build/artifacts
+          merge-multiple: true
 
-  #     - name: List artifacts
-  #       run: ls -R build/artifacts
+      - name: List artifacts
+        run: ls -R build/artifacts
 
-  #     - uses: pnpm/action-setup@v4
-  #       with:
-  #         version: 10
-  #         run_install: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
 
-  #     - name: Install Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22
-  #         cache: "pnpm"
-  #         always-auth: true
-  #         registry-url: "https://registry.npmjs.org"
-  #       env:
-  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          always-auth: true
+          registry-url: "https://registry.npmjs.org"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  #     - name: Get pnpm store directory
-  #       shell: bash
-  #       run: |
-  #         echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-  #     - uses: actions/cache@v4
-  #       name: Setup pnpm cache
-  #       with:
-  #         path: ${{ env.STORE_PATH }}
-  #         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-pnpm-store-
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-  #     - name: Install Node.js dependencies
-  #       run: |
-  #         pnpm install
-  #         npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.90 --global
+      - name: Install Node.js dependencies
+        run: |
+          pnpm install
+          npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.90 --global
 
-  #     - name: Install Python 3.10
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.10"
+      - name: Install Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-  #     - name: Upgrade Pip
-  #       run: |
-  #         python -m pip install --upgrade pip
+      - name: Upgrade Pip
+        run: |
+          python -m pip install --upgrade pip
 
-  #     - name: Install Python dependencies
-  #       run: |
-  #         pip install twine maturin wheel
+      - name: Install Python dependencies
+        run: |
+          pip install twine maturin wheel
 
-  #     - name: Install Rust toolchain
-  #       uses: actions-rust-lang/setup-rust-toolchain@v1
-  #       with:
-  #         toolchain: "1.85.0"
-  #         components: rustfmt, clippy
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: "1.85.0"
+          components: rustfmt, clippy
 
-  #     - name: Install Rust tools
-  #       uses: taiki-e/install-action@v2
-  #       with:
-  #         tool: cargo-nextest
+      - name: Install Rust tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
 
-  #     - name: Install wasm-pack
-  #       run: |
-  #         curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Install wasm-pack
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-  #     - name: Toolchain debug
-  #       run: |
-  #         pnpm bazed --version
-  #         node --version
-  #         npm --version
-  #         pnpm --version
-  #         python --version
-  #         python3 --version
-  #         rustc --version
-  #         cargo --version
-  #         cargo fmt --version
-  #         wasm-pack --version
-  #         maturin --version
-  #         napi
+      - name: Toolchain debug
+        run: |
+          pnpm bazed --version
+          node --version
+          npm --version
+          pnpm --version
+          python --version
+          python3 --version
+          rustc --version
+          cargo --version
+          cargo fmt --version
+          wasm-pack --version
+          maturin --version
+          napi
 
-  #     - name: Prepare
-  #       run: |
-  #         mkdir -p target/nextest/default
-  #         ls -l
+      - name: Prepare
+        run: |
+          mkdir -p target/nextest/default
+          ls -l
 
-  #     - name: Build wasm
-  #       run: |
-  #         pnpm bazed run //core:wasm --verbose
+      - name: Build wasm
+        run: |
+          pnpm bazed run //core:wasm --verbose
 
-  #     - name: Compile content
-  #       run: |
-  #         pnpm bazed run //content:build --verbose -- -- node
-  #         pnpm bazed run //content:build --verbose -- -- web
+      - name: Compile content (JS)
+        run: |
+          pnpm bazed run //cli:main --verbose
+          pnpm bazed run //content:build --verbose -- -- node
+          pnpm bazed run //content:build --verbose -- -- web
 
-  #     - name: List content
-  #       run: |
-  #         echo "Contents of content:"
-  #         ls -l content
+      - name: List content
+        run: |
+          echo "Contents of content:"
+          ls -l content
 
-  #         echo "Contents of content/node:"
-  #         ls -l content/node
+          echo "Contents of content/node:"
+          ls -l content/node
 
-  #         echo "Contents of content/web:"
-  #         ls -l content/web
+          echo "Contents of content/web:"
+          ls -l content/web
 
-  #     - name: Build js
-  #       run: |
-  #         pnpm bazed run //:npm_link --verbose
+      - name: Build js
+        run: |
+          pnpm bazed run //:npm_link --verbose
 
-  #     - name: Copy NAPI artifacts
-  #       run: |
-  #         cp build/artifacts/*.node build/_bazed/___npm_link/core/pkg_napi
+      - name: Copy NAPI artifacts
+        run: |
+          cp build/artifacts/*.node build/_bazed/___npm_link/core/pkg_napi
 
-  #     - name: List
-  #       run: |
-  #         echo "Contents of build/___npm_link:"
-  #         ls -l build/_bazed/___npm_link
+      - name: List
+        run: |
+          echo "Contents of build/___npm_link:"
+          ls -l build/_bazed/___npm_link
 
-  #         echo "Contents of build/_bazed/___npm_link/core/pkg:"
-  #         ls -l build/_bazed/___npm_link/core/pkg
+          echo "Contents of build/_bazed/___npm_link/core/pkg:"
+          ls -l build/_bazed/___npm_link/core/pkg
 
-  #         echo "Contents of build/_bazed/___npm_link/core/pkg_napi:"
-  #         ls -l build/_bazed/___npm_link/core/pkg_napi
+          echo "Contents of build/_bazed/___npm_link/core/pkg_napi:"
+          ls -l build/_bazed/___npm_link/core/pkg_napi
 
-  #     - name: Publish dry-run
-  #       run: |
-  #         rm build/_bazed/___npm_link/core/pkg/package.json
-  #         rm build/_bazed/___npm_link/core/pkg/.gitignore
-  #         ls -lhS build/artifacts
-  #         python -m twine check build/artifacts/*.whl
-  #         npm publish build/_bazed/___npm_link --dry-run --access public
+      - name: Publish dry-run
+        run: |
+          rm build/_bazed/___npm_link/core/pkg/package.json
+          rm build/_bazed/___npm_link/core/pkg/.gitignore
+          ls -lhS build/artifacts
+          python -m twine check build/artifacts/*.whl
+          npm publish build/_bazed/___npm_link --dry-run --access public
 
-  #     - name: Publish
-  #       run: |
-  #         python -m twine upload build/artifacts/*.whl
-  #         npm publish build/_bazed/___npm_link --access public --provenance
+      - name: Publish
+        run: |
+          python -m twine upload build/artifacts/*.whl
+          npm publish build/_bazed/___npm_link --access public --provenance
