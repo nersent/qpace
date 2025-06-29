@@ -20,11 +20,6 @@ const main = async (): Promise<void> => {
   // const baseCommand = "pnpm dlx qpace";
   const baseCommand = "pnpm bazed run //cli:main --verbose --";
 
-  const pythonPath = await locatePython();
-  if (pythonPath == null) {
-    throw new Error("Python not found");
-  }
-
   if (target === "init") {
     const nodeDir = resolve(CONTENT_DIR, "node");
     const webDir = resolve(CONTENT_DIR, "web");
@@ -84,7 +79,7 @@ const main = async (): Promise<void> => {
     if (wheelFilename == null)
       throw new Error("No wheel file found in tmp directory");
     await exec({
-      command: `${pythonPath} -m wheel unpack ${resolve(
+      command: `python -m wheel unpack ${resolve(
         tmpDir,
         wheelFilename,
       )} -d ${tmpDir}`,

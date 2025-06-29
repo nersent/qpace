@@ -73,8 +73,8 @@ importers:
         specifier: ^3.0.0-alpha.90
         version: 3.0.0-alpha.91(@emnapi/runtime@1.4.3)(@types/node@20.19.1)
       '@nersent/bazed':
-        specifier: ^0.0.62
-        version: 0.0.62
+        specifier: ^0.0.64
+        version: 0.0.64
       '@swc/cli':
         specifier: ^0.3.6
         version: 0.3.14(@swc/core@1.12.5)(chokidar@3.6.0)
@@ -1064,8 +1064,8 @@ packages:
     resolution: {integrity: sha512-p7NT5wnOIwmP0f3KbXlMabeld5dPFsADpHMWJaBodTSmnPE8P4msguxKJLKWquqAS1FY2dsjBZ62K0/hfiqAUg==}
     engines: {node: '>= 10'}
 
-  '@nersent/bazed@0.0.62':
-    resolution: {integrity: sha512-pfrB5EUStegCwYrDx399xYiXlxUZ1nbcVjItJ6u3RPlKxaXHCvrSpA/jltA1hxo/aTmiOO2CSAP5AVYPdqTzAw==}
+  '@nersent/bazed@0.0.64':
+    resolution: {integrity: sha512-XS1ztYbe9pioeqE9E/Yi9d3IAj1X4ceQWbFr6vO6lgTeg8YhdH4i7fP+DBjK5NVuxpxiD7bxNWw12IultJ2WuQ==}
     hasBin: true
 
   '@next/eslint-plugin-next@13.4.1':
@@ -5766,7 +5766,7 @@ snapshots:
       '@napi-rs/wasm-tools-win32-ia32-msvc': 0.0.3
       '@napi-rs/wasm-tools-win32-x64-msvc': 0.0.3
 
-  '@nersent/bazed@0.0.62':
+  '@nersent/bazed@0.0.64':
     dependencies:
       chokidar: 3.6.0
       commander: 12.1.0
