@@ -121,7 +121,7 @@ jobs:
           napi
 
       - name: Configure Cargo for macOS
-        if: matrix.os == "macos-13"
+        if: matrix.os == 'macos-13'
         run: mkdir -p "$HOME/.cargo" && printf '[target.x86_64-apple-darwin]\nrustflags = ["-C","link-arg=-undefined","-C","link-arg=dynamic_lookup","-C","link-arg=-s"]\n\n[target.aarch64-apple-darwin]\nrustflags = ["-C","link-arg=-undefined","-C","link-arg=dynamic_lookup","-C","link-arg=-s"]\n' > "$HOME/.cargo/config.toml"
 
       # - name: Generate pyi
