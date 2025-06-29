@@ -279,11 +279,11 @@ class Signal:
         ...
 
     @staticmethod
-    def Equity_pct(equity_pct:builtins.float) -> Signal:
+    def EquityPct(equity_pct:builtins.float) -> Signal:
         ...
 
     @staticmethod
-    def Close_all() -> Signal:
+    def CloseAll() -> Signal:
         ...
 
     @staticmethod
