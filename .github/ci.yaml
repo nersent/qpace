@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Node.js dependencies
+        run: |
+          pnpm install
+          npm install rimraf cross-env @napi-rs/cli@^3.0.0-alpha.89 --global
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade Pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install Python dependencies
+        run: |
+          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: "1.85.0"
+          components: rustfmt, clippy
+
+      - name: Install Rust tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Install wasm-pack
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Toolchain debug
+        run: |
+          pnpm bazed --version
+          node --version
+          npm --version
+          pnpm --version
+          python --version
+          python3 --version
+          rustc --version
+          cargo --version
+          cargo fmt --version
+          wasm-pack --version
+          maturin --version
+          napi
+
+      - name: Prepare
+        run: |
+          mkdir -p target/nextest/default
+          ls -l
+
+      # - name: Lint
+      #   run: |
+      #     pnpm bazed run //:lint --verbose
+
+      - name: Build
+        run: |
+          pnpm bazed build //core:maturin --verbose
+          pnpm bazed build //core:napi --verbose
+          pnpm bazed build //core:wasm --verbose
+          pnpm bazed build //:js --verbose
+          pnpm bazed build //:wheel --verbose
+
+      - name: Test
+        run: |
+          pnpm bazed run //core:test --verbose

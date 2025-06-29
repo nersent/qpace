@@ -1,0 +1,18 @@
+fileSet("schema", {
+  srcs: [
+    "schema_grpc_pb.d.ts",
+    "schema_grpc_pb.js",
+    "schema_pb.d.ts",
+    "schema_pb.js",
+  ],
+});
+
+fileSet("py", {
+  srcs: [glob("*.py")],
+});
+
+tsLibrary("js", {
+  srcs: ["config.ts"],
+  deps: [":schema"],
+  compiler: "tsc",
+});

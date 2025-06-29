@@ -1,0 +1,33 @@
+const WORKSPACE = ["playground", "core"];
+
+rustFileSet("rs", {
+  srcs: glob("**/*.rs"),
+  deps: ["//core:src"],
+});
+
+maturin("rs_py", {
+  deps: [":rs"],
+  scope: "pace_playground_lib",
+  workspace: WORKSPACE,
+  args: `--interpreter python3.12 --release --skip-auditwheel`,
+});
+
+fileSet("py_src", {
+  srcs: glob("**/*.py"),
+  deps: ["//lib:py", ":rs_py"],
+});
+
+pythonEntry("py", {
+  main: "main.py",
+  deps: [":py_src"],
+});
+
+tsLibrary("ts_src", {
+  srcs: glob("**/*.ts"),
+  deps: ["//core:wasm"],
+});
+
+nodeEntry("ts", {
+  main: "main.js",
+  deps: [":ts_src"],
+});

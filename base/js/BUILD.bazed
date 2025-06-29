@@ -1,0 +1,4 @@
+tsLibrary("js", {
+  srcs: [glob("**/!(*.test).ts")],
+  deps: [],
+});

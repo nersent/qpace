@@ -1,0 +1,8 @@
+fileSet("js", {
+  deps: ["//lib/node", "//lib/web"],
+});
+
+fileSet("py", {
+  srcs: [glob("**/*.py")],
+  deps: [],
+});

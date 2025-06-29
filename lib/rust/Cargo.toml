@@ -1,0 +1,10 @@
+[package]
+name = "qpace"
+version = "0.0.1-dev.1"
+edition = "2021"
+
+[lib]
+name = "qpace"
+path = "lib.rs"
+crate-type = ["cdylib", "rlib"]
+edition = "2021"

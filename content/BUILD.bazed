@@ -1,0 +1,23 @@
+tsLibrary("build_src", {
+  srcs: ["build.ts"],
+});
+
+nodeEntry("build", {
+  main: "build.js",
+  deps: ["//base/node", ":build_src"],
+});
+
+fileSet("py", {
+  srcs: glob("python/**/*.*"),
+  copy: true,
+});
+
+fileSet("node", {
+  srcs: glob("node/**/*.*"),
+  copy: true,
+});
+
+fileSet("web", {
+  srcs: glob("web/**/*.*"),
+  copy: true,
+});

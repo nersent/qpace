@@ -1,0 +1,10 @@
+tsLibrary("client", {
+  srcs: ["client.ts"],
+  deps: ["//:package_json"],
+});
+
+tsLibrary("node", {
+  srcs: glob("**/*.ts"),
+  deps: ["//:package_json", "//core:napi", "//content:node"],
+  compiler: "tsc",
+});

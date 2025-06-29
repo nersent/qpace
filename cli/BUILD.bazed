@@ -1,0 +1,24 @@
+tsLibrary("src", {
+  srcs: glob("**/*.ts"),
+  deps: [
+    "//:package_json",
+    "//base/js",
+    "//base/node",
+    "//compiler:js",
+    "//lib/node:client",
+  ],
+});
+
+nodeEntry("main", {
+  main: "main.js",
+  deps: [":cli"],
+});
+
+nodeMainWrapper(`entry`, {
+  main: "main.js",
+  output: "main.bazed.js",
+});
+
+fileSet("cli", {
+  deps: [":src", ":entry"],
+});

@@ -1,0 +1,10 @@
+tsLibrary("web", {
+  srcs: glob("**/*.ts"),
+  deps: ["//:package_json", "//core:wasm", "//content:web"],
+  compiler: "tsc",
+});
+
+// fileSet("web", {
+//   srcs: ["index.js"],
+//   deps: ["//:package_json", "//core:wasm"],
+// });

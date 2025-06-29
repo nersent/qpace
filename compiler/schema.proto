@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package compiler;
+
+service CompilerApi {
+  rpc Info(InfoRequest) returns (InfoResponse);
+  rpc Check(CheckRequest) returns (CheckResponse);
+  rpc Build(BuildRequest) returns (stream BuildEvent);
+}
+
+message InfoRequest {}
+
+message InfoResponse {
+  string version = 1;
+  google.protobuf.Timestamp build_time = 2;
+}
+
+message File {
+  string path = 1;
+  optional bytes data = 2;
+  optional string url = 3;
+  uint32 flags = 4;
+}
+
+enum FileFlag {
+  FILE_FLAG_NONE = 0; // 0b0000
+  FILE_FLAG_PYTHON_WHEEL = 1; // 0b0001 (1 << 0)
+  FILE_FLAG_NPM_TAR = 2; // 0b0010 (1 << 1)
+}
+
+message CheckRequest {
+  string qpc_config = 1;
+  repeated File files = 4;
+}
+
+message CheckResponse {
+  bool ok = 1;
+  string request_id = 2;
+  optional string message = 3;
+}
+
+message BuildRequest {
+  string qpc_config = 1;
+  optional string target = 2;
+  repeated File files = 3;
+}
+
+message BuildEvent {
+  oneof kind {
+    CheckEnd check_end = 1;
+    BuildStart build_start = 2;
+    BuildEnd build_end = 3;
+  }
+}
+
+message CheckEnd {
+  string request_id = 1;
+}
+
+message BuildStart {}
+
+message BuildEnd {
+  bool ok = 1;
+  optional string message = 2;
+  repeated File files = 3;
+}

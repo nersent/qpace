@@ -1,0 +1,16 @@
+{
+  "install": false,
+  "test": false,
+  "python": {
+    "package": "qpace_content",
+    "checkVersion": false
+  },
+  "node": {
+    "package": "qpace_content"
+  },
+  "web": {
+    "package": "qpace_content"
+  },
+  "outDir": "build",
+  "include": ["ta.pine"]
+}

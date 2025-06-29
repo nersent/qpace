@@ -1,0 +1,83 @@
+const WORKSPACE = ["core"];
+
+rustFileSet("src_py", {
+  srcs: [glob("**/!(*.test).py"), "pyproject.toml", glob("**/*.pyi")],
+  deps: [],
+});
+
+rustFileSet("src_rs", {
+  srcs: [glob("**/!(*.test).rs")],
+});
+
+rustFileSet("src", {
+  deps: [":src_py", ":src_rs"],
+});
+
+rustFileSet("src_rs_test", {
+  srcs: [glob("**/*.test.rs"), glob("**/*.csv"), glob("**/*.json")],
+});
+
+rustBinary("main", {
+  deps: [":src_rs"],
+  srcs: ["main.rs"],
+  target: "main",
+  workspace: WORKSPACE,
+});
+
+rustTest("test", {
+  deps: [":src_rs", ":src_rs_test"],
+  workspace: WORKSPACE,
+  nextestFlags: `--no-default-features --features="polars"`,
+});
+
+rustBinary("pyi", {
+  deps: [":src"],
+  target: "pyi",
+  workspace: WORKSPACE,
+});
+
+maturin("maturin", {
+  deps: [":src"],
+  scope: "qpace_core",
+  workspace: WORKSPACE,
+  args: `--interpreter python3.12 --release --skip-auditwheel --no-default-features --features "bindings_py polars"`,
+});
+
+fileSet("core", {
+  // srcs: glob("**/*.*"),
+  deps: [":src_py", ":maturin"],
+  copy: true,
+});
+
+fileSet("ts_src", {
+  srcs: glob("**/*.*"),
+  deps: [":src_py", ":src_rs"],
+  copy: true,
+});
+
+// --target bundler
+rustWasm("wasm", {
+  deps: [":ts_src"],
+  workspace: WORKSPACE,
+  args: [
+    `--target web --release --weak-refs --reference-types --no-default-features --features="bindings_wasm"`,
+  ],
+});
+
+rustNapi("napi", {
+  deps: [":ts_src"],
+  workspace: WORKSPACE,
+  args: [
+    `--manifest-path core/Cargo.toml --release --js index.js --platform --no-default-features --features="bindings_node polars"`,
+  ],
+});
+
+execute("check", (ctx) => ({
+  command: [
+    `cargo run --bin pyi --no-default-features --features=bindings_py`,
+    `cargo check --package=qpace --no-default-features --features=bindings_wasm --target=wasm32-unknown-unknown`,
+    // `cargo check --package=qpace --no-default-features --features=bindings_py`,
+  ].join(" && "),
+  cwd: ctx.workspacePath,
+  run: true,
+}));
