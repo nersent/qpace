@@ -4,6 +4,7 @@ import { resolve } from "path";
 import { exec } from "~/base/node/exec";
 import * as tar from "tar";
 import { Target } from "~/compiler/config";
+import { locatePython } from "~/base/node/python";
 
 const WORKSPACE_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 const BUILD_DIR = resolve(WORKSPACE_PATH, "build");
@@ -18,6 +19,11 @@ const main = async (): Promise<void> => {
   }
   // const baseCommand = "pnpm dlx qpace";
   const baseCommand = "pnpm bazed run //cli:main --verbose --";
+
+  const pythonPath = await locatePython();
+  if (pythonPath == null) {
+    throw new Error("Python not found");
+  }
 
   if (target === "init") {
     const nodeDir = resolve(CONTENT_DIR, "node");
@@ -78,7 +84,7 @@ const main = async (): Promise<void> => {
     if (wheelFilename == null)
       throw new Error("No wheel file found in tmp directory");
     await exec({
-      command: `python -m wheel unpack ${resolve(
+      command: `${pythonPath} -m wheel unpack ${resolve(
         tmpDir,
         wheelFilename,
       )} -d ${tmpDir}`,

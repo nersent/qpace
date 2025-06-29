@@ -4,7 +4,7 @@ tsLibrary("build_src", {
 
 nodeEntry("build", {
   main: "build.js",
-  deps: [":build_src", "//base/node"],
+  deps: ["//base/node", ":build_src"],
 });
 
 fileSet("py", {
