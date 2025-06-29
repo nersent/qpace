@@ -48,12 +48,6 @@ pip install qpace
 npm install qpace
 ```
 
-## Pine from Python/JavaScript
-
-We designed and developed in-house Pine Script compiler that takes your original Pine Script code and compiles it to efficient rust code that is later exposed to Python, Node.js and Web/WASM with type hints. Easy interface and practically no hustle from your side. Our compiler supports any technical analysis indicator and strategy, while having extreme performance. This can be used for backtesting, parameter optimization, bot automation, machine learning and much more.
-
-[Get started](https://qpace.dev)
-
 ## Quick Example
 
 Python
@@ -74,6 +68,46 @@ import * as qp from "qpace/node";
 const ohlcv = qp.Ohlcv.readCsv("btc.csv");
 const ctx = new qp.Ctx(ohlcv, qp.Sym.BTC_USD());
 const rsi = qp.ta.rsi(ctx.copy(), ohlcv.close, 14);
+```
+
+## Pine from Python/JavaScript
+
+We designed and developed in-house Pine Script compiler that takes your original Pine Script code and compiles it to efficient rust code that is later exposed to Python, Node.js and Web/WASM with type hints. Easy interface and practically no hustle from your side. Our compiler supports any technical analysis indicator and strategy, while having extreme performance. This can be used for backtesting, parameter optimization, bot automation, machine learning and much more.
+
+[Get started](https://qpace.dev)
+
+![Compiler gif](/static/compiler.gif)
+
+`script.pine`
+
+```pine
+//@version=5
+library("MyLibrary")
+
+export custom_ma(series float src, int length) =>
+    ta.ema(src, length)
+```
+
+Python:
+
+```python
+import qpace as qp
+import my_library as pine
+
+ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
+custom_ma = pine.custom_ma(ctx.copy(), ohlcv.close, 14)
+print(custom_ma) # [1.0, 2.0, ...]
+```
+
+Node.js:
+
+```javascript
+import * as qp from "qpace/node";
+import * as pine from "my_library"; 
+
+const ctx = new qp.Ctx(ohlcv, qp.Sym.BTC_USD());
+const customMa = pine.custom_ma(ctx.copy(), ohlcv.close, 14);
+console.log(customMa); // [1.0, 2.0, ...]
 ```
 
 ## TA
