@@ -1,6 +1,9 @@
 import * as grpc from "@grpc/grpc-js";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { VERSION, CORE_VERSION } from "./index";
+import {
+  version as VERSION,
+  coreVersion as CORE_VERSION,
+} from "../../package.json";
 
 // export const DEFAULT_REST_ENDPOINT = `http://0.0.0.0:3000/v1`;
 // export const DEFAULT_GRPC_ENDPOINT = `0.0.0.0:3001`;

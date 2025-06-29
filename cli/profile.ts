@@ -1,13 +1,11 @@
 import { exists, readJson, writeJson } from "~/base/node/fs";
 import { Client } from "~/lib/node/client";
-import { unwrap } from "../base/js/assert";
 import { dirname, resolve } from "path";
 import { homedir } from "os";
 import { mkdir } from "fs/promises";
 import axios from "axios";
 import { CliError } from "./exceptions";
 import chalk from "chalk";
-import { QPACE_BG_PREFIX } from "./common";
 import { ChannelCredentials } from "@grpc/grpc-js";
 
 export type ProfileData = {

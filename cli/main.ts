@@ -1,8 +1,10 @@
 import { Command } from "commander";
 import * as compiler from "./compiler";
-import { VERSION, CORE_VERSION } from "~/lib/node";
+import {
+  version as VERSION,
+  coreVersion as CORE_VERSION,
+} from "~/package.json";
 import { handleExceptions } from "./exceptions";
-import * as compilerApi from "~/compiler/schema_pb";
 import * as user from "./user";
 
 const main = async (): Promise<void> => {

@@ -1,8 +1,9 @@
-import { readdirSync } from "fs";
+import { readdirSync, writeFileSync } from "fs";
 import { cp, mkdir, unlink, writeFile } from "fs/promises";
 import { resolve } from "path";
 import { exec } from "~/base/node/exec";
 import * as tar from "tar";
+import { Target } from "~/compiler/config";
 
 const WORKSPACE_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 const BUILD_DIR = resolve(WORKSPACE_PATH, "build");
@@ -15,6 +16,9 @@ const main = async (): Promise<void> => {
   if (!target.length) {
     throw new Error("No target specified");
   }
+  // const baseCommand = "pnpm dlx qpace";
+  const baseCommand = "pnpm bazed run //cli:main --verbose --";
+
   if (target === "init") {
     const nodeDir = resolve(CONTENT_DIR, "node");
     const webDir = resolve(CONTENT_DIR, "web");
@@ -22,15 +26,17 @@ const main = async (): Promise<void> => {
     await mkdir(nodeDir, { recursive: true });
     await mkdir(webDir, { recursive: true });
     await mkdir(pythonDir, { recursive: true });
-    await writeFile(resolve(nodeDir, "index.js"), "", "utf8");
-    await writeFile(resolve(webDir, "index.js"), "", "utf8");
-    await writeFile(resolve(pythonDir, "__init__"), "", "utf8");
+    ["index.js", "index.d.ts", "ta.js", "ta.d.ts"].map((filename) => {
+      writeFileSync(resolve(nodeDir, filename), "", "utf8");
+      writeFileSync(resolve(webDir, filename), "", "utf8");
+    });
+    await writeFile(resolve(pythonDir, "__init__.py"), "", "utf8");
   } else if (target === "node") {
     const tmpDir = resolve(CONTENT_DIR, ".tmp/node");
     const destDir = resolve(CONTENT_DIR, "node");
     await mkdir(tmpDir, { recursive: true });
     await exec({
-      command: `pnpm dlx qpace build --target node-universal --out-dir ${tmpDir} --verbose`,
+      command: `${baseCommand} build --target node-universal --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
     });
@@ -47,7 +53,7 @@ const main = async (): Promise<void> => {
     const destDir = resolve(CONTENT_DIR, "web");
     await mkdir(tmpDir, { recursive: true });
     await exec({
-      command: `pnpm dlx qpace build --target web --out-dir ${tmpDir} --verbose`,
+      command: `${baseCommand} build --target web --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
     });
@@ -64,7 +70,7 @@ const main = async (): Promise<void> => {
     const destDir = resolve(CONTENT_DIR, "python");
     await mkdir(tmpDir, { recursive: true });
     await exec({
-      command: `pnpm dlx qpace build --target python --out-dir ${tmpDir} --verbose`,
+      command: `${baseCommand} build --target python --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
     });
