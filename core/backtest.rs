@@ -957,11 +957,12 @@ for i = 0 to array.size(trades) - 1
             .enumerate()
             .map(|(i, &value)| (i as f32 + 1.0, value as f32))
             .collect();
+
         // let (w, h) = plot;
         // Chart::new(w, h, 1.0, self.net_equity_list().len() as f32)
         //     .lineplot(&Shape::Lines(&net_equity_line))
         //     .nice();
-        // auto width
+
         Chart::default()
             .lineplot(&Shape::Lines(&net_equity_line))
             .display();
