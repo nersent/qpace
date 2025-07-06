@@ -16,7 +16,9 @@ export const TARGETS = [
   "node-x86_64-macos",
   "node-arm64-macos",
   "node-arm64-linux",
-  "node-universal",
+  "node-universal", // all platforms
+  //
+  "js-universal", // WASM + Node.js all platforms
   //
   "wasm-unknown-unknown",
 ] as const;
@@ -54,7 +56,7 @@ export interface Config {
   [key: string]: any;
   // bindings?: boolean;
   /* Removes unused functions, variables, etc. default: `true` */
-  // noDeadCode?: boolean;
+  noDeadCode?: boolean;
   /* Rust target config */
   rust?: RustConfig;
   /* Python target config */
@@ -106,6 +108,7 @@ export type WebConfig = Record<string, any> & {
 
 export const getDefaultConfig = (): Config => {
   return {
+    noDeadCode: true,
     rust: {
       qpaceCoreCrate: "qpace_core",
     },
