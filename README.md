@@ -25,6 +25,8 @@
 
 - Data layer - resampling/aggregation, zipping/unzipping, reading/writing from CSV/Parquet, and more.
 
+- Cross-ecosystem - interoperable with Pandas, Polars, and more.
+
 - CLI + upcoming UI
 
 ## Quick Links
@@ -85,7 +87,7 @@ We designed and developed in-house Pine Script compiler that takes your original
 library("MyLibrary")
 
 export custom_ma(series float src, int length) =>
-    ta.ema(src, length)
+    ta.ema(ta.change(src) * volume, length)
 ```
 
 Python:
@@ -95,7 +97,7 @@ import qpace as qp
 import my_library as pine
 
 ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
-custom_ma = pine.custom_ma(ctx.copy(), ohlcv.close, 14)
+custom_ma = pine.script.custom_ma(ctx.copy(), ohlcv.close, 14)
 print(custom_ma) # [1.0, 2.0, ...]
 ```
 
@@ -106,50 +108,109 @@ import * as qp from "qpace/node";
 import * as pine from "my_library"; 
 
 const ctx = new qp.Ctx(ohlcv, qp.Sym.BTC_USD());
-const customMa = pine.custom_ma(ctx.copy(), ohlcv.close, 14);
+const customMa = pine.script.custom_ma(ctx.copy(), ohlcv.close, 14);
 console.log(customMa); // [1.0, 2.0, ...]
 ```
 
 ## TA
 
-- Accumulation/Distribution (ACCDIST)
-- Relative Strength Index (RSI)
-- Moving Average Convergence Divergence (MACD)
-- Bollinger Bands (BB, BB %b, BB width)
-- Average True Range (ATR)
-- True Range (TR)
-- Exponential Moving Average (EMA)
-- Simple Moving Average (SMA)
-- Relative Moving Average (RMA)
-- Volume-Weighted Moving Average (VWMA)
-- Linear Weighted Moving Average (LWMA)
-- Symmetrically Weighted Moving Average (SWMA)
-- Hull Moving Average (HMA)
-- Awesome Oscillator (AO)
-- Balance of Power (BOP)
-- Choppiness Index (CHOP)
-- Chande-Kroll Stop (CKS)
-- Aroon
-- Commodity Channel Index (CCI)
-- Supertrend
-- Chaikin Money Flow (CMF)
-- Coppock Curve
-- Donchian Channels
-- Price Oscillator (PO)
-- Relative Vigor Index (RVGI)
-- Relative Volatility Index (RVI)
-- Ultimate Oscillator (UO)
-- Vortex Indicator (VI)
-- Williams %R
-- Rate of Change (ROC)
-- Change
-- Cumulative Sum (CUM)
-- Bars Since
-- Cross/Over/Under
-- Highest/Lowest/Bars
-- Standard Deviation (DEV)
-- Volume Oscillator (VO)
-- And more coming soon!
+[Roadmap](https://github.com/nersent/qpace/issues/7)
+
+> Every TA indicator was compiled using Pine to Python/JavaScript compiler.
+
+### _Momentum_ (17)
+
+- _Awesome Oscillator_ **AO**
+- _Absolute Price Oscillator_ **APO**
+- _Balance of Power_ **BOP**
+- _Commodity Channel Index_ **CCI**
+- _Coppock Curve_
+- _KST Oscillator_ **KST**
+- _Moving Average Convergence Divergence_ **MACD**
+- _Momentum_ **MOM**
+- _Price Oscillator_ **PO**
+- _Rate of Change_ **ROC**
+- _Relative Strength Index_ **RSI**
+- _Relative Vigor Index_ **RVGI**
+- _Stochastic RSI_ **STOCHRSI**
+- _Trix_ **TRIX**
+- _True Strength Index_ **TSI**
+- _Ultimate Oscillator_ **UO**
+- _Williams %R_ **W%R**
+
+---
+
+### _Overlap_ (11)
+
+- _Double Exponential MA_ **DEMA**
+- _Exponential MA_ **EMA**
+- _Fibonacci Weighted MA_ **FMWA**
+- _Hull MA_ **HMA**
+- _Linear Weighted MA_ **LWMA**
+- _Relative MA_ **RMA**
+- _Simple MA_ **SMA**
+- _Symmetrically Weighted MA_ **SWMA**
+- _Triple Exponential MA_ **TEMA**
+- _Volume-Weighted MA_ **VWMA**
+- _Weighted MA_ **WMA**
+
+---
+
+### _Trend_ (8)
+
+- _Advance/Decline Ratio_ **ADR**
+- _Aroon_ **AROON**
+- _Bull/Bear Power_ **BBP**
+- _Chande-Kroll Stop_ **CKS**
+- _Choppiness Index_ **CHOP**
+- _Detrended Price Oscillator_ **DPO**
+- _Supertrend_ **ST**
+- _Vortex Indicator_ **VI**
+
+---
+
+### _Volatility_ (7)
+
+- _Average True Range_ **ATR**
+- _Bollinger Bands_ **BB**
+- _Bollinger %B_ **%B**
+- _Bollinger Width_ **BBW**
+- _Donchian Channel_ **DC**
+- _Relative Volatility Index_ **RVI**
+- _True Range_ **TR**
+
+---
+
+### _Volume_ (6)
+
+- _Accumulation/Distribution (Williams)_ **ACCDIST**
+- _Chaikin Money Flow_ **CMF**
+- _Elder’s Force Index_ **EFI**
+- _Ease of Movement_ **EOM**
+- _Money Flow Index_ **MFI**
+- _Volume Oscillator_ **VO**
+
+---
+
+### _Statistics_ (1)
+
+- _Standard Deviation_ **STD**
+
+---
+
+### _Utilities & Helpers_ (11)
+
+- _Bars Since_
+- _Change_
+- _Cross_
+- _Cross-Over_
+- _Cross-Under_
+- _Cumulative Sum_ **CUM**
+- _Highest_
+- _Highest Bars_
+- _Lowest_
+- _Lowest Bars_
+- _Rate of Change_ **ROC**
 
 ## Community
 
