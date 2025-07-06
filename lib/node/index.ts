@@ -54,4 +54,4 @@ import { version, coreVersion } from "../../package.json";
 export const VERSION = version;
 export const CORE_VERSION = coreVersion;
 
-export * as ta from "../../content/node/ta";
+export * as ta from "../../content/node/node/ta";

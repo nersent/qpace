@@ -11,6 +11,9 @@
   "web": {
     "package": "qpace_content"
   },
+  "js": {
+    "package": "qpace_content"
+  },
   "outDir": "build",
   "include": ["ta.pine"]
 }
