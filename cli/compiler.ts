@@ -34,6 +34,7 @@ export const BUILD_TARGETS = [
   "node",
   "web",
   "wasm",
+  "js",
 ] as const;
 export type BuildTarget = typeof BUILD_TARGETS[number];
 
@@ -71,6 +72,9 @@ export namespace BuildTarget {
     }
     if (buildTarget === "web" || buildTarget === "wasm") {
       return "wasm-unknown-unknown";
+    }
+    if (buildTarget === "js") {
+      return "js-universal";
     }
     return;
   };
@@ -278,7 +282,9 @@ const build = async ({
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
   );
   qpcConfig.python ??= {};
+  qpcConfig.js ??= {};
   qpcConfig.node ??= {};
+  qpcConfig.web ??= {};
   qpcConfig.emit ||= emit;
   qpcConfig.outDir = outDir ?? qpcConfig.outDir;
 
@@ -365,7 +371,7 @@ const build = async ({
               const path = resolve(cwd, pythonWheelFile.getPath());
               {
                 const res = await exec({
-                  command: `${pythonPath} -m pip install "${path}" --force-reinstall --break-system-packages`,
+                  command: `${pythonPath} -m pip install "${path}" --break-system-packages`,
                   io: verbose,
                 });
                 if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
@@ -389,7 +395,11 @@ const build = async ({
                 }
               }
             }
-          } else if (target?.includes("node") || target?.includes("wasm")) {
+          } else if (
+            target?.includes("node") ||
+            target?.includes("wasm") ||
+            target === "js-universal"
+          ) {
             const npmTarFile = files.find((f) => getApiFileFlags(f).npmTar);
             if (npmTarFile == null) {
               fail(`NPM tar file not produced`);
@@ -434,12 +444,20 @@ const build = async ({
     } else if (target?.includes("node")) {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.node!.package}";`,
+          `import * as pine from "${qpcConfig.js!.package}/node";`,
         ),
       );
-    } else if (target?.includes("wasm")) {
+    } else if (target?.includes("node")) {
       console.log(
-        chalk.greenBright(`import * as pine from "${qpcConfig.web!.package}";`),
+        chalk.greenBright(
+          `import * as pine from "${qpcConfig.js!.package}/web";`,
+        ),
+      );
+    } else if (target === "js-universal") {
+      console.log(
+        chalk.greenBright(
+          `import * as pine from "${qpcConfig.js!.package}/node|web";`,
+        ),
       );
     }
     console.log("");
