@@ -396,9 +396,13 @@ impl PyOhlcv {
     }
 
     #[staticmethod]
-    #[pyo3(name = "from_pandas")]
+    #[pyo3(name = "from_pandas", signature = (df, timeframe=None))]
     #[inline]
-    pub fn py_from_pandas(py: Python<'_>, df: &Bound<'_, PyAny>) -> PyResult<PyOhlcv> {
+    pub fn py_from_pandas(
+        py: Python<'_>,
+        df: &Bound<'_, PyAny>,
+        timeframe: Option<PyTimeframe>,
+    ) -> PyResult<PyOhlcv> {
         let open: Option<Vec<f64>> = if df.hasattr("open")? {
             df.getattr("open")?.extract()?
         } else {
@@ -442,6 +446,9 @@ impl PyOhlcv {
         let ohlcv = ArcOhlcv::from_bars(zip_ohlcv_bars(
             open_time, close_time, open, high, low, close, volume,
         ));
+        if let Some(tf) = timeframe {
+            ohlcv.set_timeframe(tf.into());
+        }
         Ok(ohlcv.into())
     }
 
@@ -471,23 +478,29 @@ impl PyOhlcv {
 
     #[cfg(feature = "polars")]
     #[staticmethod]
-    #[pyo3(name = "read_csv")]
+    #[pyo3(name = "read_csv", signature = (path, timeframe=None))]
     #[inline]
-    pub fn py_read_csv(path: String) -> Self {
+    pub fn py_read_csv(path: String, timeframe: Option<PyTimeframe>) -> Self {
         let mut ohlcv = Ohlcv::new();
         ohlcv.read_csv(Path::new(&path));
         let ohlcv: ArcOhlcv = ohlcv.into();
+        if let Some(tf) = timeframe {
+            ohlcv.set_timeframe(tf.into());
+        }
         return ohlcv.into();
     }
 
     #[cfg(feature = "polars")]
     #[staticmethod]
-    #[pyo3(name = "read_parquet")]
+    #[pyo3(name = "read_parquet", signature = (path, timeframe=None))]
     #[inline]
-    pub fn py_read_parquet(path: String) -> Self {
+    pub fn py_read_parquet(path: String, timeframe: Option<PyTimeframe>) -> Self {
         let mut ohlcv = Ohlcv::new();
         ohlcv.read_parquet(Path::new(&path));
         let ohlcv: ArcOhlcv = ohlcv.into();
+        if let Some(tf) = timeframe {
+            ohlcv.set_timeframe(tf.into());
+        }
         return ohlcv.into();
     }
 

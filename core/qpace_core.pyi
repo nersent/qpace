@@ -193,18 +193,18 @@ class Ohlcv:
         ...
 
     @staticmethod
-    def from_pandas(df:typing.Any) -> Ohlcv:
+    def from_pandas(df:typing.Any, timeframe:typing.Optional[Timeframe]=None) -> Ohlcv:
         ...
 
     def to_pandas(self) -> pandas.DataFrame:
         ...
 
     @staticmethod
-    def read_csv(path:builtins.str) -> Ohlcv:
+    def read_csv(path:builtins.str, timeframe:typing.Optional[Timeframe]=None) -> Ohlcv:
         ...
 
     @staticmethod
-    def read_parquet(path:builtins.str) -> Ohlcv:
+    def read_parquet(path:builtins.str, timeframe:typing.Optional[Timeframe]=None) -> Ohlcv:
         ...
 
     def write_csv(self, path:builtins.str) -> None:
