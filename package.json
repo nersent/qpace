@@ -1,8 +1,24 @@
 {
   "name": "qpace",
-  "version": "0.1.0",
-  "coreVersion": "0.1.0",
+  "version": "0.2.0",
+  "coreVersion": "0.2.0",
   "description": "📊 The Quant SDK for Python and Javascript. Written in Rust.",
+  "keywords": [
+    "quant",
+    "finance",
+    "trading",
+    "technical analysis",
+    "ta",
+    "indicator",
+    "vectorized",
+    "backtest",
+    "pinescript",
+    "python",
+    "javascript",
+    "ta-lib",
+    "pandas-ta",
+    "tradingview"
+  ],
   "homepage": "https://qpace.dev",
   "repository": {
     "type": "git",

@@ -43,7 +43,7 @@ const main = async (): Promise<void> => {
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
-      file: resolve(tmpDir, `qpace_content-1.0.0.tgz`),
+      file: resolve(tmpDir, `qpace_content-0.0.1.tgz`),
       cwd: destDir,
       sync: true,
       strip: 1,
@@ -60,7 +60,7 @@ const main = async (): Promise<void> => {
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
-      file: resolve(tmpDir, `qpace_content-1.0.0.tgz`),
+      file: resolve(tmpDir, `qpace_content-0.0.1.tgz`),
       cwd: destDir,
       sync: true,
       strip: 1,

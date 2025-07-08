@@ -18,7 +18,7 @@ import {
 import { basename, dirname, resolve } from "path";
 import { exists, readJson, writeJson } from "~/base/node/fs";
 import { CliError } from "./exceptions";
-import { readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import { isLinux, isMacOs, isWindows, which } from "~/base/node/os";
 import { mkdirSync } from "fs";
 import { downloadFileToPath } from "~/base/node/network";
@@ -34,6 +34,7 @@ export const BUILD_TARGETS = [
   "node",
   "web",
   "wasm",
+  "js",
 ] as const;
 export type BuildTarget = typeof BUILD_TARGETS[number];
 
@@ -72,6 +73,9 @@ export namespace BuildTarget {
     if (buildTarget === "web" || buildTarget === "wasm") {
       return "wasm-unknown-unknown";
     }
+    if (buildTarget === "js") {
+      return "js-universal";
+    }
     return;
   };
 }
@@ -103,14 +107,53 @@ export const fetchInfo = async (
   };
 };
 
-const loadQpcConfig = async (path: string): Promise<Config> => {
+export const isValidNpmPackageName = (name: string): boolean => {
+  if (name == null) return false;
+  name = name.trim();
+  if (typeof name !== "string" || name.length === 0 || name.length > 214)
+    return false;
+  if (/[A-Z]/.test(name)) return false; // no capitals
+  if (/^[._]/.test(name)) return false; // no leading . or _
+  if (/\s/.test(name)) return false; // no whitespace
+
+  // scoped package?
+  if (name.startsWith("@")) {
+    const [scope, pkg] = name.split("/");
+    if (!scope || !pkg) return false; // need exactly @scope/pkg
+
+    const scopeOk = /^@[a-z0-9][a-z0-9._-]*$/.test(scope);
+    const pkgOk = /^[a-z0-9][a-z0-9._-]*$/.test(pkg);
+    return scopeOk && pkgOk;
+  }
+
+  // unscoped
+  return /^[a-z0-9][a-z0-9._-]*$/.test(name);
+};
+
+export const isValidPipPackageName = (name: string): boolean => {
+  if (name == null) return false;
+  name = name.trim();
+  if (typeof name !== "string" || name.length === 0 || name.length > 255)
+    return false;
+  // core rule: first/last char alnum; middle chars alnum, dot, dash, underscore
+  return /^[A-Za-z0-9]+([A-Za-z0-9._-]*[A-Za-z0-9])?$/.test(name);
+};
+
+export const tryLoadQpcConfig = async (
+  path: string,
+): Promise<Config | undefined> => {
   let config = getInitConfig();
   if (await exists(path)) {
     config = mergeConfigs(config, await readJson(path));
-  } else {
-    throw new CliError(`QPC config file not found at "${chalk.yellow(path)}"`);
   }
   return config;
+};
+
+export const loadQpcConfig = async (path: string): Promise<Config> => {
+  return unwrap(
+    await tryLoadQpcConfig(path),
+    `QPC config file not found at "${chalk.yellow(path)}"`,
+  );
 };
 
 const collectSrcPaths = async (
@@ -278,7 +321,9 @@ const build = async ({
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
   );
   qpcConfig.python ??= {};
+  qpcConfig.js ??= {};
   qpcConfig.node ??= {};
+  qpcConfig.web ??= {};
   qpcConfig.emit ||= emit;
   qpcConfig.outDir = outDir ?? qpcConfig.outDir;
 
@@ -365,7 +410,7 @@ const build = async ({
               const path = resolve(cwd, pythonWheelFile.getPath());
               {
                 const res = await exec({
-                  command: `${pythonPath} -m pip install "${path}" --force-reinstall --break-system-packages`,
+                  command: `${pythonPath} -m pip install "${path}" --break-system-packages`,
                   io: verbose,
                 });
                 if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
@@ -389,7 +434,11 @@ const build = async ({
                 }
               }
             }
-          } else if (target?.includes("node") || target?.includes("wasm")) {
+          } else if (
+            target?.includes("node") ||
+            target?.includes("wasm") ||
+            target === "js-universal"
+          ) {
             const npmTarFile = files.find((f) => getApiFileFlags(f).npmTar);
             if (npmTarFile == null) {
               fail(`NPM tar file not produced`);
@@ -434,12 +483,20 @@ const build = async ({
     } else if (target?.includes("node")) {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.node!.package}";`,
+          `import * as pine from "${qpcConfig.js!.package}/node";`,
         ),
       );
-    } else if (target?.includes("wasm")) {
+    } else if (target?.includes("node")) {
       console.log(
-        chalk.greenBright(`import * as pine from "${qpcConfig.web!.package}";`),
+        chalk.greenBright(
+          `import * as pine from "${qpcConfig.js!.package}/web";`,
+        ),
+      );
+    } else if (target === "js-universal") {
+      console.log(
+        chalk.greenBright(
+          `import * as pine from "${qpcConfig.js!.package}/node|web";`,
+        ),
       );
     }
     console.log("");
@@ -455,11 +512,17 @@ const build = async ({
 export const getCommands = (): Command[] => {
   return [
     new Command("check")
+      .description(
+        "Analyzes the current project and reports errors, but doesn't build",
+      )
       .option("--cwd <path>", `Project root directory`)
       .option("--config <path>", `Path to the QPC config file`)
       .option("--verbose", `Prints verbose output`, false)
       .action(check),
     new Command("build")
+      .description(
+        "Compiles the project, produces artifacts like Python wheel, NPM package and optionally installs + tests them",
+      )
       .addOption(
         new Option("--target <target>", `Target platform`).choices(
           BUILD_TARGETS,

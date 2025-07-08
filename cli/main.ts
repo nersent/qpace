@@ -6,6 +6,7 @@ import {
 } from "~/package.json";
 import { handleExceptions } from "./exceptions";
 import * as user from "./user";
+import * as project from "./project";
 
 const main = async (): Promise<void> => {
   handleExceptions();
@@ -34,6 +35,7 @@ const main = async (): Promise<void> => {
       console.table(data);
     });
   user.getCommands().forEach((r) => program.addCommand(r));
+  project.getCommands().forEach((r) => program.addCommand(r));
   compiler.getCommands().forEach((r) => program.addCommand(r));
   program.parse();
 };

@@ -340,7 +340,7 @@ impl Backtest {
         self.instrument_price
     }
 
-    fn set_price(&mut self) {
+    pub fn set_price(&mut self) {
         let ctx = self.ctx.borrow();
         let bar = ctx.bar();
         let sym_info = ctx.sym();
@@ -357,13 +357,13 @@ impl Backtest {
             .set_price(round_to_min_tick(orderbook_price, sym_info.min_tick()));
     }
 
-    fn set_position_size(&mut self, size: f64) {
+    pub fn set_position_size(&mut self, size: f64) {
         let ctx = self.ctx.borrow();
         let sym_info = ctx.sym();
         self.position_size = round_contracts(size, sym_info.min_qty(), sym_info.price_scale());
     }
 
-    fn set_metrics(&mut self) -> Result<(), TradeError> {
+    pub fn set_metrics(&mut self) -> Result<(), TradeError> {
         let net_equity = self.initial_capital + self.net_profit;
 
         let mut open_profit = 0.0;
@@ -383,7 +383,7 @@ impl Backtest {
     }
 
     #[inline]
-    fn create_trade_event(&self) -> TradeEvent {
+    pub fn create_trade_event(&self) -> TradeEvent {
         let bar_index = self.ctx.borrow().bar_index();
         let fill_bar_index = bar_index;
         let order_bar_index = if self.config.process_orders_on_close {
@@ -401,7 +401,7 @@ impl Backtest {
         return trade;
     }
 
-    fn compute_equity_pct(&mut self, equity_pct: f64) -> Option<OrderConfig> {
+    pub fn compute_equity_pct(&mut self, equity_pct: f64) -> Option<OrderConfig> {
         let ctx = self.ctx.borrow();
         if self.equity() > 0.0 {
             if !equity_pct.compare(self.prev_equity_pct) {
@@ -435,7 +435,7 @@ impl Backtest {
         return None;
     }
 
-    fn next(&mut self) {
+    pub fn next(&mut self) {
         self.equity.push(f64::NAN);
         self.net_equity.push(f64::NAN);
     }
@@ -461,7 +461,7 @@ impl Backtest {
         }
     }
 
-    fn on_trade_open(&mut self, size: f64, entry_id: Option<String>) -> Result<(), TradeError> {
+    pub fn on_trade_open(&mut self, size: f64, entry_id: Option<String>) -> Result<(), TradeError> {
         let mut trade = Trade::new();
         trade.set_size(size)?;
 
@@ -488,7 +488,7 @@ impl Backtest {
         return Ok(());
     }
 
-    fn on_trade_close(
+    pub fn on_trade_close(
         &mut self,
         trade: &mut Trade,
         exit_id: Option<String>,
@@ -526,7 +526,7 @@ impl Backtest {
         return Ok(());
     }
 
-    fn process_orderbook(&mut self) -> Result<(), TradeError> {
+    pub fn process_orderbook(&mut self) -> Result<(), TradeError> {
         loop {
             let order_id = self.orderbook.borrow_mut().pop_front();
             if order_id.is_none() {
@@ -619,7 +619,7 @@ impl Backtest {
         return bt;
     }
 
-    fn log(&self, ctx: &str, msg: String) {
+    pub fn log(&self, ctx: &str, msg: String) {
         //     let obj = json!({
         //         "bar_index":self.ctx.borrow().bar_index(),
         //         "position":
@@ -779,7 +779,7 @@ for i = 0 to array.size(trades) - 1
     }
 
     #[cfg(feature = "pretty_table")]
-    fn print_table(&self) {
+    pub fn print_table(&self) {
         let rfr = 0.0;
         let sym = self.ctx.borrow().sym().clone();
         let f_price = with_suffix(&format!(" {}", sym._currency()));
@@ -957,11 +957,12 @@ for i = 0 to array.size(trades) - 1
             .enumerate()
             .map(|(i, &value)| (i as f32 + 1.0, value as f32))
             .collect();
+
         // let (w, h) = plot;
         // Chart::new(w, h, 1.0, self.net_equity_list().len() as f32)
         //     .lineplot(&Shape::Lines(&net_equity_line))
         //     .nice();
-        // auto width
+
         Chart::default()
             .lineplot(&Shape::Lines(&net_equity_line))
             .display();

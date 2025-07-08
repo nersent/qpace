@@ -16,7 +16,9 @@ export const TARGETS = [
   "node-x86_64-macos",
   "node-arm64-macos",
   "node-arm64-linux",
-  "node-universal",
+  "node-universal", // all platforms
+  //
+  "js-universal", // WASM + Node.js all platforms
   //
   "wasm-unknown-unknown",
 ] as const;
@@ -54,7 +56,7 @@ export interface Config {
   [key: string]: any;
   // bindings?: boolean;
   /* Removes unused functions, variables, etc. default: `true` */
-  // noDeadCode?: boolean;
+  noDeadCode?: boolean;
   /* Rust target config */
   rust?: RustConfig;
   /* Python target config */
@@ -63,6 +65,8 @@ export interface Config {
   node?: NodeConfig;
   /* JS/WASM/Browser target config */
   web?: WebConfig;
+  // Universal JS target config
+  js?: JsConfig;
   /* Emits compiled code to directory. default: `false` */
   emit?: boolean;
   /* Directory to emit compiled code and artifacts. default: `build` */
@@ -91,21 +95,44 @@ export type PythonConfig = Record<string, any> & {
 
 export type NodePackageManager = "auto" | "npm" | "yarn" | "pnpm" | "bun";
 
-export type NodeConfig = Record<string, any> & {
+export type NodeConfig = Record<string, any> & {};
+
+export type WebConfig = Record<string, any> & {};
+
+export type JsConfig = Record<string, any> & {
   /* Name of node package being built. default: `qpace_artifact` */
-  package?: string;
+  package?:
+    | string
+    | {
+        name: string;
+        version?: string;
+        description?: string;
+        homepage?: string;
+        author?: string;
+        repository?: {
+          type?: string;
+          url?: string;
+        };
+      };
   packageManager?: NodePackageManager;
   qpacePackage?: string;
 };
 
-export type WebConfig = Record<string, any> & {
-  /* Name of node package being built. default: `qpace_artifact` */
-  package?: string;
-  qpacePackage?: string;
+export const tryGetJsPackageName = (
+  config: JsConfig | undefined,
+): string | undefined => {
+  if (typeof config?.package === "string") {
+    return config.package;
+  }
+  if (typeof config?.package === "object" && config?.package.name) {
+    return config.package.name;
+  }
+  return;
 };
 
 export const getDefaultConfig = (): Config => {
   return {
+    noDeadCode: true,
     rust: {
       qpaceCoreCrate: "qpace_core",
     },
@@ -113,14 +140,12 @@ export const getDefaultConfig = (): Config => {
       package: "qpace_artifact",
       qpacePackage: "qpace",
     },
-    node: {
+    js: {
       package: "qpace_artifact",
       qpacePackage: "qpace",
     },
-    web: {
-      package: "qpace_artifact",
-      qpacePackage: "qpace",
-    },
+    node: {},
+    web: {},
     emit: false,
     out: "build",
     include: ["**/*.pine"],
@@ -143,12 +168,9 @@ export const getInitConfig = (): Config => {
     python: {
       package: pckgName,
     },
-    node: {
+    js: {
       package: pckgName,
       packageManager: "auto",
-    },
-    web: {
-      package: pckgName,
     },
     outDir: "build",
     include: ["**/*.pine"],
@@ -166,6 +188,10 @@ export const mergeConfigs = (config: Config, newConfig: Config): Config => {
     python: {
       ...config.python,
       ...newConfig.python,
+    },
+    js: {
+      ...config.js,
+      ...newConfig.js,
     },
     node: {
       ...config.node,

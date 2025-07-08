@@ -567,19 +567,25 @@ impl NodeOhlcv {
 impl NodeOhlcv {
     #[napi(js_name = "readCsv")]
     #[inline]
-    pub fn node_read_csv(path: String) -> Self {
+    pub fn node_read_csv(path: String, timeframe: Option<&NodeTimeframe>) -> Self {
         let mut ohlcv = Ohlcv::new();
         ohlcv.read_csv(Path::new(&path));
         let ohlcv: ArcOhlcv = ohlcv.into();
+        if let Some(tf) = timeframe {
+            ohlcv.set_timeframe(tf.into());
+        }
         return ohlcv.into();
     }
 
     #[napi(js_name = "readParquet")]
     #[inline]
-    pub fn node_read_parquet(path: String) -> Self {
+    pub fn node_read_parquet(path: String, timeframe: Option<&NodeTimeframe>) -> Self {
         let mut ohlcv = Ohlcv::new();
         ohlcv.read_parquet(Path::new(&path));
         let ohlcv: ArcOhlcv = ohlcv.into();
+        if let Some(tf) = timeframe {
+            ohlcv.set_timeframe(tf.into());
+        }
         return ohlcv.into();
     }
 
