@@ -18,7 +18,7 @@ import {
 import { basename, dirname, resolve } from "path";
 import { exists, readJson, writeJson } from "~/base/node/fs";
 import { CliError } from "./exceptions";
-import { readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import { isLinux, isMacOs, isWindows, which } from "~/base/node/os";
 import { mkdirSync } from "fs";
 import { downloadFileToPath } from "~/base/node/network";
@@ -107,14 +107,53 @@ export const fetchInfo = async (
   };
 };
 
-const loadQpcConfig = async (path: string): Promise<Config> => {
+export const isValidNpmPackageName = (name: string): boolean => {
+  if (name == null) return false;
+  name = name.trim();
+  if (typeof name !== "string" || name.length === 0 || name.length > 214)
+    return false;
+  if (/[A-Z]/.test(name)) return false; // no capitals
+  if (/^[._]/.test(name)) return false; // no leading . or _
+  if (/\s/.test(name)) return false; // no whitespace
+
+  // scoped package?
+  if (name.startsWith("@")) {
+    const [scope, pkg] = name.split("/");
+    if (!scope || !pkg) return false; // need exactly @scope/pkg
+
+    const scopeOk = /^@[a-z0-9][a-z0-9._-]*$/.test(scope);
+    const pkgOk = /^[a-z0-9][a-z0-9._-]*$/.test(pkg);
+    return scopeOk && pkgOk;
+  }
+
+  // unscoped
+  return /^[a-z0-9][a-z0-9._-]*$/.test(name);
+};
+
+export const isValidPipPackageName = (name: string): boolean => {
+  if (name == null) return false;
+  name = name.trim();
+  if (typeof name !== "string" || name.length === 0 || name.length > 255)
+    return false;
+  // core rule: first/last char alnum; middle chars alnum, dot, dash, underscore
+  return /^[A-Za-z0-9]+([A-Za-z0-9._-]*[A-Za-z0-9])?$/.test(name);
+};
+
+export const tryLoadQpcConfig = async (
+  path: string,
+): Promise<Config | undefined> => {
   let config = getInitConfig();
   if (await exists(path)) {
     config = mergeConfigs(config, await readJson(path));
-  } else {
-    throw new CliError(`QPC config file not found at "${chalk.yellow(path)}"`);
   }
   return config;
+};
+
+export const loadQpcConfig = async (path: string): Promise<Config> => {
+  return unwrap(
+    await tryLoadQpcConfig(path),
+    `QPC config file not found at "${chalk.yellow(path)}"`,
+  );
 };
 
 const collectSrcPaths = async (
@@ -473,11 +512,17 @@ const build = async ({
 export const getCommands = (): Command[] => {
   return [
     new Command("check")
+      .description(
+        "Analyzes the current project and reports errors, but doesn't build",
+      )
       .option("--cwd <path>", `Project root directory`)
       .option("--config <path>", `Path to the QPC config file`)
       .option("--verbose", `Prints verbose output`, false)
       .action(check),
     new Command("build")
+      .description(
+        "Compiles the project, produces artifacts like Python wheel, NPM package and optionally installs + tests them",
+      )
       .addOption(
         new Option("--target <target>", `Target platform`).choices(
           BUILD_TARGETS,

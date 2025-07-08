@@ -74,7 +74,13 @@ const rsi = qp.ta.rsi(ctx.copy(), ohlcv.close, 14);
 
 ## Pine from Python/JavaScript
 
-We designed and developed in-house Pine Script compiler that takes your original Pine Script code and compiles it to efficient rust code that is later exposed to Python, Node.js and Web/WASM with type hints. Easy interface and practically no hustle from your side. Our compiler supports any technical analysis indicator and strategy, while having extreme performance. This can be used for backtesting, parameter optimization, bot automation, machine learning and much more.
+We designed and developed in-house Pine Script compiler that takes your original Pine Script code and compiles it to efficient rust code that is later exposed to Python, Node.js and Web/WASM with type hints. Easy interface and practically no hustle from your side. Our compiler supports any technical analysis indicator and strategy, while having extreme performance.
+
+- bot automation
+- machine learning
+- backtesting
+- parameter optimization
+- and much more
 
 [Get started](https://qpace.dev)
 

@@ -1,0 +1,3 @@
+fileSet("examples", {
+  srcs: [glob("**/*.pine"), glob("**/*.py"), glob("**/*.js")],
+});

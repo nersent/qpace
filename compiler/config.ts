@@ -118,6 +118,18 @@ export type JsConfig = Record<string, any> & {
   qpacePackage?: string;
 };
 
+export const tryGetJsPackageName = (
+  config: JsConfig | undefined,
+): string | undefined => {
+  if (typeof config?.package === "string") {
+    return config.package;
+  }
+  if (typeof config?.package === "object" && config?.package.name) {
+    return config.package.name;
+  }
+  return;
+};
+
 export const getDefaultConfig = (): Config => {
   return {
     noDeadCode: true,

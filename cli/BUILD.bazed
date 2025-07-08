@@ -1,6 +1,7 @@
 tsLibrary("src", {
   srcs: glob("**/*.ts"),
   deps: [
+    "//cli/examples",
     "//:package_json",
     "//base/js",
     "//base/node",

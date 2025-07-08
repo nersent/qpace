@@ -1,0 +1,13 @@
+//@version=5
+indicator("IndicatorExample")
+
+src = input.source(close, title="Source")
+slow_length = input.int(30, title="Slow Length")
+fast_length = input.int(14, title="Fast Length")
+
+calculate_ma(series<float> src, int slow_length = 30, int fast_length = 14) =>
+    ta.rsi(src, slow_length) - ta.rsi(src, fast_length)
+
+// "var" allows us to access the "ma" local variable
+var float ma = 0.0
+ma := calculate_ma(src, slow_length, fast_length)
