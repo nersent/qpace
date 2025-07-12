@@ -60,7 +60,7 @@ export interface Config {
   /* Rust target config */
   rust?: RustConfig;
   /* Python target config */
-  python?: PythonConfig;
+  py?: PythonConfig;
   /* Node.js target config */
   node?: NodeConfig;
   /* JS/WASM/Browser target config */
@@ -88,7 +88,16 @@ export type RustConfig = Record<string, any> & {
 
 export type PythonConfig = Record<string, any> & {
   /* Name of python package being built. default: `qpace_artifact` */
-  package?: string;
+  package?:
+    | string
+    | {
+        name: string;
+        version?: string;
+        homepage?: string;
+        repository?: string;
+        author?: { name: string; email?: string }[];
+        keywords?: string[];
+      };
   /* Name of qpace python package. default: `qpace` */
   qpacePackage?: string;
 };
@@ -113,9 +122,22 @@ export type JsConfig = Record<string, any> & {
           type?: string;
           url?: string;
         };
+        keywords?: string[];
       };
   packageManager?: NodePackageManager;
   qpacePackage?: string;
+};
+
+export const tryGetPythonPackageName = (
+  config: PythonConfig | undefined,
+): string | undefined => {
+  if (typeof config?.package === "string") {
+    return config.package;
+  }
+  if (typeof config?.package === "object" && config?.package.name) {
+    return config.package.name;
+  }
+  return;
 };
 
 export const tryGetJsPackageName = (
@@ -136,7 +158,7 @@ export const getDefaultConfig = (): Config => {
     rust: {
       qpaceCoreCrate: "qpace_core",
     },
-    python: {
+    py: {
       package: "qpace_artifact",
       qpacePackage: "qpace",
     },
@@ -165,7 +187,7 @@ export const getInitConfig = (): Config => {
   return {
     install: true,
     test: true,
-    python: {
+    py: {
       package: pckgName,
     },
     js: {
@@ -173,7 +195,7 @@ export const getInitConfig = (): Config => {
       packageManager: "auto",
     },
     outDir: "build",
-    include: ["**/*.pine"],
+    include: ["README.md", "**/*.pine"],
   };
 };
 
@@ -185,9 +207,9 @@ export const mergeConfigs = (config: Config, newConfig: Config): Config => {
       ...config.rust,
       ...newConfig.rust,
     },
-    python: {
-      ...config.python,
-      ...newConfig.python,
+    py: {
+      ...config.py,
+      ...newConfig.py,
     },
     js: {
       ...config.js,

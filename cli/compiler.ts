@@ -14,6 +14,7 @@ import {
   QPC_CONFIG_FILENAME,
   Target,
   TARGETS,
+  tryGetPythonPackageName,
 } from "~/compiler/config";
 import { basename, dirname, resolve } from "path";
 import { exists, readJson, writeJson } from "~/base/node/fs";
@@ -205,6 +206,8 @@ const check = async ({
   config?: string;
   verbose?: boolean;
 }): Promise<void> => {
+  const profile = await Profile.load();
+  await profile.ping();
   cwd ??= process.cwd();
   verbose && console.log(chalk.blackBright(`CWD: ${cwd}`));
   const [compilerClient, grpcMetadata] = await getCompilerClient();
@@ -306,13 +309,16 @@ const build = async ({
     target = BuildTarget.tryIntoTarget(rawTarget);
     if (target == null) throw new CliError(`Invalid target: ${rawTarget}`);
   }
+
+  const profile = await Profile.load();
+  await profile.ping();
+  const client = await profile.getClient();
+
   cwd ??= process.cwd();
   verbose && console.log(chalk.blackBright(`CWD: ${cwd}`));
 
   const pythonPath = await locatePython();
   const pythonVersion = await getPythonVersion(pythonPath);
-  const profile = await Profile.load();
-  const client = await profile.getClient();
 
   client["_clientInfo"]["python"] = pythonVersion;
 
@@ -320,7 +326,7 @@ const build = async ({
   const qpcConfig = await loadQpcConfig(
     configPath ?? resolve(cwd, QPC_CONFIG_FILENAME),
   );
-  qpcConfig.python ??= {};
+  qpcConfig.py ??= {};
   qpcConfig.js ??= {};
   qpcConfig.node ??= {};
   qpcConfig.web ??= {};
@@ -346,6 +352,9 @@ const build = async ({
       }
     }
   }
+
+  // console.log("XD", qpcConfig);
+  // process.exit();
 
   const srcPaths = await collectSrcPaths(qpcConfig, cwd);
   verbose && printOutcoming(srcPaths);
@@ -422,9 +431,9 @@ const build = async ({
               if (ok && qpcConfig.test) {
                 pb.text = `Testing Python wheel`;
                 const res = await exec({
-                  command: `${pythonPath} -c "import ${
-                    qpcConfig.python!.package
-                  }"`,
+                  command: `${pythonPath} -c "import ${tryGetPythonPackageName(
+                    qpcConfig.py,
+                  )}"`,
                   io: verbose,
                 });
                 if (res.exitCode !== 0 || res.stdout.includes("ERROR")) {
@@ -478,7 +487,7 @@ const build = async ({
     console.log(chalk.greenBright(`\nUse following:`));
     if (target?.includes("python")) {
       console.log(
-        chalk.greenBright(`import ${qpcConfig.python!.package} as pine;`),
+        chalk.greenBright(`import ${qpcConfig.py!.package} as pine;`),
       );
     } else if (target?.includes("node")) {
       console.log(
