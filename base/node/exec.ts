@@ -18,6 +18,7 @@ export interface ExecOptions {
   returnChild?: boolean;
   detached?: boolean;
   verbose?: boolean;
+  throw?: boolean;
 }
 
 export interface ExecResult {
@@ -54,7 +55,7 @@ export async function exec(options: ExecOptions): Promise<ExecResult> {
   const req = {
     command: commandStr,
     args: args ?? [],
-    env: options.env ?? process.env,
+    env: options.env ?? {},
     shell: options.shell ?? true,
     cwd: options.cwd ?? undefined,
     stdio:
@@ -66,70 +67,75 @@ export async function exec(options: ExecOptions): Promise<ExecResult> {
     returnChild: options.returnChild,
   };
 
-  const execRes = await new Promise<ExecResult>((resolvePromise) => {
-    const env = req.env;
-    const cwd = req.cwd != null ? resolve(req.cwd) : undefined;
+  const execRes = await new Promise<ExecResult>(
+    (resolvePromise, rejectPromise) => {
+      const env = req.env;
+      const cwd = req.cwd != null ? resolve(req.cwd) : undefined;
 
-    if (tmpScriptPath) {
-      commandStr = `bash "${tmpScriptPath}"`;
-    }
-
-    const child = spawn(commandStr, req.args, {
-      env,
-      shell: req.shell,
-      cwd,
-      stdio: req.stdio as any,
-      detached: options.detached,
-    });
-
-    if (req.returnChild) {
-      return resolvePromise(child as any);
-    }
-
-    let stdout = "";
-    const stderr = "";
-
-    let exitCode: number | null = null;
-    let signal: NodeJS.Signals | null = null;
-    let killTimer: NodeJS.Timeout | undefined;
-
-    let alreadyFinished = false;
-
-    const finish = (): void => {
-      if (alreadyFinished) {
-        throw new Error("Already finished. This should not happen");
+      if (tmpScriptPath) {
+        commandStr = `bash "${tmpScriptPath}"`;
       }
-      alreadyFinished = true;
-      clearTimeout(killTimer);
-      const res: ExecResult = {
-        stdout,
-        stderr,
-        command: commandStr,
-        exitCode: exitCode ?? 0,
-        signal: signal ?? undefined,
+
+      const child = spawn(commandStr, req.args, {
+        env,
+        shell: req.shell,
+        cwd,
+        stdio: req.stdio as any,
+        detached: options.detached,
+      });
+
+      if (req.returnChild) {
+        return resolvePromise(child as any);
+      }
+
+      let stdout = "";
+      const stderr = "";
+
+      let exitCode: number | null = null;
+      let signal: NodeJS.Signals | null = null;
+      let killTimer: NodeJS.Timeout | undefined;
+
+      let alreadyFinished = false;
+
+      const finish = (): void => {
+        if (alreadyFinished) {
+          throw new Error("Already finished. This should not happen");
+        }
+        alreadyFinished = true;
+        clearTimeout(killTimer);
+        const res: ExecResult = {
+          stdout,
+          stderr,
+          command: commandStr,
+          exitCode: exitCode ?? 0,
+          signal: signal ?? undefined,
+        };
+        if (exitCode !== 0 && options.throw) {
+          return rejectPromise(res);
+        }
+        resolvePromise(res);
       };
-      resolvePromise(res);
-    };
 
-    child.stdout?.on("data", (data) => {
-      stdout += data;
-      if (options.verbose) {
-        process.stdout.write(data);
-      }
-    });
-    child.stderr?.on("data", (data) => {
-      stdout += data;
-      if (options.verbose) {
-        process.stderr.write(data);
-      }
-    });
+      child.stdout?.on("data", (data) => {
+        stdout += data;
+        if (options.verbose) {
+          process.stdout.write(data);
+        }
+      });
+      child.stderr?.on("data", (data) => {
+        stdout += data;
+        if (options.verbose) {
+          process.stderr.write(data);
+        }
+      });
 
-    child.on("exit", (_exitCode, _signal) => {
-      exitCode = _exitCode;
-      signal = _signal;
-      finish();
-    });
-  });
+      child.on("exit", (_exitCode, _signal) => {
+        exitCode = _exitCode;
+        signal = _signal;
+        finish();
+      });
+    },
+  );
   execRes.command = req.command;
 
   return execRes;

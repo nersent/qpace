@@ -10,8 +10,8 @@ smoothingLength = input.int(21, title="RSI Smoothing Length", group="RSI Setting
 rsiInputSource = input.source(close, title="RSI Source", group="RSI Settings")
 isSmoothed = input.bool(false, "Smooth RSI?", group="RSI Settings")
 
-movingAverageLength = input.int(14, title="MA Length", group="MA Settings", display = display.data_window)
-movingAverageType = input.string("HMA", title="MA Type", options=["SMA", "HMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], group="MA Settings", display = display.data_window)
+movingAverageLength = input.int(14, title="MA Length", group="MA Settings") // , display = display.data_window
+movingAverageType = input.string("HMA", title="MA Type", options=["SMA", "HMA", "EMA", "SMMA (RMA)", "WMA", "VWMA"], group="MA Settings") // , display = display.data_window
 // showMovingAverage = input.bool(true, "Show RSI MA?", group="MA Settings")
 
 trendFactor = input.float(0.8, title="Factor", group="Super Trend Settings")

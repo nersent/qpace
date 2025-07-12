@@ -2,10 +2,22 @@
   "install": false,
   "test": false,
   "py": {
-    "package": "algoalpha"
+    "package": {
+      "name": "algoalpha",
+      "version": "0.0.1"
+    }
   },
   "js": {
-    "package": "algoalpha"
+    "package": {
+      "name": "algoalpha",
+      "version": "0.0.1"
+    }
   },
-  "include": ["supertrended_rsi.pine"]
+  "include": [
+    "adaptive_schaff_trend_cycle.pine",
+    "amazing_oscillator.pine",
+    "exponential_trend.pine",
+    "supertrended_rsi.pine",
+    "triple_smoothed_signals.pine"
+  ]
 }

@@ -1,0 +1,12 @@
+fileSet("pine", {
+  srcs: [".qpace_json", glob("*.pine")],
+});
+
+tsLibrary("src", {
+  srcs: ["build.ts"],
+});
+
+nodeEntry("algoalpha", {
+  main: "build.js",
+  deps: ["//base/node", ":src", ":pine"],
+});

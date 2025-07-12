@@ -1,6 +1,6 @@
 import { FSWatcher, Stats } from "fs";
 import { mkdtemp, readFile, stat, writeFile } from "fs/promises";
-import { FileHandle, mkdir as _mkdir } from "node:fs/promises";
+import { FileHandle, mkdir as _mkdir, readdir, unlink } from "node:fs/promises";
 import { tmpdir } from "os";
 import { resolve } from "path";
 
@@ -74,4 +74,26 @@ export const watchPaths = async (
   });
 
   return { cancel: (): void => watcher?.close() };
+};
+
+export const clearDir = async (path: string): Promise<void> => {
+  if (!(await exists(path))) {
+    return;
+  }
+
+  const files = await readdir(path);
+
+  await Promise.all(
+    files.map(async (file) => await deleteFile(resolve(path, file))),
+  );
+};
+
+export const deleteFile = async (path: string): Promise<void> => {
+  try {
+    await unlink(path);
+  } catch (err) {
+    if ((err as any)?.code !== "ENOENT") {
+      throw err;
+    }
+  }
 };
