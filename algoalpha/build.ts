@@ -47,6 +47,9 @@ const main = async (): Promise<void> => {
       },
     });
   }
+
+  // python -m twine upload out/algoalpha/*.whl
+  // npm publish --access public out/algoalpha/algoalpha-0.0.1.tgz
 };
 
 main();
