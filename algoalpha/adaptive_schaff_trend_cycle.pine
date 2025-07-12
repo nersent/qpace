@@ -1,0 +1,79 @@
+//@version=5
+indicator(title='Adaptive Schaff Trend Cycle (STC) [AlgoAlpha]', shorttitle='AlgoAlpha - Adaptive 𝓢𝓣𝓒', overlay=false)
+length = input.int(55, 'Adaptive Logic Length', minval = 1)
+lengthInput = input.int(12, 'STC Length', minval = 1) 
+smoothingFactor = input.float(0.45, 'STC Sensitivity', minval = 0.0001, maxval = 1)
+fastLength = input.int(26, 'MACD Fast Length', minval = 1) 
+slowLength = input.int(50, 'MACD Slow Length', minval = 1)
+// upColor = input.color(#6f6f6f, "Up Color")
+// downColor = input.color(#ff0000, "Down Color")
+
+calculateMACD(source, fastLength, slowLength) =>
+    var macd = 0.
+    var lag  = (9 - 1) / 2
+    var a1   = 2 / (fastLength + 1)
+    var a2   = 2 / (slowLength + 1)
+    r2 = .5 * math.pow(ta.correlation(close, bar_index, length), 2) + .5
+    K = r2 * ((1 - a1) * (1 - a2)) + (1 - r2) * ((1 - a1) / (1 - a2))
+    macd := (close - close[1]) * (a1 - a2) + (-a2 - a1 + 2) * nz(macd[1]) - K * nz(macd[2])
+    ema = ta.ema(macd, 9)
+    macd
+
+calculateSTC(lengthInput, fastLength, slowLength) =>
+    var normalizedMACD = 0.0
+    var smoothedMACD = 0.0
+    var smoothedNormalizedMACD = 0.0
+    var STCValue = 0.0
+    MACDValue = calculateMACD(close, fastLength, slowLength)
+    lowestMACD = ta.lowest(MACDValue, lengthInput)
+    highestMACD = ta.highest(MACDValue, lengthInput) - lowestMACD
+    normalizedMACD := highestMACD > 0 ? (MACDValue - lowestMACD) / highestMACD * 100 : nz(normalizedMACD[1])
+    smoothedMACD := na(smoothedMACD[1]) ? normalizedMACD : smoothedMACD[1] + smoothingFactor * (normalizedMACD - smoothedMACD[1])
+    lowestSmoothedMACD = ta.lowest(smoothedMACD, lengthInput)
+    highestSmoothedMACD = ta.highest(smoothedMACD, lengthInput) - lowestSmoothedMACD
+    smoothedNormalizedMACD := highestSmoothedMACD > 0 ? (smoothedMACD - lowestSmoothedMACD) / highestSmoothedMACD * 100 : nz(smoothedNormalizedMACD[1])
+    STCValue := na(STCValue[1]) ? smoothedNormalizedMACD : STCValue[1] + smoothingFactor * (smoothedNormalizedMACD - STCValue[1])
+    [STCValue-50, MACDValue]
+
+[STCValue, MACDValue] = calculateSTC(lengthInput, fastLength, slowLength)
+
+MACDValue := (MACDValue) / (ta.ema(high - low, slowLength)) * 100
+
+MACDValue := ((MACDValue) - ta.ema(MACDValue, 9))/2
+
+// --------------------- EXPORTED ---------------------
+var float stc = na
+stc := STCValue
+var float macd = na
+macd := MACDValue
+// ----------------------------------------------------
+
+// tv = 80
+// STCColor = STCValue > STCValue[1] ? color.from_gradient(STCValue, 0, 50, color.new(upColor, tv), color.new(upColor, 0)) : color.from_gradient(STCValue, -50, 0, color.new(downColor, 0), color.new(downColor, tv))
+
+// p1 = plot(STCValue, color=STCColor, title='STC', linewidth=2, style = plot.style_linebr) //STCValue > STCValue[1] and STCValue > 0 ? STCValue : STCValue < STCValue[1] and STCValue < 0 ? STCValue : na
+// p2 = plot(STCValue[1], display = display.none)
+// plot(MACDValue, title='Histogram', style = plot.style_columns, color = (MACDValue > MACDValue[1] and MACDValue > 0) ? color.new(upColor, 50) : (MACDValue < MACDValue[1] and MACDValue < 0) ?  color.new(downColor, 50) : MACDValue < 0 ? color.new(downColor, 80) : color.new(upColor, 80))
+// midLine = plot(0, color=color.new(color.gray, 70))
+// upperLine = plot(-25, color=color.new(color.gray, 70))
+// lowerLine = plot(25, color=color.new(color.gray, 70))
+// overboughtLine = plot(60, color=color.new(color.gray, 70))
+// oversoldLine = plot(-60, color=color.new(color.gray, 70))
+// plotchar(ta.cross(STCValue, STCValue[1]) ? STCValue[1] : na, "STC Trend Shift", "●", location.absolute, STCValue > STCValue[1] ? upColor : downColor)
+// fill(p1, p2, STCValue > STCValue[1] ? color.new(upColor, 90) : color.new(downColor, 90))
+// fill(upperLine, lowerLine, color=color.new(color.gray, 96))
+// fill(midLine, overboughtLine, top_value = 60, bottom_value = 30, bottom_color = na, top_color = color.from_gradient(STCValue, -50, 50, color.new(color.new(downColor, 50),100), color.new(color.new(downColor, 50),40)))
+// fill(midLine, oversoldLine, top_value =  -30, bottom_value = -60, bottom_color = color.from_gradient(STCValue, -50, 50, color.new(color.new(upColor, 50),40), color.new(color.new(upColor, 50),100)), top_color = na)
+
+// ///////////////Alerts
+// alertcondition(ta.crossover(STCValue, STCValue[1]), "STC Moving Up")
+// alertcondition(ta.crossunder(STCValue, STCValue[1]), "STC Moving Down")
+
+// alertcondition(ta.crossover(STCValue, 0), "STC Crossover Zero")
+// alertcondition(ta.crossunder(STCValue, 0), "STC Crossunder Zero")
+
+// alertcondition(ta.crossover(MACDValue, 0), "Histogram Crossover Zero")
+// alertcondition(ta.crossunder(MACDValue, 0), "Histogram Crossunder Zero")
+
+// alertcondition(ta.crossover(MACDValue, MACDValue[1]), "Histogram Moving Up")
+// alertcondition(ta.crossunder(MACDValue, MACDValue[1]), "Histogram Moving Down")
