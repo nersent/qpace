@@ -18,8 +18,8 @@ ma(source, length, MAtype) =>
         "RMA"                   => ta.rma(source, length)
         "WMA"                   => ta.wma(source, length)
 
-var float m1 = na
-var float m2 = na
+var float v1 = na
+var float v2 = na
 var float dist = na
 var float ndist = na
 var float h = na
