@@ -1,0 +1,11 @@
+{
+  "install": false,
+  "test": false,
+  "py": {
+    "package": "algoalpha"
+  },
+  "js": {
+    "package": "algoalpha"
+  },
+  "include": ["supertrended_rsi.pine"]
+}

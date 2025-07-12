@@ -71,10 +71,10 @@ export class Client {
     return this._grpcMetadata.clone();
   }
 
-  public async me(): Promise<{ id: string; name: string }> {
+  public async me(): Promise<{ id: string; firstName?: string }> {
     const {
       data: { user },
-    } = await this.http.get(`/api_keys/${this.config.apiKey}`);
+    } = await this.http.get(`/api-keys/${this.config.apiKey}`);
     return user;
   }
 }

@@ -1,0 +1,51 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © AlgoAlpha
+
+//@version=6
+indicator("Triple Smoothed Signals [AlgoAlpha]", "AlgoAlpha - Triple Smoothed", overlay = true)
+slength = input.int(7, "Main Smoothing Length", tooltip="Length for main smoothing", group="Moving Average Settings")
+siglen = input.int(12, "Signal Length", tooltip="Length for signal smoothing", group="Moving Average Settings")
+src = input.source(close, "Data Source", tooltip="Data source for calculations", group="Moving Average Settings")
+mat = input.string("EMA", "Triple Smoothed Moving Average Type", ["EMA", "SMA", "RMA", "WMA"], tooltip="Type of moving average used for triple smoothing", group="Moving Average Settings")
+mat1 = input.string("EMA", "Signal Type", ["EMA", "SMA", "RMA", "WMA"], tooltip="Type of moving average used for signal line", group="Moving Average Settings")
+green = input.color(#ffc800, title = "Bullish Color", tooltip = "Color used for bullish signals and trends", group = "Appearance")
+red = input.color(#ff0077, title = "Bearish Color", tooltip = "Color used for bearish signals and trends", group = "Appearance")
+
+ma(source, length, MAtype) =>
+    switch MAtype
+        "SMA"                   => ta.sma(source, length)
+        "EMA"                   => ta.ema(source, length)
+        "RMA"                   => ta.rma(source, length)
+        "WMA"                   => ta.wma(source, length)
+
+var float m1 = na
+var float m2 = na
+var float dist = na
+var float ndist = na
+var float h = na
+var float l = na
+var float midp = na
+
+v1 := ma(ma(ma(src, slength, mat), slength, mat), slength, mat)
+v2 := ma(v1, siglen, mat1)
+
+dist := v2 - v1
+ndist := (dist - ta.lowest(dist, 70))/(ta.highest(dist, 70) - ta.lowest(dist, 70))
+h := ta.highest(v1, 7)
+l := ta.lowest(v1, 7)
+midp := (open + close) / 2
+
+// p1 = plot(v1, title="Triple Smoothed MA", display = display.none)
+// p2 = plot(v2, title="Signal Line", display = display.none)
+// p3 = plot(math.abs(v2-midp) < math.abs(v1-midp) ? v2 : v1, title="Closer Line to Midpoint", display = display.none)
+// pm = plot(midp, title="Midpoint", display = display.none)
+
+// fill(p3, pm, color.new(chart.fg_color, 90))
+
+// fill(p1, p2, color.from_gradient(ndist, 0, 1, green, red))
+
+// plotshape(ta.crossunder(v2,v1) ? l : na, title="Bullish Signal", style = shape.labelup, location=location.absolute, size = size.small, color = green)
+// plotshape(ta.crossover(v2,v1) ? h : na, title="Bearish Signal", style = shape.labeldown, location=location.absolute, size = size.small, color = red)
+
+// alertcondition(ta.crossunder(v2,v1), title="Bullish Signal")
+// alertcondition(ta.crossover(v2,v1), title="Bearish Signal")

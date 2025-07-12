@@ -24,7 +24,7 @@ export const getCommands = (): Command[] => {
             verbose &&
               console.log(
                 `${QPACE_BG_PREFIX}Logged in as ${chalk.yellowBright(
-                  user.name,
+                  user.firstName,
                 )}`,
               );
           } catch (e) {

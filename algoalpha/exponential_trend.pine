@@ -1,0 +1,87 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © AlgoAlpha
+
+//@version=6
+indicator("Exponential Trend [AlgoAlpha]", "AlgoAlpha - Exponential", true)
+expRate = input.float(0.00003, "Exponential Rate", minval=0, maxval=0.5, step=0.01, 
+     tooltip="Controls how quickly the trend line accelerates", group="Trend Settings")
+initialDistance = input.float(4, "Initial Distance", minval=0.1, step=0.1,
+     tooltip="Controls the initial distance of the Trend Line from price", group="Trend Settings")
+widthMultiplier = input.float(1.0, "Width Multiplier", minval=0.1, step=0.1,
+     tooltip="Multiplies the volatility to extend the distance between trend lines", group="Trend Settings")
+// green = input.color(#00ffbb, title="Bullish Color", tooltip="Color used for bullishness", group="Appearance")
+// red = input.color(#ff1100, title="Bearish Color", tooltip="Color used for bearishness", group="Appearance")
+
+pine_supertrend(factor, atrPeriod) =>
+    src = hl2
+    atr = ta.atr(atrPeriod)
+    upperBand = src + factor * atr
+    lowerBand = src - factor * atr
+    prevLowerBand = nz(lowerBand[1])
+    prevUpperBand = nz(upperBand[1])
+
+    lowerBand := lowerBand > prevLowerBand or close[1] < prevLowerBand ? lowerBand : prevLowerBand
+    upperBand := upperBand < prevUpperBand or close[1] > prevUpperBand ? upperBand : prevUpperBand
+    int _direction = na
+    float superTrend = na
+    prevSuperTrend = superTrend[1]
+    if na(atr[1])
+        _direction := 1
+    else if prevSuperTrend == prevUpperBand
+        _direction := close > upperBand ? -1 : 1
+    else
+        _direction := close < lowerBand ? 1 : -1
+    [upperBand, lowerBand, _direction]
+
+[upper, lower, dir] = pine_supertrend(initialDistance, 14)
+
+var _initial = 0.0
+var trend = 0
+
+if bar_index == 100
+    if dir < 0
+        _initial := lower
+        trend := 1
+    else
+        _initial := upper
+        trend := -1
+
+crossoverCondition = ta.crossover(close, _initial)
+crossunderCondition = ta.crossunder(close, _initial)
+
+if crossoverCondition
+    _initial := lower
+    trend := 1    
+if crossunderCondition
+    _initial := upper
+    trend := -1    
+
+barsElapsed = ta.barssince(trend != trend[1])
+
+expMultiplier = math.min(1 + trend * (1 - math.exp(-expRate * barsElapsed)), 900)
+
+_initial := _initial * expMultiplier
+volatility = ta.atr(14)
+init_ = _initial + (trend > 0 ? volatility * widthMultiplier : -volatility * widthMultiplier)
+
+// --------------------- EXPORTED ---------------------
+// _initial, trend
+// ----------------------------------------------------
+
+// plot(trend == 1 ? _initial : na, color = green, style = plot.style_linebr, linewidth = 2)
+// plot(trend == -1 ? _initial : na, color = red, style = plot.style_linebr, linewidth = 1)
+// plot(trend == 1 ? init_ : na, color = color.new(green, 70), style = plot.style_linebr, linewidth = 2)
+// plot(trend == -1 ? init_ : na, color = color.new(red, 70), style = plot.style_linebr, linewidth = 2)
+// upTrendBase = plot(trend == 1 ? _initial : na, color = green, style = plot.style_linebr, linewidth = 2, title = "Uptrend Base")
+// downTrendBase = plot(trend == -1 ? _initial : na, color = red, style = plot.style_linebr, linewidth = 1, title = "Downtrend Base")
+// upTrendExt = plot(trend == 1 ? init_ : na, color = color.new(green, 70), style = plot.style_linebr, linewidth = 2, title = "Uptrend Extension")
+// downTrendExt = plot(trend == -1 ? init_ : na, color = color.new(red, 70), style = plot.style_linebr, linewidth = 2, title = "Downtrend Extension")
+
+// fill(upTrendBase, upTrendExt, trend == 1 ? _initial : na, trend == 1 ? init_ : na, color.new(green, 70), color.new(chart.bg_color, 90), title = "Uptrend Fill")
+// fill(downTrendBase, downTrendExt, trend == -1 ? _initial : na, trend == -1 ? init_ : na, color.new(red, 70), color.new(chart.bg_color, 90), title = "Downtrend Fill")
+
+// plotchar(crossoverCondition ? _initial - volatility : na, "Bullish Trend Change", "▲", location.absolute, green, size = size.tiny)
+// plotchar(crossunderCondition ? _initial + volatility : na, "Bearish Trend Change", "▼", location.absolute, red, size = size.tiny)
+
+// alertcondition(crossoverCondition, title="Bullish Trend Change", message="Exponential Trends: Bullish trend change detected")
+// alertcondition(crossunderCondition, title="Bearish Trend Change", message="Exponential Trends: Bearish trend change detected")
