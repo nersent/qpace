@@ -368,7 +368,7 @@ impl PySym {
     #[staticmethod]
     #[pyo3(name = "from_dict")]
     pub fn py_from_dict(_py: Python<'_>, dict: &Bound<'_, PyAny>) -> PyResult<PySym> {
-        PySym::extract_bound(dict)
+        PySym::from_py(dict)
     }
 
     #[pyo3(name = "to_dict")]

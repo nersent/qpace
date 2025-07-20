@@ -169,7 +169,7 @@ const collectSrcPaths = async (
       includes.map((r) => glob(r, { cwd, ignore: excludes })),
     ).then((r) => r.flat())),
   );
-  return srcPaths.map((r) => basename(r, cwd));
+  return srcPaths;
 };
 
 const readSrcFiles = async (
