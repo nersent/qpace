@@ -40,6 +40,7 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target node-universal --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
+      env: process.env,
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
@@ -57,6 +58,7 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target web --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
+      env: process.env,
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
@@ -74,16 +76,20 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target python --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
+      env: process.env,
     });
     const wheelFilename = readdirSync(tmpDir).find((f) => f.endsWith(".whl"));
-    if (wheelFilename == null)
+    if (wheelFilename == null) {
+      console.log(readdirSync(tmpDir));
       throw new Error("No wheel file found in tmp directory");
+    }
     await exec({
       command: `python -m wheel unpack ${resolve(
         tmpDir,
         wheelFilename,
       )} -d ${tmpDir}`,
       verbose: true,
+      env: process.env,
     });
     const files = readdirSync(resolve(tmpDir), {
       withFileTypes: true,
