@@ -93,7 +93,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama twine
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
