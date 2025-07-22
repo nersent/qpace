@@ -8,27 +8,27 @@ import { BuildTarget } from "~/cli/compiler";
 const WORKSPACE_PATH = process.env["BAZED_WORKSPACE_ROOT"] ?? process.cwd();
 
 const main = async (): Promise<void> => {
-  const root = resolve(WORKSPACE_PATH, "algoalpha");
+  const root = resolve(WORKSPACE_PATH, "suite");
   const baseCommand = "pnpm bazed run //cli:main --verbose --";
   await exec({
     command: `${baseCommand} --version`,
     io: true,
   });
-  const outDir = resolve(WORKSPACE_PATH, "out/algoalpha");
+  const outDir = resolve(WORKSPACE_PATH, "out/suite");
   console.log(chalk.magentaBright(outDir));
   await clearDir(outDir);
   await mkdir(outDir, { recursive: true });
 
   const targets: BuildTarget[] = [
-    "python-x86_64-windows",
-    "python-x86_64-macos",
-    "python-x86_64-linux",
-    "python-arm64-macos",
-    "python-arm64-linux",
-    "js",
+    // "python-x86_64-windows",
+    // "python-x86_64-macos",
+    // "python-x86_64-linux",
+    // "python-arm64-macos",
+    // "python-arm64-linux",
+    // "js",
     //
     // "wasm-unknown-unknown",
-    // "node-x86_64-windows",
+    "node-x86_64-windows",
     // "node-x86_64-linux",
     // "node-x86_64-macos",
     // "node-arm64-linux",
@@ -43,7 +43,7 @@ const main = async (): Promise<void> => {
       throw: true,
       env: {
         ...process.env,
-        // DEV: true,
+        DEV: true,
       },
     });
   }

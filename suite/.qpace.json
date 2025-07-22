@@ -1,0 +1,38 @@
+{
+  "install": false,
+  "test": false,
+  "py": {
+    "package": {
+      "name": "qpace_suite",
+      "version": "0.0.1",
+      "description": "📊 Best TA Suite for qPACE - The Quant SDK for Python and Javascript.",
+      "homepage": "https://qpace.dev",
+      "repository": "https://github.com/nersent/qpace"
+    }
+  },
+  "js": {
+    "package": {
+      "name": "@qpace/suite",
+      "version": "0.0.1",
+      "description": "📊 Best TA Suite for qPACE - The Quant SDK for Python and Javascript.",
+      "homepage": "https://qpace.dev",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/nersent/qpace"
+      }
+    }
+  },
+  "include": [
+    "algoalpha/adaptive_schaff_trend_cycle.pine",
+    "algoalpha/amazing_oscillator.pine",
+    "algoalpha/donchain_trend_ranges.pine",
+    "algoalpha/exponential_trend.pine",
+    "algoalpha/supertrended_rsi.pine",
+    "algoalpha/triple_smoothed_signals.pine",
+    "jdehorty/kernel_functions.pine",
+    "jdehorty/ml_extensions.pine",
+    "jdehorty/machine_learning_lorentzian_classification.pine",
+    "jdehorty/wavetrend_3d.pine",
+    "jdehorty/nadaraya_watson_envelope.pine"
+  ]
+}

@@ -14,6 +14,7 @@ import {
   QPC_CONFIG_FILENAME,
   Target,
   TARGETS,
+  tryGetJsPackageName,
   tryGetPythonPackageName,
 } from "~/compiler/config";
 import { basename, dirname, resolve } from "path";
@@ -47,35 +48,45 @@ export namespace BuildTarget {
       return buildTarget as Target;
     }
     const arch = process.arch;
-    if (buildTarget === "python" && isMacOs() && arch === "arm64") {
-      return "python-arm64-macos";
-    }
-    if (buildTarget === "python" && isMacOs() && arch === "x64") {
-      return "python-x86_64-macos";
-    }
-    if (buildTarget === "python" && isWindows() && arch === "x64") {
-      return "python-x86_64-windows";
-    }
-    if (buildTarget === "python" && isLinux() && arch === "x64") {
-      return "python-x86_64-linux";
-    }
-    if (buildTarget === "node" && isMacOs() && arch === "arm64") {
-      return "node-arm64-macos";
-    }
-    if (buildTarget === "node" && isMacOs() && arch === "x64") {
-      return "node-x86_64-macos";
-    }
-    if (buildTarget === "node" && isWindows() && arch === "x64") {
-      return "node-x86_64-windows";
-    }
-    if (buildTarget === "node" && isLinux() && arch === "x64") {
-      return "node-x86_64-linux";
-    }
-    if (buildTarget === "web" || buildTarget === "wasm") {
-      return "wasm-unknown-unknown";
-    }
-    if (buildTarget === "js") {
-      return "js-universal";
+    {
+      if (buildTarget === "python" && isMacOs() && arch === "x64") {
+        return "python-x86_64-macos";
+      }
+      if (buildTarget === "python" && isMacOs() && arch === "arm64") {
+        return "python-arm64-macos";
+      }
+      if (buildTarget === "python" && isLinux() && arch === "x64") {
+        return "python-x86_64-linux";
+      }
+      if (buildTarget === "python" && isLinux() && arch === "arm64") {
+        return "python-arm64-linux";
+      }
+      if (buildTarget === "python" && isWindows() && arch === "x64") {
+        return "python-x86_64-windows";
+      }
+      //
+      if (buildTarget === "node" && isMacOs() && arch === "x64") {
+        return "node-x86_64-macos";
+      }
+      if (buildTarget === "node" && isMacOs() && arch === "arm64") {
+        return "node-arm64-macos";
+      }
+      if (buildTarget === "node" && isLinux() && arch === "x64") {
+        return "node-x86_64-linux";
+      }
+      if (buildTarget === "node" && isLinux() && arch === "arm64") {
+        return "node-arm64-linux";
+      }
+      if (buildTarget === "node" && isWindows() && arch === "x64") {
+        return "node-x86_64-windows";
+      }
+      //
+      if (buildTarget === "web" || buildTarget === "wasm") {
+        return "wasm-unknown-unknown";
+      }
+      if (buildTarget === "js") {
+        return "js-universal";
+      }
     }
     return;
   };
@@ -487,24 +498,28 @@ const build = async ({
     console.log(chalk.greenBright(`\nUse following:`));
     if (target?.includes("python")) {
       console.log(
-        chalk.greenBright(`import ${qpcConfig.py!.package} as pine;`),
-      );
-    } else if (target?.includes("node")) {
-      console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/node";`,
+          `import ${tryGetPythonPackageName(qpcConfig.py)} as pine;`,
         ),
       );
     } else if (target?.includes("node")) {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/web";`,
+          `import * as pine from "${tryGetJsPackageName(qpcConfig.js)}/node";`,
+        ),
+      );
+    } else if (target?.includes("node")) {
+      console.log(
+        chalk.greenBright(
+          `import * as pine from "${tryGetJsPackageName(qpcConfig.js)}/web";`,
         ),
       );
     } else if (target === "js-universal") {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/node|web";`,
+          `import * as pine from "${tryGetJsPackageName(
+            qpcConfig.js,
+          )}/node|web";`,
         ),
       );
     }

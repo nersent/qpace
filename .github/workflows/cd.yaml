@@ -1,18 +1,18 @@
 name: CD
 
-on:
-  workflow_dispatch:
-    inputs:
-      target:
-        description: "Triplet to build (linux-x64-gnu / win32-x64-msvc)"
-        required: false
-        type: string
-
 # on:
-#   pull_request:
-#   push:
-#     branches:
-#       - master
+#   workflow_dispatch:
+#     inputs:
+#       target:
+#         description: "Triplet to build (linux-x64-gnu / win32-x64-msvc)"
+#         required: false
+#         type: string
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 
 # workflow_run:
 #   workflows: ["CI"]
@@ -31,11 +31,12 @@ jobs:
 
     strategy:
       matrix:
+        # https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#overview
         include:
           - os: ubuntu-24.04
             triplet: linux-x64-gnu
-          - os: ubuntu-24.04
-            triplet: linux-aarch64-gnu
+          # - os: ubuntu-24.04-arm
+          #   triplet: linux-aarch64-gnu
           - os: windows-latest
             triplet: win32-x64-msvc
           - os: macos-13
@@ -92,7 +93,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama
+          pip install pytest 'numpy<2' pandas matplotlib scikit-learn maturin wheel requests tqdm plotly colorama twine
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -158,6 +159,10 @@ jobs:
 
           echo "Contents of build/_bazed/__core_napi/core/pkg_napi:"
           ls build/_bazed/__core_napi/core/pkg_napi
+
+      - name: Validate wheel
+        run: |
+          python -m twine check build/_bazed/___wheel/dist/*.whl
 
       - name: Upload wheel
         uses: actions/upload-artifact@v4

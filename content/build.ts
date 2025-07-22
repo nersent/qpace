@@ -20,6 +20,11 @@ const main = async (): Promise<void> => {
   // const baseCommand = "pnpm dlx qpace";
   const baseCommand = "pnpm bazed run //cli:main --verbose --";
 
+  const execEnv = {
+    ...process.env,
+    // DEV: true,
+  };
+
   if (target === "init") {
     const nodeDir = resolve(CONTENT_DIR, "node");
     const webDir = resolve(CONTENT_DIR, "web");
@@ -40,7 +45,7 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target node-universal --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
-      env: process.env,
+      env: execEnv,
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
@@ -58,7 +63,7 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target web --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
-      env: process.env,
+      env: execEnv,
     });
     await mkdir(destDir, { recursive: true });
     tar.x({
@@ -76,7 +81,7 @@ const main = async (): Promise<void> => {
       command: `${baseCommand} build --target python --out-dir ${tmpDir} --verbose --cwd ${CONTENT_DIR}`,
       verbose: true,
       cwd: CONTENT_DIR,
-      env: process.env,
+      env: execEnv,
     });
     const wheelFilename = readdirSync(tmpDir).find((f) => f.endsWith(".whl"));
     if (wheelFilename == null) {
@@ -89,7 +94,7 @@ const main = async (): Promise<void> => {
         wheelFilename,
       )} -d ${tmpDir}`,
       verbose: true,
-      env: process.env,
+      env: execEnv,
     });
     const files = readdirSync(resolve(tmpDir), {
       withFileTypes: true,

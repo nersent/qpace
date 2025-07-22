@@ -60,21 +60,29 @@ calculateSupertrend(factor, atrPeriod, source) =>
     [supertrendValue, trendDirection]
 
 // Calculating RSI
-rsiValue = isSmoothed ? ta.hma(ta.rsi(rsiInputSource, relativeStrengthIndexLength), smoothingLength) : ta.rsi(rsiInputSource, relativeStrengthIndexLength)
-rsiMovingAverage = calculateMA(rsiValue, movingAverageLength, movingAverageType)
+var float rsiValue = na
+rsiValue := isSmoothed ? ta.hma(ta.rsi(rsiInputSource, relativeStrengthIndexLength), smoothingLength) : ta.rsi(rsiInputSource, relativeStrengthIndexLength)
+
+var float rsiMovingAverage = na
+rsiMovingAverage := calculateMA(rsiValue, movingAverageLength, movingAverageType)
 
 // Calculating Supertrend based on RSI values
-[rsiSupertrend, trendDirection] = calculateSupertrend(trendFactor, averageTrueRangeLength, rsiValue)
+[_rsiSupertrend, _trendDirection] = calculateSupertrend(trendFactor, averageTrueRangeLength, rsiValue)
 
 // --------------------- EXPORTED ---------------------
-var float rsi_value = na
-rsi_value := rsiValue
-var float rsi_moving_average = na
-rsi_moving_average := rsiMovingAverage
-var float rsi_supertrend = na
-rsi_supertrend := rsiSupertrend
-var int trend_direction = na
-trend_direction := trendDirection
+var float rsiSupertrend = na
+rsiSupertrend := _rsiSupertrend
+var int trendDirection = na
+trendDirection := _trendDirection
+
+// var float rsi_value = na
+// rsi_value := rsiValue
+// var float rsi_moving_average = na
+// rsi_moving_average := rsiMovingAverage
+// var float rsi_supertrend = na
+// rsi_supertrend := rsiSupertrend
+// var int trend_direction = na
+// trend_direction := trendDirection
 // ----------------------------------------------------
 
 // Plotting
