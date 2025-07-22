@@ -48,43 +48,45 @@ export namespace BuildTarget {
       return buildTarget as Target;
     }
     const arch = process.arch;
-    if (buildTarget === "python" && isMacOs() && arch === "x64") {
-      return "python-x86_64-macos";
-    }
-    if (buildTarget === "python" && isMacOs() && arch === "arm64") {
-      return "python-arm64-macos";
-    }
-    if (buildTarget === "python" && isLinux() && arch === "x64") {
-      return "python-x86_64-linux";
-    }
-    if (buildTarget === "python" && isLinux() && arch === "arm64") {
-      return "python-arm64-linux";
-    }
-    if (buildTarget === "python" && isWindows() && arch === "x64") {
-      return "python-x86_64-windows";
-    }
-    //
-    if (buildTarget === "node" && isMacOs() && arch === "x64") {
-      return "node-x86_64-macos";
-    }
-    if (buildTarget === "node" && isMacOs() && arch === "arm64") {
-      return "node-arm64-macos";
-    }
-    if (buildTarget === "node" && isLinux() && arch === "x64") {
-      return "node-x86_64-linux";
-    }
-    if (buildTarget === "node" && isLinux() && arch === "arm64") {
-      return "node-arm64-linux";
-    }
-    if (buildTarget === "node" && isWindows() && arch === "x64") {
-      return "node-x86_64-windows";
-    }
-    //
-    if (buildTarget === "web" || buildTarget === "wasm") {
-      return "wasm-unknown-unknown";
-    }
-    if (buildTarget === "js") {
-      return "js-universal";
+    {
+      if (buildTarget === "python" && isMacOs() && arch === "x64") {
+        return "python-x86_64-macos";
+      }
+      if (buildTarget === "python" && isMacOs() && arch === "arm64") {
+        return "python-arm64-macos";
+      }
+      if (buildTarget === "python" && isLinux() && arch === "x64") {
+        return "python-x86_64-linux";
+      }
+      if (buildTarget === "python" && isLinux() && arch === "arm64") {
+        return "python-arm64-linux";
+      }
+      if (buildTarget === "python" && isWindows() && arch === "x64") {
+        return "python-x86_64-windows";
+      }
+      //
+      if (buildTarget === "node" && isMacOs() && arch === "x64") {
+        return "node-x86_64-macos";
+      }
+      if (buildTarget === "node" && isMacOs() && arch === "arm64") {
+        return "node-arm64-macos";
+      }
+      if (buildTarget === "node" && isLinux() && arch === "x64") {
+        return "node-x86_64-linux";
+      }
+      if (buildTarget === "node" && isLinux() && arch === "arm64") {
+        return "node-arm64-linux";
+      }
+      if (buildTarget === "node" && isWindows() && arch === "x64") {
+        return "node-x86_64-windows";
+      }
+      //
+      if (buildTarget === "web" || buildTarget === "wasm") {
+        return "wasm-unknown-unknown";
+      }
+      if (buildTarget === "js") {
+        return "js-universal";
+      }
     }
     return;
   };
