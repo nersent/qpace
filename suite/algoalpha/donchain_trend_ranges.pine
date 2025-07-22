@@ -1,0 +1,90 @@
+//@version=5
+indicator(title="Donchian Trend Ranges [AlgoAlpha]", shorttitle="AlgoAlpha - 🔗Donchian Trend", overlay=true, timeframe="", timeframe_gaps=false)
+length = input.int(50, minval = 1)
+mult = input.float(3, minval = 1, title = "Range Multiplier")
+// colorUp = input.color(#00ffbb, title="Up Color")
+// colorDown = input.color(#ff1100, title="Down Color")
+con = 1
+l =  ta.lowest(length)
+u =  ta.highest(length)
+basis =  math.avg(u, l)
+
+var float fbasis = float(na)
+var float rangge = float(na)
+var float dev = na
+var float vol = na
+var float upper = na
+var float lower = na
+var float fu = na
+var float fl = na
+var float uu = na
+var float ul = na
+var float lu = na
+var float ll = na
+
+fbasis := basis == basis[con] ? basis : fbasis[1]
+dev := (ta.stdev(close, length, false) * mult)
+vol := ta.atr(14)
+rangge := fbasis != fbasis[1] ? dev : rangge[1]
+upper := fbasis+rangge
+lower := fbasis-rangge
+
+fu := fbasis + vol
+fl := fbasis - vol
+uu := upper + vol
+ul := upper - vol
+lu := lower + vol
+ll := lower - vol
+
+// fbasis := basis == basis[con] ? basis : fbasis[1]
+// dev = (ta.stdev(close, length, false) * mult)
+// vol = ta.atr(14)
+// rangge := fbasis != fbasis[1] ? dev : rangge[1]
+// upper = fbasis+rangge
+// lower = fbasis-rangge
+
+// fu = fbasis + vol
+// fl = fbasis - vol
+// uu = upper + vol
+// ul = upper - vol
+// lu = lower + vol
+// ll = lower - vol
+
+// midu = plot(fu,     "Basis", color = color.blue, display = display.none)
+// mmm = plot(fbasis,     "Basis", color = color.new(close > fbasis ? colorUp : colorDown, 3), display = display.all)
+// midl = plot(fl,     "Basis", color = color.blue, display = display.none)
+
+// upu = plot(uu,     "upper", color = color.blue, display = display.none)
+// uuu = plot(upper,     "upper", color = color.blue, display = display.none)
+// upl = plot(ul,     "upper", color = color.blue, display = display.none)
+
+// lpu = plot(lu,     "lower", color = color.blue, display = display.none)
+// lll = plot(lower,     "lower", color = color.blue, display = display.none)
+// lpl = plot(ll,     "lower", color = color.blue, display = display.none)
+
+// plot(math.avg(fu, ul), "Upper Inter Range", color.new(chart.fg_color, 80), 1, plot.style_circles)
+// plot(math.avg(fl, lu), "Lower Inter Range", color.new(chart.fg_color, 80), 1, plot.style_circles)
+
+// fill(upu, uuu, color.new(colorDown, close > fbasis ? 65 : 90), "Upper Cloud")
+// fill(upl, uuu, color.new(colorDown, 90), "Upper Cloud")
+// fill(midu, midl, color.new(chart.fg_color, 90), "Basis Cloud")
+// fill(lpl, lll, color.new(colorUp, close < fbasis ? 65 : 90), "lower Cloud")
+// fill(lpu, lll, color.new(colorUp, 90), "lower Cloud")
+
+// plotchar(ta.crossunder(close, uu), "Strong Long TP", "X", location.abovebar, colorDown, size = size.tiny)
+// plotchar(ta.crossover(close, ll), "Strong Short TP", "X", location.belowbar, colorUp, size = size.tiny)
+
+// plotchar(ta.crossunder(close, ul) and not ta.crossunder(close, uu), "Weak Long TP", "◆", location.abovebar, colorDown, size = size.tiny)
+// plotchar(ta.crossover(close, lu) and not ta.crossover(close, ll), "Weak Short TP", "◆", location.belowbar, colorUp, size = size.tiny)
+
+// barcolor(close > fbasis ? colorUp : colorDown)
+
+// /////////////////////////////////Alerts
+// alertcondition(ta.crossover(close, fbasis), "Bullish Trend Shift")
+// alertcondition(ta.crossunder(close, fbasis), "Bearish Trend Shift")
+
+// alertcondition(ta.crossunder(close, ul), "Weak Long TP")
+// alertcondition(ta.crossover(close, lu), "Weak Short TP")
+
+// alertcondition(ta.crossunder(close, uu), "Strong Long TP")
+// alertcondition(ta.crossover(close, ll), "Strong Short TP")

@@ -6,7 +6,7 @@ tsLibrary("src", {
   srcs: ["build.ts"],
 });
 
-nodeEntry("algoalpha", {
+nodeEntry("suite", {
   main: "build.js",
   deps: ["//base/node", ":src", ":pine"],
 });

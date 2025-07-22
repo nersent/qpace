@@ -118,7 +118,52 @@ const customMa = pine.script.custom_ma(ctx.copy(), ohlcv.close, 14);
 console.log(customMa); // [1.0, 2.0, ...]
 ```
 
+## Suite
+
+**qPACE Suite**: Free collection of the best indicators and strategies.
+
+Python:
+
+```bash
+pip install qpace_suite
+```
+
+JavaScript:
+
+```bash
+npm install @qpace/suite
+```
+
+### _Jdehorty_
+
+- [_Machine Learning: Lorentzian Classification_](https://www.tradingview.com/v/WhBzgfDu/)
+- [_WaveTrend 3D_](https://www.tradingview.com/v/clUzC70G/)
+- [_Nadaraya-Watson: Envelope_](https://www.tradingview.com/v/WeLssFxl/)
+- [_MLExtensions_](https://www.tradingview.com/v/ia5ozyMF/)
+- [_KernelFunctions_](https://www.tradingview.com/v/e0Ek9x99/)
+
+### _AlgoAlpha_
+
+- [_Adaptive Schaff Trend Cycle (STC)_](https://www.tradingview.com/v/yOxili7R/)
+- [_Amazing Oscillator_](https://www.tradingview.com/v/g9j9piQE/)
+- [_Donchian Trend Ranges_](https://www.tradingview.com/v/td0irJcf/)
+- [_Exponential Trend_](https://www.tradingview.com/v/CDb3oR6A/)
+- [_Supertrended RSI_](https://www.tradingview.com/v/tjP35RG5/)
+- [_Triple Smoothed Signals_](https://www.tradingview.com/v/FoMINXVf/)
+
 ## TA
+
+Built-in TA functions.
+
+```python
+import qpace as qp
+rsi = qp.ta.rsi(ctx.copy(), src=ohlcv.close, length=14)
+```
+
+```javascript
+import * as qp from "qpace/node";
+const rsi = qp.ta.rsi(ctx.copy(), ohlcv.close, 14);
+```
 
 [Roadmap](https://github.com/nersent/qpace/issues/7)
 

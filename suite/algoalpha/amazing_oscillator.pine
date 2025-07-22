@@ -18,13 +18,16 @@ amazingOsc = shortSMA - longSMA
 // RSI-like Calculation
 rise = ta.rma(math.max(ta.change(amazingOsc), 0), oscPeriod)
 fall = ta.rma(-math.min(ta.change(amazingOsc), 0), oscPeriod)
-customRSI = (fall == 0 ? 100 : rise == 0 ? 0 : 100 - (100 / (1 + rise / fall))) - 50
+
+var float customRSI = na
+customRSI := (fall == 0 ? 100 : rise == 0 ? 0 : 100 - (100 / (1 + rise / fall))) - 50
+
 opacityLevel = customRSI > 0 and customRSI > customRSI[1] or customRSI < 0 and customRSI < customRSI[1] ? 30 : 80
 // barColor = customRSI > 0 ? color.new(upColor, opacityLevel) : color.new(downColor, opacityLevel)
 
 // --------------------- EXPORTED ---------------------
-var float custom_rsi = na
-custom_rsi := customRSI
+// var float custom_rsi = na
+// custom_rsi := customRSI
 // ----------------------------------------------------
 
 // Plots

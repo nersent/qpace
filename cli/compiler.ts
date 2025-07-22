@@ -14,6 +14,7 @@ import {
   QPC_CONFIG_FILENAME,
   Target,
   TARGETS,
+  tryGetJsPackageName,
   tryGetPythonPackageName,
 } from "~/compiler/config";
 import { basename, dirname, resolve } from "path";
@@ -487,24 +488,28 @@ const build = async ({
     console.log(chalk.greenBright(`\nUse following:`));
     if (target?.includes("python")) {
       console.log(
-        chalk.greenBright(`import ${qpcConfig.py!.package} as pine;`),
-      );
-    } else if (target?.includes("node")) {
-      console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/node";`,
+          `import ${tryGetPythonPackageName(qpcConfig.py)} as pine;`,
         ),
       );
     } else if (target?.includes("node")) {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/web";`,
+          `import * as pine from "${tryGetJsPackageName(qpcConfig.js)}/node";`,
+        ),
+      );
+    } else if (target?.includes("node")) {
+      console.log(
+        chalk.greenBright(
+          `import * as pine from "${tryGetJsPackageName(qpcConfig.js)}/web";`,
         ),
       );
     } else if (target === "js-universal") {
       console.log(
         chalk.greenBright(
-          `import * as pine from "${qpcConfig.js!.package}/node|web";`,
+          `import * as pine from "${tryGetJsPackageName(
+            qpcConfig.js,
+          )}/node|web";`,
         ),
       );
     }
