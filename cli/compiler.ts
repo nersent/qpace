@@ -83,7 +83,6 @@ export namespace BuildTarget {
     if (buildTarget === "web" || buildTarget === "wasm") {
       return "wasm-unknown-unknown";
     }
-    //
     if (buildTarget === "js") {
       return "js-universal";
     }
