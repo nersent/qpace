@@ -20,7 +20,7 @@ const main = async (): Promise<void> => {
   await mkdir(outDir, { recursive: true });
 
   const targets: BuildTarget[] = [
-    "python-x86_64-windows",
+    // "python-x86_64-windows",
     // "python-x86_64-macos",
     // "python-x86_64-linux",
     // "python-arm64-macos",
@@ -28,7 +28,7 @@ const main = async (): Promise<void> => {
     // "js",
     //
     // "wasm-unknown-unknown",
-    // "node-x86_64-windows",
+    "node-x86_64-windows",
     // "node-x86_64-linux",
     // "node-x86_64-macos",
     // "node-arm64-linux",

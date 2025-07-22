@@ -120,7 +120,7 @@ console.log(customMa); // [1.0, 2.0, ...]
 
 ## Suite
 
-**qPACE Suite**: Free collection of the best indicators and strategies.
+**qPACE Suite**: Free collection of the best indicators and strategies (separate package to `qpace`).
 
 Python:
 

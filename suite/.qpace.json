@@ -4,13 +4,22 @@
   "py": {
     "package": {
       "name": "qpace_suite",
-      "version": "0.0.1"
+      "version": "0.0.1",
+      "description": "📊 Best TA Suite for qPACE - The Quant SDK for Python and Javascript.",
+      "homepage": "https://qpace.dev",
+      "repository": "https://github.com/nersent/qpace"
     }
   },
   "js": {
     "package": {
       "name": "@qpace/suite",
-      "version": "0.0.1"
+      "version": "0.0.1",
+      "description": "📊 Best TA Suite for qPACE - The Quant SDK for Python and Javascript.",
+      "homepage": "https://qpace.dev",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/nersent/qpace"
+      }
     }
   },
   "include": [

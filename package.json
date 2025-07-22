@@ -81,7 +81,8 @@
     "wasm": "wasm-pack build ./core --target web --no-default-features --features=bindings_wasm",
     "wasm:bundler": "wasm-pack build ./core --target bundler --no-default-features --features=bindings_wasm",
     "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py,polars",
-    "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler"
+    "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler",
+    "suite:py": "python suite/example.py"
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0-alpha.90",
