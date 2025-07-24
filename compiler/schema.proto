@@ -57,10 +57,9 @@ message BuildEvent {
 }
 
 message CheckEnd {
-  string request_id = 1;
-  //   bool ok = 1;
-  // string request_id = 2;
-  // optional string message = 3;
+  bool ok = 1;
+  string request_id = 2;
+  optional string message = 3;
 }
 
 message BuildStart {}

@@ -365,6 +365,12 @@ impl PySym {
         self.inner.set_metadata(metadata);
     }
 
+    #[getter(qty_scale)]
+    #[inline]
+    pub fn py_qty_scale(&self) -> f64 {
+        self.inner.qty_scale()
+    }
+
     #[staticmethod]
     #[pyo3(name = "from_dict")]
     pub fn py_from_dict(_py: Python<'_>, dict: &Bound<'_, PyAny>) -> PyResult<PySym> {

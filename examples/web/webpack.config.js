@@ -1,8 +1,13 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+import path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
 
-module.exports = {
+const __dirname = path.resolve(import.meta.dirname);
+
+export default {
   entry: "./index.js",
+  mode: "development",
+  context: __dirname,
+  target: "web",
   devtool: "source-map",
   resolve: {
     extensions: [".js"],

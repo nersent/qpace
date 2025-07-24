@@ -16,12 +16,13 @@ pub fn round_to_min_tick(value: f64, min_tick: f64) -> f64 {
 }
 
 #[inline]
-pub fn round_contracts(size: f64, min_qty: f64, price_scale: f64) -> f64 {
+pub fn round_contracts(size: f64, min_qty: f64, qty_scale: f64) -> f64 {
+    // let price_scale = 1000000.0;
     // @TODO: assert
     if min_qty.is_nan() {
         return size;
     }
-    return ((size * price_scale) + f64::EPSILON).round() / price_scale;
+    return ((size * qty_scale) + f64::EPSILON).round() / qty_scale;
 }
 
 #[inline]
@@ -113,16 +114,16 @@ impl Order {
 
 #[derive(Debug, Clone)]
 pub struct OrderBookConfig {
-    pub min_size: f64,
-    pub price_scale: f64,
+    pub min_qty: f64,
+    pub qty_scale: f64,
     pub debug: bool,
 }
 
 impl Default for OrderBookConfig {
     fn default() -> Self {
         return Self {
-            min_size: 0.000001,
-            price_scale: 1000000.0,
+            min_qty: 0.000001,
+            qty_scale: 1000000.0,
             debug: false,
         };
     }
@@ -180,11 +181,7 @@ impl OrderBook {
         let id = self.create_id();
         let order = Order {
             id,
-            size: round_contracts(
-                order_opts.size,
-                self.config.min_size,
-                self.config.price_scale,
-            ),
+            size: round_contracts(order_opts.size, self.config.min_qty, self.config.qty_scale),
             tag: order_opts.tag,
         };
         self.orders.insert(id, order);

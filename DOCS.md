@@ -39,7 +39,7 @@ Get started at **<https://qpace.dev>**
 
 ## Introduction
 
-Examples with actual setup are available [here](https://github.com/nersent/qpace-examples).
+Examples with actual setup are available [here](/examples).
 
 ## Installation
 
@@ -77,7 +77,7 @@ console.log(btc.minTick);
 
 Browser / WASM:
 
-[Here](https://github.com/nersent/qpace-examples/tree/main/web) is concrete example of how to use it in a browser. There may be some issues with webpack ect.
+[Here](/examples/web) is concrete example of how to use it in a browser. There may be some issues with webpack ect.
 
 ```javascript
 import * as qp from "qpace/web";
@@ -727,6 +727,6 @@ export const ta = { ..._ta, init: initTa } as typeof _ta & {
 };
 ```
 
-WASM may have problems with webpack. [webpack config that works](https://github.com/nersent/qpace-examples/blob/main/web/webpack.config.js)
+WASM may have problems with webpack. [webpack config that works](/examples/web/webpack.config.js)
 
 WASM `ta` must be initialized after `qp.init()` and is optional unless you use `qp.ta` methods

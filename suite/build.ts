@@ -20,15 +20,15 @@ const main = async (): Promise<void> => {
   await mkdir(outDir, { recursive: true });
 
   const targets: BuildTarget[] = [
-    // "python-x86_64-windows",
-    // "python-x86_64-macos",
-    // "python-x86_64-linux",
-    // "python-arm64-macos",
-    // "python-arm64-linux",
-    // "js",
+    "python-x86_64-windows",
+    "python-x86_64-macos",
+    "python-x86_64-linux",
+    "python-arm64-macos",
+    "python-arm64-linux",
+    "js",
     //
     // "wasm-unknown-unknown",
-    "node-x86_64-windows",
+    // "node-x86_64-windows",
     // "node-x86_64-linux",
     // "node-x86_64-macos",
     // "node-arm64-linux",
@@ -43,13 +43,13 @@ const main = async (): Promise<void> => {
       throw: true,
       env: {
         ...process.env,
-        DEV: true,
+        // DEV: true,
       },
     });
   }
 
-  // python -m twine upload out/algoalpha/*.whl
-  // npm publish --access public out/algoalpha/algoalpha-0.0.1.tgz
+  // python -m twine upload out/suite/*.whl
+  // npm publish --access public out/suite/qpace-suite.tgz
 };
 
 main();

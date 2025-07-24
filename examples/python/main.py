@@ -1,45 +1,66 @@
 import os
-from time import perf_counter
-import qpace as qp
-import qpace_example_lib as pine
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
+import qpace as qp
+import qpace_suite as qp_suite
 
 
-#  const ohlcvPath = resolve(__dirname, "../btc.csv");
+if __name__ == "__main__":
+    ohlcv_path = os.path.join(os.path.dirname(__file__), "../assets/btc_12h.csv")
+    ohlcv = qp.Ohlcv.read_csv(ohlcv_path)
+    ohlcv.timeframe = qp.Timeframe.Days(1)
+    ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
 
-ohlcv_path = os.path.join(os.path.dirname(__file__), "../btc.csv")
-ohlcv = qp.Ohlcv.read_csv(ohlcv_path)
-ctx = qp.Ctx(ohlcv, qp.Sym.BTC_USD())
+    lorentzian = qp_suite.jdehorty.machine_learning_lorentzian_classification.main(
+        ctx.copy()
+    )
+    lorentzian_pred = np.array(lorentzian["locals"]["prediction"])
 
-# df = pd.DataFrame(pine.xd.gowno(ctx.copy()), columns=["src", "ma", "dev", "cci"])
-# print df with 5 digit precision
-# print(df[0:10].to_string(float_format="%.5f"))
+    rsi = qp.ta.rsi(ctx.copy(), ctx.ohlcv.close, 14)
+    ema = qp.ta.ema(ctx.copy(), ctx.ohlcv.close, 14)
 
-print(pine.xd.gowno(ctx.copy(), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 69.0, 420.0])[0:15])
-# print(
-#     pd.DataFrame(
-#         pine.xd.xd_rma(ctx.copy()), columns=["u", "d", "rs_numerator", "rs_dominator"]
-#     )
-# )
+    #####################################
+    bt = qp.Backtest(ctx.copy(), initial_capital=1000.0)
+    for bar_index in bt:
+        enter_long = lorentzian["locals"]["start_long_trade"][bar_index]
+        enter_short = lorentzian["locals"]["start_short_trade"][bar_index]
+        exit_long = lorentzian["locals"]["end_long_trade"][bar_index]
+        exit_short = lorentzian["locals"]["end_short_trade"][bar_index]
 
-# print(pd.DataFrame(pine.xd.xd_rma2(ctx.copy()), columns=["u", "rs_numerator"]))
+        if enter_long:
+            bt.signal(qp.Signal.Long())
+        if enter_short:
+            bt.signal(qp.Signal.Short())
+        if exit_long or exit_short:
+            bt.signal(qp.Signal.CloseAll())
+        if bar_index == 8028:
+            bt.signal(qp.Signal.Long())
+            print(bt.ctx.bar.close)
 
-# print(pd.DataFrame(pine.xd.gowno(ctx.copy()), columns=["u", "ta.rma(u, 2)"]))
-# values = pine.xd.xd(ctx.copy())
-# print(values[0:15])
-# times = []
-# for i in tqdm(range(100_000), mininterval=5):
-#     start_time = perf_counter()
-#     pine.xd.gowno_wdupsku(ctx.copy(), ctx.ohlcv.close)
-#     times.append(perf_counter() - start_time)
-# print(f"mean: {np.mean(times) * 1000}ms")
+    print(bt.to_pine())
+    bt.display()
+    #####################################
 
-
-# script = pine.xd.GownoWdupsku(ctx.copy())
-# print(script.next(1))
-# print(script.next(69))
-# print(script.next(420))
-# print("xd", script.locals.lastValue)
-# print(pine.xd.gowno_wdupsku(ctx.copy(), [1, 69, 420])[0:4])
+    qp.plot(
+        ctx,
+        [
+            qp.BarPane(
+                background_title="Machine Learning: Lorentzian Classification",
+                bar_color=pd.Series(
+                    np.where(
+                        lorentzian_pred > 0,
+                        "lime",
+                        np.where(lorentzian_pred < 0, "red", "gray"),
+                    ),
+                    index=ctx.ohlcv.open_time,
+                ),
+                lines=[qp.Line(pd.Series(ema, ohlcv.open_time), "blue")],
+                show_volume=False,
+            ),
+            qp.Pane(
+                background_title="RSI",
+                lines=[qp.Line(pd.Series(rsi, ohlcv.open_time), "yellow", 50)],
+            ),
+        ],
+        bt=bt,
+    )

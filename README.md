@@ -33,7 +33,7 @@
 
 - [Home](https://qpace.dev)
 - [Documentation](/DOCS.md)
-- [Examples](/https://github.com/nersent/qpace-examples)
+- [Examples](/examples)
 - [Discord](https://qpace.dev/discord)
 
 ## Installation

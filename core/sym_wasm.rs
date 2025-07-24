@@ -403,6 +403,12 @@ impl WasmSym {
         self.inner.set_metadata(metadata);
     }
 
+    #[wasm_bindgen(getter = qtyScale)]
+    #[inline]
+    pub fn wasm_qty_scale(&self) -> f64 {
+        self.inner.qty_scale()
+    }
+
     #[wasm_bindgen(js_name = BTC_USD)]
     #[inline]
     pub fn wasm_btc_usd() -> Self {

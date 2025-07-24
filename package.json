@@ -1,7 +1,7 @@
 {
   "name": "qpace",
-  "version": "0.2.4",
-  "coreVersion": "0.2.4",
+  "version": "0.2.5",
+  "coreVersion": "0.2.5",
   "description": "📊 The Quant SDK for Python and Javascript. Written in Rust.",
   "keywords": [
     "quant",
@@ -82,7 +82,8 @@
     "wasm:bundler": "wasm-pack build ./core --target bundler --no-default-features --features=bindings_wasm",
     "pyi": "cargo run --bin pyi --no-default-features --features=bindings_py,polars",
     "proto": "pnpm bazed run //tools:proto --verbose -- gen cli/compiler/*.proto cli/compiler",
-    "suite:py": "python suite/example.py"
+    "suite:py": "python suite/example.py",
+    "example:py": "python examples/python/main.py"
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0-alpha.90",
