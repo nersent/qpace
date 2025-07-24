@@ -219,8 +219,15 @@ export namespace BuildEvent {
 }
 
 export class CheckEnd extends jspb.Message { 
+    getOk(): boolean;
+    setOk(value: boolean): CheckEnd;
     getRequestId(): string;
     setRequestId(value: string): CheckEnd;
+
+    hasMessage(): boolean;
+    clearMessage(): void;
+    getMessage(): string | undefined;
+    setMessage(value: string): CheckEnd;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CheckEnd.AsObject;
@@ -234,7 +241,9 @@ export class CheckEnd extends jspb.Message {
 
 export namespace CheckEnd {
     export type AsObject = {
+        ok: boolean,
         requestId: string,
+        message?: string,
     }
 }
 

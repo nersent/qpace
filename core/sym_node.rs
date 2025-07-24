@@ -239,6 +239,11 @@ impl NodeSym {
         self.inner.set_metadata(v);
     }
 
+    #[napi(getter = qtyScale)]
+    pub fn node_qty_scale(&self) -> f64 {
+        self.inner.qty_scale()
+    }
+
     #[napi(js_name = BTC_USD)]
     pub fn node_btc_usd() -> Self {
         Sym::btc_usd().into()

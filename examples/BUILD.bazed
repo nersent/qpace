@@ -1,3 +1,0 @@
-fileSet("csv", {
-  srcs: [glob("*.csv")],
-});

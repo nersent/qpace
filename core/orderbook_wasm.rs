@@ -12,8 +12,8 @@ pub fn wasm_round_to_min_tick(value: f64, min_tick: f64) -> f64 {
 
 #[wasm_bindgen(js_name = "roundContracts")]
 #[inline]
-pub fn wasm_round_contracts(size: f64, min_qty: f64, price_scale: f64) -> f64 {
-    return round_contracts(size, min_qty, price_scale);
+pub fn wasm_round_contracts(size: f64, min_qty: f64, qty_scale: f64) -> f64 {
+    return round_contracts(size, min_qty, qty_scale);
 }
 
 #[wasm_bindgen(js_name = "validateContracts")]

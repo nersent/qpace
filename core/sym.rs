@@ -253,6 +253,12 @@ impl Sym {
     }
 
     #[inline]
+    pub fn qty_scale(&self) -> f64 {
+        assert!(self.min_qty > 0.0, "min_qty must be greater than 0.0");
+        return (1.0 / self.min_qty).round();
+    }
+
+    #[inline]
     pub fn btc_usd() -> Self {
         Self {
             id: Some("QPACE__BITSTAMP:BTCUSD".to_string()),

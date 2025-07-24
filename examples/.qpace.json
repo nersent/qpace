@@ -1,0 +1,12 @@
+{
+  "install": true,
+  "test": true,
+  "py": {
+    "package": "qpace_example_lib"
+  },
+  "js": {
+    "package": "qpace_example_lib"
+  },
+  "outDir": "build",
+  "include": ["*.pine"]
+}

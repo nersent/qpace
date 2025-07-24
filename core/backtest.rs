@@ -118,13 +118,14 @@ pub struct Backtest {
 impl Backtest {
     #[inline]
     pub fn new(ctx: Rc<RefCell<Ctx>>, config: BacktestConfig) -> Self {
-        let min_qty = ctx.borrow().sym().min_qty();
+        let sym = ctx.borrow().sym().clone();
         let initial_capital = config.initial_capital;
         Self {
             ctx,
             config,
             orderbook: Rc::new(RefCell::new(OrderBook::new(OrderBookConfig {
-                min_size: min_qty,
+                min_qty: sym.min_qty(),
+                qty_scale: sym.qty_scale(),
                 debug: config.debug,
                 ..Default::default()
             }))),
@@ -360,7 +361,7 @@ impl Backtest {
     pub fn set_position_size(&mut self, size: f64) {
         let ctx = self.ctx.borrow();
         let sym_info = ctx.sym();
-        self.position_size = round_contracts(size, sym_info.min_qty(), sym_info.price_scale());
+        self.position_size = round_contracts(size, sym_info.min_qty(), sym_info.qty_scale());
     }
 
     pub fn set_metrics(&mut self) -> Result<(), TradeError> {
@@ -406,9 +407,8 @@ impl Backtest {
         if self.equity() > 0.0 {
             if !equity_pct.compare(self.prev_equity_pct) {
                 // if true {
-                self.prev_equity_pct = equity_pct;
 
-                let order_size = order_size_for_equity_pct(
+                let base_order_size = order_size_for_equity_pct(
                     equity_pct,
                     self.equity(),
                     self.position_size(),
@@ -418,7 +418,11 @@ impl Backtest {
                 );
 
                 let order_size =
-                    round_contracts(order_size, ctx.sym().min_qty(), ctx.sym().price_scale());
+                    round_contracts(base_order_size, ctx.sym().min_qty(), ctx.sym().qty_scale());
+
+                // if self.config.debug {
+                //     println!("[{} -> compute_equity_pct]: equity_pct: {:?} | prev_equity_pct: {:?} | base_order_size: {:?} | order_size: {:?} | min_qty: {:?} | price_scale: {:?}", self.bar_index(), equity_pct, self.prev_equity_pct, base_order_size, order_size, ctx.sym().min_qty(), ctx.sym().price_scale());
+                // }
 
                 if order_size == 0.0 {
                     return None;
@@ -649,6 +653,9 @@ impl Backtest {
             SignalKind::CloseAll() => Some(OrderConfig::new(-self.position_size, None)),
             _ => None,
         };
+        if self.config.debug {
+            println!("[{} -> signal]: {:?}", self.bar_index(), &order);
+        }
         if order.is_some() {
             self.orderbook.borrow_mut().enqueue(order.unwrap()).unwrap();
         }
@@ -675,6 +682,11 @@ impl Backtest {
             .map(|i| signals.get(&i).cloned())
             .collect();
         self.signal_list(signals);
+    }
+
+    #[inline]
+    fn bar_index(&self) -> usize {
+        self.ctx.borrow().bar_index()
     }
 
     #[inline]
@@ -872,10 +884,10 @@ for i = 0 to array.size(trades) - 1
     }
 
     #[cfg(feature = "pretty_table")]
-    pub fn display(&self, plot: Option<(u32, u32)>) {
+    pub fn display(&self, plot_size: Option<(u32, u32)>) {
         self.print_table();
         let sym = self.ctx.borrow().sym().clone();
-        let plot = plot.unwrap_or((120_u32, 60_u32));
+        let plot_size = plot_size.unwrap_or((120_u32, 60_u32));
         let f_price = with_suffix(&format!(" {}", sym._currency()));
         let f_percent = with_suffix("%");
         let f = |price: f64, percent: f64| format!("{} {}", f_price(price), f_percent(percent));
@@ -958,14 +970,14 @@ for i = 0 to array.size(trades) - 1
             .map(|(i, &value)| (i as f32 + 1.0, value as f32))
             .collect();
 
-        // let (w, h) = plot;
-        // Chart::new(w, h, 1.0, self.net_equity_list().len() as f32)
-        //     .lineplot(&Shape::Lines(&net_equity_line))
-        //     .nice();
-
-        Chart::default()
+        let (w, h) = plot_size;
+        Chart::new(w, h, 1.0, self.net_equity_list().len() as f32)
             .lineplot(&Shape::Lines(&net_equity_line))
-            .display();
+            .nice();
+
+        // Chart::default()
+        //     .lineplot(&Shape::Lines(&net_equity_line))
+        //     .display();
     }
 }
 

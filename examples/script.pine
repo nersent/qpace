@@ -1,0 +1,5 @@
+//@version=5
+library("Exponential Trend [AlgoAlpha]")
+
+export custom_ma(series float src) =>
+    ta.ema(src, 14)

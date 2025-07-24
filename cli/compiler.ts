@@ -403,9 +403,15 @@ const build = async ({
             chalk.blackBright(`\nRequest ID: ${chalk.magentaBright(reqId)}`),
           );
         }
+        ok = data.getOk();
+        pb.clear();
+        const logs = data.getMessage();
+        if (logs?.length) console.log(`${logs}\n`);
+        if (!ok) _resolve();
+        return;
       }
       if (e.hasBuildStart()) {
-        pb.text = `Building ${chalk.blueBright(target)}`;
+        pb.start(`Building ${chalk.blueBright(target)}`);
         return;
       }
       if (e.hasBuildEnd()) {
