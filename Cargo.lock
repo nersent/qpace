@@ -1730,6 +1730,26 @@ dependencies = [
 
 [[package]]
 name = "pyo3-stub-gen"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e2906d67f2fa9b6079665a1d097c25530f54a8a6a40da5544370786f0adb523"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "inventory",
+ "itertools 0.13.0",
+ "log",
+ "maplit",
+ "num-complex",
+ "numpy",
+ "pyo3",
+ "pyo3-stub-gen-derive 0.6.2",
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "pyo3-stub-gen"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca7c2d6e22cba51cc9766b6dee4087218cc445fdf99db62fa4f269e074351b46"
@@ -1743,9 +1763,20 @@ dependencies = [
  "num-complex",
  "numpy",
  "pyo3",
- "pyo3-stub-gen-derive",
+ "pyo3-stub-gen-derive 0.7.0",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "pyo3-stub-gen-derive"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea3f50b3dca9a392772e45ed6db1066773c74d2be00399f46ab53cbab67a36f9"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -1769,8 +1800,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "qpace"
+version = "0.0.1-dev.1"
+
+[[package]]
 name = "qpace_core"
-version = "0.2.0"
+version = "0.2.6"
 dependencies = [
  "cfg-if",
  "chrono",
@@ -1790,13 +1825,24 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "pyo3-ffi",
- "pyo3-stub-gen",
- "pyo3-stub-gen-derive",
+ "pyo3-stub-gen 0.7.0",
+ "pyo3-stub-gen-derive 0.7.0",
  "serde",
  "serde_json",
  "textplots",
  "thiserror",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "qpace_playground_lib"
+version = "0.0.1"
+dependencies = [
+ "pyo3",
+ "pyo3-ffi",
+ "pyo3-stub-gen 0.6.2",
+ "pyo3-stub-gen-derive 0.6.2",
+ "qpace_core",
 ]
 
 [[package]]

@@ -119,6 +119,10 @@ impl Backtest {
     #[inline]
     pub fn new(ctx: Rc<RefCell<Ctx>>, config: BacktestConfig) -> Self {
         let sym = ctx.borrow().sym().clone();
+        assert!(
+            !f64::is_nan(sym.min_qty()) && !f64::is_nan(sym.min_tick()),
+            "Ctx Symbol is not suitable for backtesting, min_qty is NaN or min_tick is NaN"
+        );
         let initial_capital = config.initial_capital;
         Self {
             ctx,
@@ -235,7 +239,7 @@ impl Backtest {
 
     #[inline]
     pub fn win_rate(&self) -> f64 {
-        win_rate(self.winning_trades, self.losing_trades)
+        win_rate(self.winning_trades, self.trades_trades_count())
     }
 
     #[inline]
@@ -286,6 +290,11 @@ impl Backtest {
     #[inline]
     pub fn losing_trades_count(&self) -> usize {
         self.losing_trades
+    }
+
+    #[inline]
+    pub fn trades_trades_count(&self) -> usize {
+        self.open_trades.len() + self.closed_trades.len()
     }
 
     #[inline]

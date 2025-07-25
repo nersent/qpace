@@ -1,7 +1,7 @@
 {
   "name": "qpace",
-  "version": "0.2.5",
-  "coreVersion": "0.2.5",
+  "version": "0.2.6",
+  "coreVersion": "0.2.6",
   "description": "📊 The Quant SDK for Python and Javascript. Written in Rust.",
   "keywords": [
     "quant",

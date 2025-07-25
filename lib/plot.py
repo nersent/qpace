@@ -47,6 +47,7 @@ from typing import List, Optional, Union, Literal
 
 import pandas as pd
 import qpace_core as qp
+import numpy as np
 
 # ───────────────────────────── Widgets ──────────────────────────────
 
@@ -109,10 +110,28 @@ def _series_to_df(s: pd.Series, value_col: str = "value") -> pd.DataFrame:
 def _map_color(v: Union[float, str]) -> str:
     if isinstance(v, str):
         return v
-    v = max(-1.0, min(1.0, float(v)))
-    a = abs(v)
-    r, g, b = (0, 255, 0) if v > 0 else (255, 0, 0)
-    return f"rgba({r},{g},{b},{a:.3f})" if a else "rgba(42,42,42,1.0)"
+    return __trend_to_color(v)
+
+
+def __trend_to_color(v: float) -> str:
+    """
+    Map a trend value v in [-1.0, 1.0] to an rgba colour string.
+
+    v  < 0  => red   (negative trend)
+    v  > 0  => green (positive trend)
+    v == 0  => grey  (#2a2a2a)
+
+    |v| is used as alpha/opacity.
+    """
+    v = float(np.clip(np.nan_to_num(v), -1.0, 1.0))
+    alpha = abs(v)  # 0 … 1
+    if alpha == 0.0:
+        return "rgba(42,42,42,1.0)"  # solid grey
+    if v > 0:  # green side
+        r, g, b = (0, 255, 0)
+    else:  # red side
+        r, g, b = (255, 0, 0)
+    return f"rgba({r},{g},{b},{alpha:.3f})"
 
 
 def _safe_create_line(parent, line: Line):
@@ -138,11 +157,7 @@ def _safe_create_line(parent, line: Line):
 def _draw_bar(parent, df: pd.DataFrame, pane: BarPane):
     dfi = df.copy()
     if pane.bar_color is not None:
-        dfi["color"] = (
-            pane.bar_color.reindex(dfi.index)
-            .map(_map_color)
-            .fillna("rgba(42,42,42,1.0)")
-        )
+        dfi["color"] = pane.bar_color.reindex(dfi.index).fillna(0).map(_map_color)
         dfi["borderColor"] = dfi["color"]
         dfi["wickColor"] = dfi["color"]
     dfi["time"] = dfi["open_time"]
@@ -180,6 +195,10 @@ def plot(
     bt: Optional[Union[pd.DataFrame, qp.Backtest]] = None,
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
+    display: bool = True,
+    width: int = 800,
+    height: int = 600,
+    scale_candles_only: bool = False,
 ):
     import lightweight_charts as lw
 
@@ -195,14 +214,23 @@ def plot(
         df = df[df["open_time"] <= pd.to_datetime(end_time, utc=True)]
     if df.empty:
         raise ValueError("No data in selected interval.")
-    root = lw.Chart(inner_width=1, inner_height=heights[0], title=panes[0].title)
+    root = lw.Chart(
+        width=width,
+        height=height,
+        inner_width=1,
+        inner_height=heights[0],
+        title=panes[0].title,
+        scale_candles_only=scale_candles_only,
+    )
     _render_pane(root, df, panes[0])
     for pane, h in zip(panes[1:], heights[1:]):
         sub = root.create_subchart(width=1, height=h, position=pane.position, sync=True)
         _render_pane(sub, df, pane)
     if bt is not None:
         _render_trades(root, bt)
-    root.show(block=True)
+    if display:
+        root.show(block=True)
+    return root
 
 
 def _render_pane(chart_obj, df: pd.DataFrame, pane: Pane):
