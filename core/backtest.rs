@@ -411,8 +411,18 @@ impl Backtest {
         return trade;
     }
 
+    // @TODO
+    // pub fn maybe_reset_equity_pct(&mut self) {
+    //     if self.position_size() == 0.0 {
+    //         self.prev_equity_pct = 0.0;
+    //     }
+    // }
+
     pub fn compute_equity_pct(&mut self, equity_pct: f64) -> Option<OrderConfig> {
         let ctx = self.ctx.borrow();
+        // if self.bar_index() == 21454 || self.bar_index() == 21293 {
+        //     println!("[{} -> compute_equity_pct]: equity(): {:?} | equity_pct: {:?} | prev_equity_pct: {:?} ", self.bar_index(), self.equity(), equity_pct, self.prev_equity_pct);
+        // }
         if self.equity() > 0.0 {
             if !equity_pct.compare(self.prev_equity_pct) {
                 // if true {
@@ -429,7 +439,7 @@ impl Backtest {
                 let order_size =
                     round_contracts(base_order_size, ctx.sym().min_qty(), ctx.sym().qty_scale());
 
-                // if self.config.debug {
+                // if self.bar_index() == 21454 || self.bar_index() == 21293 {
                 //     println!("[{} -> compute_equity_pct]: equity_pct: {:?} | prev_equity_pct: {:?} | base_order_size: {:?} | order_size: {:?} | min_qty: {:?} | price_scale: {:?}", self.bar_index(), equity_pct, self.prev_equity_pct, base_order_size, order_size, ctx.sym().min_qty(), ctx.sym().price_scale());
                 // }
 
@@ -656,10 +666,16 @@ impl Backtest {
 
     #[inline]
     pub fn signal(&mut self, signal: Signal) {
+        // if self.config.debug {
+        //     println!("[{} ->raw  signal]: {:?}", self.bar_index(), &signal);
+        // }
         let order: Option<OrderConfig> = match signal.kind() {
             SignalKind::EquityPct(pct) => self.compute_equity_pct(*pct),
             SignalKind::Size(size) => Some(OrderConfig::new(*size, None)),
-            SignalKind::CloseAll() => Some(OrderConfig::new(-self.position_size, None)),
+            SignalKind::CloseAll() => {
+                self.prev_equity_pct = 0.0;
+                Some(OrderConfig::new(-self.position_size, None))
+            }
             _ => None,
         };
         if self.config.debug {

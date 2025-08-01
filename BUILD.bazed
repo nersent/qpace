@@ -149,8 +149,8 @@ setup(
         "requests",
         "tqdm",
         "plotly",
-        "grpcio==1.70.0",
-        "protobuf==5.29.1",
+        "grpcio==1.74.0",
+        "protobuf==6.31.1",
     ],
     # platforms=["win_amd64"],
 )
