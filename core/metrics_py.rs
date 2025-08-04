@@ -1,9 +1,13 @@
-use crate::metrics::{
-    accuracy, avg_losing_trade, avg_trade, avg_win_loss_ratio, avg_winning_trade, expectancy,
-    expectancy_score, f1, gross_loss_pct, gross_profit_pct, long_net_profit_pct,
-    long_net_profit_ratio, net_profit_pct, omega_ratio, omega_ratio_from_returns, pnl, precision,
-    profit_factor, recall, sharpe_ratio, sharpe_ratio_from_returns, short_net_profit_pct,
-    sortino_ratio, sortino_ratio_from_returns, win_rate,
+use crate::{
+    metrics::{
+        accuracy, annualization_factor, avg_losing_trade, avg_trade, avg_win_loss_ratio,
+        avg_winning_trade, expectancy, expectancy_score, f1, gross_loss_pct, gross_profit_pct,
+        long_net_profit_pct, long_net_profit_ratio, net_profit_pct, omega_ratio,
+        omega_ratio_from_returns, pnl, precision, profit_factor, recall, sharpe_ratio,
+        sharpe_ratio_from_returns, short_net_profit_pct, sortino_ratio, sortino_ratio_from_returns,
+        win_rate,
+    },
+    timeframe_py::PyTimeframe,
 };
 use pyo3::prelude::*;
 use pyo3_stub_gen::derive::gen_stub_pyfunction;
@@ -189,4 +193,11 @@ pub fn py_recall(tp_count: f64, fn_count: f64) -> f64 {
 #[inline]
 pub fn py_f1(precision: f64, recall: f64) -> f64 {
     return f1(precision, recall);
+}
+
+#[gen_stub_pyfunction]
+#[pyfunction(name = "annualization_factor")]
+#[inline]
+pub fn py_annualization_factor(timeframe: PyTimeframe, trading_days: f64) -> f64 {
+    return annualization_factor(timeframe.into(), trading_days);
 }

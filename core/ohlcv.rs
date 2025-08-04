@@ -283,6 +283,10 @@ pub trait OhlcvReader: fmt::Debug {
         self.get(idx)
     }
 
+    fn timeframe(&self) -> Timeframe {
+        Timeframe::Unknown()
+    }
+
     fn slice(&self, range: Range<usize>) -> Vec<OhlcvBar>;
     fn bars(&self) -> Vec<OhlcvBar> {
         return self.slice(0..self.len());
@@ -625,6 +629,11 @@ impl OhlcvReader for Ohlcv {
     fn as_any(&self) -> &dyn Any {
         self
     }
+
+    #[inline]
+    fn timeframe(&self) -> Timeframe {
+        self.timeframe
+    }
 }
 
 impl OhlcvWriter for Ohlcv {
@@ -799,6 +808,11 @@ impl OhlcvReader for RcOhlcv {
     fn as_any(&self) -> &dyn Any {
         self
     }
+
+    #[inline]
+    fn timeframe(&self) -> Timeframe {
+        self.inner.borrow().timeframe()
+    }
 }
 
 impl OhlcvWriter for RcOhlcv {
@@ -952,6 +966,11 @@ impl OhlcvReader for ArcOhlcv {
     #[inline]
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    #[inline]
+    fn timeframe(&self) -> Timeframe {
+        self.inner.read().unwrap().timeframe()
     }
 }
 

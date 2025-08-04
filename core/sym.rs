@@ -11,6 +11,15 @@ pub enum SymKind {
     Other(String),
 }
 
+impl SymKind {
+    pub fn trading_days(&self) -> f64 {
+        match self {
+            SymKind::Crypto => 365.0,
+            _ => 252.0,
+        }
+    }
+}
+
 impl Default for SymKind {
     #[inline]
     fn default() -> Self {

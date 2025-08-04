@@ -84,7 +84,7 @@ export class Profile {
   public async ping(): Promise<void> {
     const client = await this.getClient();
     try {
-      await client.me();
+      await client.user.me();
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.status == 403) {
         throw new CliError(

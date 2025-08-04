@@ -42,12 +42,16 @@ impl WasmBacktest {
         ctx: WasmCtx,
         initial_capital: Option<f64>,
         process_orders_on_close: Option<bool>,
+        risk_free_rate: Option<f64>,
+        annualization_factor: Option<f64>,
     ) -> Self {
         let initial_capital = initial_capital.unwrap_or(1000.0);
         let process_orders_on_close = process_orders_on_close.unwrap_or(false);
         let mut config = BacktestConfig::default();
         config.set_initial_capital(initial_capital);
         config.set_process_orders_on_close(process_orders_on_close);
+        config.set_risk_free_rate(risk_free_rate.unwrap_or(f64::NAN));
+        config.set_annualization_factor(annualization_factor.unwrap_or(f64::NAN));
         Self {
             inner: Rc::new(RefCell::new(Backtest::new(ctx.inner().clone(), config))),
             ctx,
@@ -188,14 +192,20 @@ impl WasmBacktest {
 
     #[wasm_bindgen(js_name = "sharpeRatio")]
     #[inline]
-    pub fn wasm_sharpe_ratio(&self, rfr: f64) -> f64 {
-        self.inner.borrow().sharpe_ratio(rfr)
+    pub fn wasm_sharpe_ratio(&self) -> f64 {
+        self.inner.borrow().sharpe_ratio()
     }
 
     #[wasm_bindgen(js_name = "sortinoRatio")]
     #[inline]
-    pub fn wasm_sortino_ratio(&self, rfr: f64) -> f64 {
-        self.inner.borrow().sortino_ratio(rfr)
+    pub fn wasm_sortino_ratio(&self) -> f64 {
+        self.inner.borrow().sortino_ratio()
+    }
+
+    #[wasm_bindgen(js_name = "expectancy")]
+    #[inline]
+    pub fn wasm_expectancy(&self) -> f64 {
+        self.inner.borrow().expectancy()
     }
 
     #[wasm_bindgen(getter = winningTradesCount)]

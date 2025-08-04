@@ -146,6 +146,7 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(metrics_py::py_precision, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_recall, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_f1, m)?)?;
+    m.add_function(wrap_pyfunction!(metrics_py::py_annualization_factor, m)?)?;
     Ok(())
 }
 define_stub_info_gatherer!(stub_info);

@@ -90,6 +90,12 @@ impl WasmSymKind {
     pub fn wasm_eq(&self, other: WasmSymKind) -> bool {
         self.inner == other.inner
     }
+
+    #[wasm_bindgen(getter = tradingDays)]
+    #[inline]
+    pub fn wasm_trading_days(&self) -> f64 {
+        self.inner.trading_days()
+    }
 }
 
 #[wasm_bindgen(js_name = "Sym")]

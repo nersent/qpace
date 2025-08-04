@@ -1,3 +1,7 @@
+use chrono::Duration;
+
+use crate::timeframe::Timeframe;
+
 #[inline]
 pub fn sum(values: &[f64]) -> f64 {
     return values.iter().sum();

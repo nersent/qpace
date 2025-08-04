@@ -72,6 +72,12 @@ impl NodeSymKind {
     pub fn node_eq(&self, other: &NodeSymKind) -> bool {
         self.inner == other.inner
     }
+
+    #[napi(getter = tradingDays)]
+    #[inline]
+    pub fn node_trading_days(&self) -> f64 {
+        self.inner.trading_days()
+    }
 }
 
 #[napi]

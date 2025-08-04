@@ -1,9 +1,13 @@
-use crate::metrics::{
-    accuracy, avg_losing_trade, avg_trade, avg_win_loss_ratio, avg_winning_trade, expectancy,
-    expectancy_score, f1, gross_loss_pct, gross_profit_pct, long_net_profit_pct,
-    long_net_profit_ratio, net_profit_pct, omega_ratio, omega_ratio_from_returns, pnl, precision,
-    profit_factor, recall, sharpe_ratio, sharpe_ratio_from_returns, short_net_profit_pct,
-    sortino_ratio, sortino_ratio_from_returns, win_rate,
+use crate::{
+    metrics::{
+        accuracy, annualization_factor, avg_losing_trade, avg_trade, avg_win_loss_ratio,
+        avg_winning_trade, expectancy, expectancy_score, f1, gross_loss_pct, gross_profit_pct,
+        long_net_profit_pct, long_net_profit_ratio, net_profit_pct, omega_ratio,
+        omega_ratio_from_returns, pnl, precision, profit_factor, recall, sharpe_ratio,
+        sharpe_ratio_from_returns, short_net_profit_pct, sortino_ratio, sortino_ratio_from_returns,
+        win_rate,
+    },
+    timeframe_node::NodeTimeframe,
 };
 use napi_derive::napi;
 
@@ -163,4 +167,10 @@ pub fn node_recall(tp_count: f64, fn_count: f64) -> f64 {
 #[inline]
 pub fn node_f1(precision: f64, recall: f64) -> f64 {
     f1(precision, recall)
+}
+
+#[napi(js_name = "annualization_factor")]
+#[inline]
+pub fn node_annualization_factor(timeframe: &NodeTimeframe, trading_days: f64) -> f64 {
+    return annualization_factor(timeframe.into(), trading_days);
 }

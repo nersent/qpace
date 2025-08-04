@@ -1,10 +1,12 @@
+use chrono::{DateTime, Utc};
+
 use crate::{
     ctx::{Ctx, CtxSkip},
     legacy::Float64Utils,
     metrics::{
-        avg_losing_trade, avg_trade, avg_win_loss_ratio, avg_winning_trade, gross_loss_pct,
-        gross_profit_pct, net_profit_pct, profit_factor, sharpe_ratio_from_returns,
-        sortino_ratio_from_returns, win_rate,
+        annualization_factor, avg_losing_trade, avg_trade, avg_win_loss_ratio, avg_winning_trade,
+        expectancy, gross_loss_pct, gross_profit_pct, net_profit_pct, profit_factor,
+        sharpe_ratio_from_returns, sortino_ratio_from_returns, win_rate,
     },
     orderbook::{
         order_size_for_equity_pct, round_contracts, round_to_min_tick, validate_contracts,
@@ -13,6 +15,7 @@ use crate::{
     signal::{Signal, SignalKind},
     stats::returns,
     sym::Sym,
+    timeframe::Timeframe,
     trade::{Trade, TradeError, TradeEvent},
     utils::with_suffix,
 };
@@ -37,6 +40,8 @@ pub struct BacktestConfig {
     initial_capital: f64,
     process_orders_on_close: bool,
     debug: bool,
+    risk_free_rate: f64,
+    annualization_factor: f64,
 }
 
 impl Default for BacktestConfig {
@@ -45,6 +50,8 @@ impl Default for BacktestConfig {
             initial_capital: 1000.0,
             process_orders_on_close: false,
             debug: false,
+            risk_free_rate: f64::NAN,
+            annualization_factor: f64::NAN,
         }
     }
 }
@@ -55,6 +62,8 @@ impl BacktestConfig {
             initial_capital,
             process_orders_on_close,
             debug: false,
+            risk_free_rate: f64::NAN,
+            annualization_factor: f64::NAN,
         };
     }
 
@@ -87,6 +96,16 @@ impl BacktestConfig {
     pub fn set_debug(&mut self, debug: bool) {
         self.debug = debug;
     }
+
+    #[inline]
+    pub fn set_risk_free_rate(&mut self, risk_free_rate: f64) {
+        self.risk_free_rate = risk_free_rate;
+    }
+
+    #[inline]
+    pub fn set_annualization_factor(&mut self, annualization_factor: f64) {
+        self.annualization_factor = annualization_factor;
+    }
 }
 
 pub struct Backtest {
@@ -117,12 +136,19 @@ pub struct Backtest {
 
 impl Backtest {
     #[inline]
-    pub fn new(ctx: Rc<RefCell<Ctx>>, config: BacktestConfig) -> Self {
+    pub fn new(ctx: Rc<RefCell<Ctx>>, mut config: BacktestConfig) -> Self {
         let sym = ctx.borrow().sym().clone();
         assert!(
             !f64::is_nan(sym.min_qty()) && !f64::is_nan(sym.min_tick()),
             "Ctx Symbol is not suitable for backtesting, min_qty is NaN or min_tick is NaN"
         );
+        if config.risk_free_rate.is_nan() {
+            config.risk_free_rate = 0.0;
+        }
+        if config.annualization_factor.is_nan() {
+            config.annualization_factor =
+                annualization_factor(ctx.borrow().ohlcv().timeframe(), sym.kind().trading_days());
+        }
         let initial_capital = config.initial_capital;
         Self {
             ctx,
@@ -273,13 +299,20 @@ impl Backtest {
     }
 
     #[inline]
-    pub fn sharpe_ratio(&self, rfr: f64) -> f64 {
-        sharpe_ratio_from_returns(&self.returns_list(), rfr)
+    pub fn sharpe_ratio(&self) -> f64 {
+        sharpe_ratio_from_returns(&self.returns_list(), self.config.risk_free_rate)
+            * self.config.annualization_factor
     }
 
     #[inline]
-    pub fn sortino_ratio(&self, rfr: f64) -> f64 {
-        sortino_ratio_from_returns(&self.returns_list(), rfr)
+    pub fn sortino_ratio(&self) -> f64 {
+        sortino_ratio_from_returns(&self.returns_list(), self.config.risk_free_rate)
+            * self.config.annualization_factor
+    }
+
+    #[inline]
+    pub fn expectancy(&self) -> f64 {
+        expectancy(&self.pnl_list())
     }
 
     #[inline]
@@ -817,7 +850,6 @@ for i = 0 to array.size(trades) - 1
 
     #[cfg(feature = "pretty_table")]
     pub fn print_table(&self) {
-        let rfr = 0.0;
         let sym = self.ctx.borrow().sym().clone();
         let f_price = with_suffix(&format!(" {}", sym._currency()));
         let f_percent = with_suffix("%");
@@ -846,12 +878,12 @@ for i = 0 to array.size(trades) - 1
 
         table.add_row(Row::from(vec![
             Cell::new("Sharpe Ratio"),
-            Cell::new(format!("{:0.3}", self.sharpe_ratio(rfr))),
+            Cell::new(format!("{:0.3}", self.sharpe_ratio())),
         ]));
 
         table.add_row(Row::from(vec![
             Cell::new("Sortino Ratio"),
-            Cell::new(format!("{:0.3}", self.sortino_ratio(rfr))),
+            Cell::new(format!("{:0.3}", self.sortino_ratio())),
         ]));
 
         table.add_row(Row::from(vec![
@@ -902,6 +934,11 @@ for i = 0 to array.size(trades) - 1
         table.add_row(Row::from(vec![
             Cell::new("Ratio Avg Win / Avg Loss"),
             Cell::new(f_raw(self.avg_win_loss_ratio())),
+        ]));
+
+        table.add_row(Row::from(vec![
+            Cell::new("Expectancy"),
+            Cell::new(f_raw(self.expectancy())),
         ]));
 
         // Print the table

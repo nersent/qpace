@@ -101,6 +101,12 @@ impl PySymKind {
     pub fn py_other(kind: String) -> Self {
         SymKind::Other(kind).into()
     }
+
+    #[getter(trading_days)]
+    #[inline]
+    pub fn py_trading_days(&self) -> f64 {
+        self.inner.trading_days()
+    }
 }
 
 #[gen_stub_pyclass]

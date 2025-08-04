@@ -1,4 +1,9 @@
-use crate::stats::{mean, stdev, sum};
+use chrono::Duration;
+
+use crate::{
+    stats::{mean, stdev, sum},
+    timeframe::Timeframe,
+};
 
 #[inline]
 pub fn expectancy(pnl: &[f64]) -> f64 {
@@ -237,3 +242,11 @@ pub fn f1(precision: f64, recall: f64) -> f64 {
 // pub fn max_run_up_pct(max_run_up: f64, bar_equity_max: f64) -> f64 {
 //     return max_run_up / bar_equity_max;
 // }
+
+#[inline]
+pub fn annualization_factor(timeframe: Timeframe, trading_days: f64) -> f64 {
+    let timeframe_duration: Duration = timeframe.try_into().unwrap();
+    let seconds_per_year = trading_days * 24.0 * 60.0 * 60.0;
+    let seconds_per_timeframe = timeframe_duration.num_seconds() as f64;
+    return seconds_per_year / seconds_per_timeframe * trading_days as f64;
+}
