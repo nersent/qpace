@@ -65,6 +65,7 @@ class SymClient {
         timeframe,
       },
     });
+    const { Sym } = require("./index");
     return data["symbols"].map((r: any) => Sym.fromJSON(r));
   }
 }
