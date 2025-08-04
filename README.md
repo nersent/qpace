@@ -29,6 +29,8 @@
 
 - CLI + upcoming UI
 
+[![indicator plot](/static/indicator_banner.png)](/examples/python/main.py)
+
 ## Quick Links
 
 - [Home](https://qpace.dev)
