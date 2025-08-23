@@ -68,6 +68,8 @@ class Pane:
     fr: float = 1.0  # CSS‑grid fraction unit (>0)
     background_title: Optional[str] = None  # centre watermark
     title: Optional[str] = None  # legend (top‑left)
+    markers: Optional[pd.Series] = None
+    boxes: Optional[pd.DataFrame] = None
 
 
 @dataclass
@@ -257,6 +259,46 @@ def _render_pane(chart_obj, df: pd.DataFrame, pane: Pane):
     else:
         for ln in pane.lines:
             _safe_create_line(chart_obj, ln)
+    _add_markers(chart_obj, pane.markers)
+    if pane.boxes is not None and len(pane.boxes) > 0:
+        # Ensure we iterate through DataFrame rows safely
+        for _, box in pane.boxes.iterrows():
+            # Extract mandatory coordinates
+            st = box.get("start_time")
+            sv = box.get("start_value")
+            et = box.get("end_time")
+            ev = box.get("end_value")
+            if st is None or sv is None or et is None or ev is None:
+                continue
+            # Extract styling options or set defaults.  Note: the
+            # underlying SeriesCommon.box method expects `color` instead
+            # of `line_color` for the outline colour.  We still allow
+            # users to pass `line_color` in their DataFrame for
+            # consistency with other primitives, but map it to
+            # `color` when calling the API.
+            # See: lightweight_charts.abstract.SeriesCommon.box docs
+            color = box.get("color") or box.get("line_color", "#1E80F0")
+            fill_color = box.get("fill_color", "rgba(30,128,240,0.2)")
+            width = int(box.get("width", 1))
+            style = box.get("style", "solid")
+            round_coords = bool(box.get("round", False))
+            # Invoke the chart's box drawing method; if not available, skip
+            if hasattr(chart_obj, "box"):
+                try:
+                    chart_obj.box(
+                        start_time=st,
+                        start_value=sv,
+                        end_time=et,
+                        end_value=ev,
+                        round=round_coords,
+                        color=color,
+                        fill_color=fill_color,
+                        width=width,
+                        style=style,
+                    )
+                except Exception:
+                    # Silently ignore if box drawing fails on this backend
+                    pass
 
 
 # ─────────────────────────── Aux helpers ────────────────────────────
@@ -275,6 +317,34 @@ def _add_labels(chart, series: Optional[pd.Series], pos: str):
         }
         for t, v in series.dropna().items()
     ]
+    chart.marker_list(items) if items else None
+
+
+def _add_markers(chart, series: Optional[pd.Series]):
+    """
+    Accepts a pd.Series indexed by time. Values can be:
+      * dict with lightweight-charts marker fields (e.g. {"position": "above", "shape": "arrow_up", "text": "Buy", "color": "green"})
+      * anything else (str/number/bool) → rendered as a text marker with that value as label.
+    """
+    if series is None or series.empty:
+        return
+    df = _series_to_df(series, value_col="payload")
+    if df.empty:
+        return
+    defaults = {"position": "above", "shape": "circle", "color": "#cccccc"}
+    items = []
+    for r in df.itertuples(index=False):
+        payload = r.payload
+        if isinstance(payload, dict):
+            item = {"time": r.time, **defaults, **payload}
+        else:
+            item = {
+                "time": r.time,
+                **defaults,
+                "shape": "text",
+                "text": "" if pd.isna(payload) else str(payload),
+            }
+        items.append(item)
     chart.marker_list(items) if items else None
 
 
