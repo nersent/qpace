@@ -43,11 +43,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Union, Literal
-
+from typing import Any, List, Optional, Tuple, Union, Literal
+import lightweight_charts as lw
+import base64
 import pandas as pd
-import qpace_core as qp
 import numpy as np
+import qpace_core as qp
 
 # ───────────────────────────── Widgets ──────────────────────────────
 
@@ -70,6 +71,7 @@ class Pane:
     title: Optional[str] = None  # legend (top‑left)
     markers: Optional[pd.Series] = None
     boxes: Optional[pd.DataFrame] = None
+    pane: Optional[Any] = None  # for custom panes, e.g. market structure
 
 
 @dataclass
@@ -80,6 +82,7 @@ class BarPane(Pane):
     labels_above: Optional[pd.Series] = None
     labels_below: Optional[pd.Series] = None
     fr: float = 2.0
+    pane: Optional[Any] = None  # for custom panes, e.g. market structure
 
 
 # ─────────────────────────── Internals ──────────────────────────────
@@ -112,12 +115,17 @@ def _series_to_df(s: pd.Series, value_col: str = "value") -> pd.DataFrame:
 def _map_color(v: Union[float, str]) -> str:
     if isinstance(v, str):
         return v
-    return __trend_to_color(v)
+    return color_from_score(v)
 
 
-def __trend_to_color(v: float) -> str:
+def color_from_score(
+    v: float,
+    neg: Tuple[int, int, int] = (255, 0, 0),
+    pos: Tuple[int, int, int] = (0, 255, 0),
+    neutral="rgba(42,42,42,1.0)",
+) -> str:
     """
-    Map a trend value v in [-1.0, 1.0] to an rgba colour string.
+    Map a score v in [-1.0, 1.0] to an rgba colour string.
 
     v  < 0  => red   (negative trend)
     v  > 0  => green (positive trend)
@@ -128,11 +136,11 @@ def __trend_to_color(v: float) -> str:
     v = float(np.clip(np.nan_to_num(v), -1.0, 1.0))
     alpha = abs(v)  # 0 … 1
     if alpha == 0.0:
-        return "rgba(42,42,42,1.0)"  # solid grey
+        return neutral  # solid grey
     if v > 0:  # green side
-        r, g, b = (0, 255, 0)
+        r, g, b = pos
     else:  # red side
-        r, g, b = (255, 0, 0)
+        r, g, b = neg
     return f"rgba({r},{g},{b},{alpha:.3f})"
 
 
@@ -189,53 +197,115 @@ def _draw_bar(parent, df: pd.DataFrame, pane: BarPane):
 
 
 # ─────────────────────────── Public API ─────────────────────────────
+class Plot:
+    def __init__(
+        self,
+        ctx: qp.Ctx,
+        width: int = 800,
+        height: int = 600,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        bt: Optional[Union[pd.DataFrame, qp.Backtest]] = None,
+        panes: Optional[List[Pane]] = None,
+    ):
+        self.ctx = ctx
+        self.panes: List[Pane] = panes or []
+        self.width = width
+        self.height = height
+        self.start_time = start_time
+        self.end_time = end_time
+        self.scale_candles_only = False
+        self.bt = bt
+
+    def add_pane(self, pane: Pane):
+        self.panes.append(pane)
+
+    def _make_lw(self):
+        if not self.panes:
+            raise ValueError("'panes' list cannot be empty.")
+        heights = _normalised_heights(self.panes)
+        df = self.ctx.ohlcv.to_pandas().copy()
+        df["open_time"] = pd.to_datetime(df["open_time"], unit="s", utc=True)
+        df.set_index("open_time", inplace=True, drop=False)
+        if self.start_time is not None:
+            df = df[df["open_time"] >= pd.to_datetime(self.start_time, utc=True)]
+        if self.end_time is not None:
+            df = df[df["open_time"] <= pd.to_datetime(self.end_time, utc=True)]
+        if df.empty:
+            raise ValueError("No data in selected interval.")
+        root = lw.Chart(
+            width=self.width,
+            height=self.height,
+            inner_width=1,
+            inner_height=heights[0],
+            title=self.panes[0].title,
+            scale_candles_only=self.scale_candles_only,
+        )
+        _render_pane(
+            self.ctx,
+            root,
+            df,
+            self.panes[0],
+            start_time=self.start_time,
+            end_time=self.end_time,
+        )
+        for pane, h in zip(self.panes[1:], heights[1:]):
+            sub = root.create_subchart(
+                width=1, height=h, position=pane.position, sync=True
+            )
+            _render_pane(
+                self.ctx,
+                sub,
+                df,
+                pane,
+                start_time=self.start_time,
+                end_time=self.end_time,
+            )
+        if self.bt is not None:
+            _render_trades(root, self.bt)
+        return root
+
+    def display(self):
+        root = self._make_lw()
+        root.show(block=True)
+        root.exit()
+
+    def to_bytes(self) -> bytes:
+        root = self._make_lw()
+        root.set_visible_range(start_time=self.start_time, end_time=self.end_time)
+        img = screenshot_chart(root)
+        root.exit()
+        return img
 
 
-def plot(
+def match_time(
+    time: Union[datetime, list[datetime]],
+    start_time: Optional[datetime],
+    end_time: Optional[datetime],
+) -> bool:
+    """
+    Check if the given time falls within the specified start and end times.
+    """
+    if start_time is None and end_time is None:
+        return True
+    if not isinstance(time, list):
+        time = [time]
+    for t in time:
+        if start_time is not None and t < start_time:
+            return False
+        if end_time is not None and t > end_time:
+            return False
+    return True
+
+
+def _render_pane(
     ctx: qp.Ctx,
-    panes: List[Pane],
-    bt: Optional[Union[pd.DataFrame, qp.Backtest]] = None,
+    chart_obj,
+    df: pd.DataFrame,
+    pane: Pane,
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
-    display: bool = True,
-    width: int = 800,
-    height: int = 600,
-    scale_candles_only: bool = False,
 ):
-    import lightweight_charts as lw
-
-    if not panes:
-        raise ValueError("'panes' list cannot be empty.")
-    heights = _normalised_heights(panes)
-    df = ctx.ohlcv.to_pandas().copy()
-    df["open_time"] = pd.to_datetime(df["open_time"], unit="s", utc=True)
-    df.set_index("open_time", inplace=True, drop=False)
-    if start_time is not None:
-        df = df[df["open_time"] >= pd.to_datetime(start_time, utc=True)]
-    if end_time is not None:
-        df = df[df["open_time"] <= pd.to_datetime(end_time, utc=True)]
-    if df.empty:
-        raise ValueError("No data in selected interval.")
-    root = lw.Chart(
-        width=width,
-        height=height,
-        inner_width=1,
-        inner_height=heights[0],
-        title=panes[0].title,
-        scale_candles_only=scale_candles_only,
-    )
-    _render_pane(root, df, panes[0])
-    for pane, h in zip(panes[1:], heights[1:]):
-        sub = root.create_subchart(width=1, height=h, position=pane.position, sync=True)
-        _render_pane(sub, df, pane)
-    if bt is not None:
-        _render_trades(root, bt)
-    if display:
-        root.show(block=True)
-    return root
-
-
-def _render_pane(chart_obj, df: pd.DataFrame, pane: Pane):
     if pane.background_title:
         chart_obj.watermark(
             pane.background_title,
@@ -299,6 +369,45 @@ def _render_pane(chart_obj, df: pd.DataFrame, pane: Pane):
                 except Exception:
                     # Silently ignore if box drawing fails on this backend
                     pass
+    if hasattr(pane, "pane") and pane.pane is not None:
+        _pane = pane.pane
+        for label in _pane.labels:
+            label_open_time = ctx.ohlcv[label.bar_index].open_time
+            if not match_time(label_open_time, start_time, end_time):
+                continue
+            label_text = label.text or ""
+            label_color = label.color or "#ffffff"
+            label_position = "above" if label.above else "below"
+            chart_obj.marker(
+                time=label_open_time,
+                position=label_position,
+                shape="text",
+                text=label_text,
+                color=label_color,
+            )
+        for box in _pane.boxes:
+            start_bar = ctx.ohlcv[box.start_bar_index]
+            end_bar = ctx.ohlcv[box.end_bar_index]
+            if start_bar is None or end_bar is None:
+                continue
+            start_open_time = start_bar.open_time
+            end_open_time = end_bar.open_time
+            if not match_time([start_open_time, end_open_time], start_time, end_time):
+                continue
+            _style = "solid"
+            if box.dashed:
+                _style = "dashed"
+            chart_obj.box(
+                start_time=start_open_time,
+                start_value=box.start_value,
+                end_time=end_open_time,
+                end_value=box.end_value,
+                round=False,
+                color=box.line_color,
+                fill_color=box.fill_color or "rgba(0, 0, 0, 0)",
+                width=int(box.width or 1),
+                style=_style,
+            )
 
 
 # ─────────────────────────── Aux helpers ────────────────────────────
@@ -401,3 +510,87 @@ def _render_trades(chart, bt: Union[pd.DataFrame, qp.Backtest]):
                 if r.kind in mp
             ]
         )
+
+
+def screenshot_chart(root: lw.Chart) -> bytes:
+    """
+    Return PNG bytes containing a screenshot of the *entire* chart window,
+    including all sub‑charts created with ``create_subchart``.
+
+    Call this only after the window has finished loading
+    (e.g. inside ``root.events.loaded`` or after ``root.show(block=False)``).
+
+    Parameters
+    ----------
+    root : lightweight_charts.Chart
+        The root chart instance returned by ``qp.plot`` / ``lw.Chart(...)``.
+
+    Returns
+    -------
+    bytes
+        Raw PNG data suitable for ``Path.write_bytes`` or ``wandb.Image``.
+    """
+
+    # JavaScript that composites every <canvas> in the window into one bitmap
+    # js = """
+    # (() => {
+    #     let canvases = Array.from(document.querySelectorAll('canvas'));
+    #     if (canvases.length === 0) return '';
+    #     const width  = Math.max(...canvases.map(c => c.width));
+    #     const height = canvases.reduce((h, c) => h + c.height, 0);
+    #     const out = document.createElement('canvas');
+    #     out.width  = width;   out.height = height;
+    #     const ctx = out.getContext('2d');
+    #     let y = 0;
+    #     for (const c of canvases) { ctx.drawImage(c, 0, y); y += c.height; }
+    #     return out.toDataURL();          // "data:image/png;base64,..."
+    # })();
+    # """
+    js = r"""
+    (() => {
+        const canvases = Array.from(document.querySelectorAll('canvas'));
+        if (canvases.length === 0) return '';
+
+        /* --- window extents ----------------------------------------- */
+        const rects = canvases.map(c => c.getBoundingClientRect());
+        const minL  = Math.min(...rects.map(r => r.left));
+        const minT  = Math.min(...rects.map(r => r.top));
+        const maxR  = Math.max(...rects.map(r => r.right));
+        const maxB  = Math.max(...rects.map(r => r.bottom));
+
+        const width  = Math.ceil(maxR - minL);
+        const height = Math.ceil(maxB - minT);
+
+        /* --- composite ---------------------------------------------- */
+        const out = document.createElement('canvas');
+        out.width  = width;
+        out.height = height;
+        const ctx  = out.getContext('2d');
+
+        canvases.forEach((c, i) => {
+            const r = rects[i];
+            /* account for device‑pixel‑ratio so everything lines up*/
+            const scaleX = c.width  / c.clientWidth;
+            const scaleY = c.height / c.clientHeight;
+            ctx.drawImage(
+                c,
+                0, 0, c.width, c.height,
+                Math.round((r.left - minL) * scaleX),
+                Math.round((r.top  - minT) * scaleY),
+                c.width, c.height
+            );
+        });
+
+        return out.toDataURL('image/png');
+    })();
+    """
+
+    # root.screenshot()
+    root.show(block=False)
+    # same internal bridge used by Chart.screenshot()
+    data_url = root.win.run_script_and_get(js)
+    if not data_url.startswith("data:image"):
+        raise RuntimeError(
+            "Chart window is not ready yet — try waiting for events.loaded"
+        )
+    return base64.b64decode(data_url.split(",")[1])

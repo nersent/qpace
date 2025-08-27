@@ -151,6 +151,7 @@ setup(
         "plotly",
         "grpcio==1.74.0",
         "protobuf==6.31.1",
+        "lightweight-charts==2.1",
     ],
     # platforms=["win_amd64"],
 )
