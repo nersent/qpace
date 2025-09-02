@@ -399,18 +399,17 @@ pub trait OhlcvReader: fmt::Debug {
     }
 
     #[inline]
-    fn sanity_check(&self) -> Result<(), Vec<String>> {
-        let mut messages = vec![];
+    fn sanity_check(&self) -> Result<(), String> {
         if self.len() == 0 {
-            messages.push("ohlcv is empty".to_string());
+            return Err("ohlcv is empty".to_string());
         }
-        let all_volume_nan = self
-            .slice(0..self.len())
-            .iter()
-            .all(|bar| bar.volume().is_nan());
-        if all_volume_nan {
-            messages.push("ohlcv volume is all NaN".to_string());
-        }
+        // let all_volume_nan = self
+        //     .slice(0..self.len())
+        //     .iter()
+        //     .all(|bar| bar.volume().is_nan());
+        // if all_volume_nan {
+        //     messages.push("ohlcv volume is all NaN".to_string());
+        // }
         for bar_index in 0..self.len() {
             let bar: OhlcvBar = self.get(bar_index).unwrap();
             let prev_bar: Option<OhlcvBar> = if bar_index > 0 {
@@ -445,11 +444,26 @@ pub trait OhlcvReader: fmt::Debug {
             if bar.close().is_nan() {
                 bar_messages.push("close is NaN".to_string());
             }
-            if !all_volume_nan && bar.volume().is_nan() {
+            if bar.volume().is_nan() {
                 bar_messages.push("volume is NaN".to_string());
             }
+            if bar.open() <= 0.0 {
+                bar_messages.push("open <= 0".to_string());
+            }
+            if bar.high() <= 0.0 {
+                bar_messages.push("high <= 0".to_string());
+            }
+            if bar.low() <= 0.0 {
+                bar_messages.push("low <= 0".to_string());
+            }
+            if bar.close() <= 0.0 {
+                bar_messages.push("close <= 0".to_string());
+            }
+            if bar.volume() < 0.0 {
+                bar_messages.push("volume < 0".to_string());
+            }
             if bar_messages.len() > 0 {
-                messages.push(format!(
+                return Err(format!(
                     "bar[{} | {:?} | {:?}]: {}",
                     bar_index,
                     bar.open_time(),
@@ -458,11 +472,7 @@ pub trait OhlcvReader: fmt::Debug {
                 ));
             }
         }
-        return if messages.len() > 0 {
-            Err(messages)
-        } else {
-            Ok(())
-        };
+        return Ok(());
     }
 
     #[inline]

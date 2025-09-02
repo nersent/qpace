@@ -520,10 +520,10 @@ impl PyOhlcv {
 
     #[pyo3(name = "sanity_check")]
     #[inline]
-    pub fn py_sanity_check(&self) -> (bool, Vec<String>) {
+    pub fn py_sanity_check(&self) -> (bool, Option<String>) {
         match self.inner.sanity_check() {
-            Ok(_) => (true, vec![]),
-            Err(e) => (false, e),
+            Ok(_) => (true, None),
+            Err(e) => (false, Some(e)),
         }
     }
 

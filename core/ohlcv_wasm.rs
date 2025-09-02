@@ -415,14 +415,14 @@ impl WasmOhlcv {
         format!("{:?}", self.inner)
     }
 
-    #[wasm_bindgen(js_name = "sanityCheck")]
-    #[inline]
-    pub fn wasm_sanity_check(&self) -> Vec<String> {
-        match self.inner.sanity_check() {
-            Ok(_) => vec![],
-            Err(e) => e,
-        }
-    }
+    // #[wasm_bindgen(js_name = "sanityCheck")]
+    // #[inline]
+    // pub fn wasm_sanity_check(&self) -> Vec<String> {
+    //     match self.inner.sanity_check() {
+    //         Ok(_) => vec![],
+    //         Err(e) => e,
+    //     }
+    // }
 
     #[wasm_bindgen(js_name = "ref")]
     #[inline]

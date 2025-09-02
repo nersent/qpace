@@ -395,13 +395,13 @@ impl NodeOhlcv {
         format!("{:?}", self.inner)
     }
 
-    #[napi(js_name = "sanityCheck")]
-    pub fn node_sanity_check(&self) -> Vec<String> {
-        match self.inner.sanity_check() {
-            Ok(_) => vec![],
-            Err(e) => e,
-        }
-    }
+    // #[napi(js_name = "sanityCheck")]
+    // pub fn node_sanity_check(&self) -> Vec<String> {
+    //     match self.inner.sanity_check() {
+    //         Ok(_) => vec![],
+    //         Err(e) => e,
+    //     }
+    // }
 
     #[napi(js_name = "ref")]
     #[inline]
