@@ -410,6 +410,7 @@ pub trait OhlcvReader: fmt::Debug {
         // if all_volume_nan {
         //     messages.push("ohlcv volume is all NaN".to_string());
         // }
+        let mut bar_messages = vec![];
         for bar_index in 0..self.len() {
             let bar: OhlcvBar = self.get(bar_index).unwrap();
             let prev_bar: Option<OhlcvBar> = if bar_index > 0 {
@@ -417,7 +418,6 @@ pub trait OhlcvReader: fmt::Debug {
             } else {
                 None
             };
-            let mut bar_messages = vec![];
             if bar.close_time() <= bar.open_time() {
                 bar_messages.push("close_time <= open_time".to_string());
             }

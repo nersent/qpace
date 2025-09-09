@@ -312,6 +312,33 @@ impl PyBacktest {
     pub fn py_display(&self) {
         self.inner.borrow().display(None);
     }
+
+    // pub fn create_hold(
+    //     ctx: Rc<RefCell<Ctx>>,
+    //     config: BacktestConfig,
+    //     range: (usize, usize),
+    //     qty: f64,
+    // ) -> Backtest {
+    //     let (entry, exit) = range;
+
+    //     let mut bt = Backtest::new(ctx.clone(), config);
+
+    //     for bar_index in ctx.borrow_mut().into_iter() {
+    //         bt.on_bar_open();
+
+    //         if bar_index == entry {
+    //             let order = OrderConfig::new(qty, Some("hold_entry".to_string()));
+    //             bt.order(order).unwrap();
+    //         } else if bar_index == exit {
+    //             let order = OrderConfig::new(-qty, Some("hold_exit".to_string()));
+    //             bt.order(order).unwrap();
+    //         }
+
+    //         bt.on_bar_close();
+    //     }
+    //     return bt;
+    // }
+
     // #[pyo3(name = "summary", signature = (risk_free_rate=0.0))]
     // #[inline]
     // pub fn py_summary(&self, risk_free_rate: f64) -> PyBacktestSummary {
