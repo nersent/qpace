@@ -73,10 +73,10 @@ impl NodeSymKind {
         self.inner == other.inner
     }
 
-    #[napi(getter = tradingDays)]
+    #[napi(getter = periods)]
     #[inline]
-    pub fn node_trading_days(&self) -> f64 {
-        self.inner.trading_days()
+    pub fn node_periods(&self) -> f64 {
+        self.inner.periods()
     }
 }
 

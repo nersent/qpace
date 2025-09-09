@@ -91,10 +91,10 @@ impl WasmSymKind {
         self.inner == other.inner
     }
 
-    #[wasm_bindgen(getter = tradingDays)]
+    #[wasm_bindgen(getter = periods)]
     #[inline]
-    pub fn wasm_trading_days(&self) -> f64 {
-        self.inner.trading_days()
+    pub fn wasm_periods(&self) -> f64 {
+        self.inner.periods()
     }
 }
 

@@ -147,7 +147,7 @@ impl Backtest {
         }
         if config.annualization_factor.is_nan() {
             config.annualization_factor =
-                annualization_factor(ctx.borrow().ohlcv().timeframe(), sym.kind().trading_days());
+                annualization_factor(ctx.borrow().ohlcv().timeframe(), sym.kind().periods());
         }
         let initial_capital = config.initial_capital;
         Self {

@@ -102,10 +102,10 @@ impl PySymKind {
         SymKind::Other(kind).into()
     }
 
-    #[getter(trading_days)]
+    #[getter(periods)]
     #[inline]
-    pub fn py_trading_days(&self) -> f64 {
-        self.inner.trading_days()
+    pub fn py_periods(&self) -> f64 {
+        self.inner.periods()
     }
 }
 

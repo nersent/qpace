@@ -12,8 +12,7 @@ pub enum SymKind {
 }
 
 impl SymKind {
-    // @TODO: rename to periods
-    pub fn trading_days(&self) -> f64 {
+    pub fn periods(&self) -> f64 {
         match self {
             SymKind::Crypto => 365.0,
             _ => 252.0,
