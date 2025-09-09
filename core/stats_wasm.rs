@@ -1,4 +1,7 @@
-use crate::stats::{mean, returns, stdev, sum, var};
+use crate::{
+    stats::{mean, returns, stdev, sum, var},
+    timeframe_wasm::WasmTimeframe,
+};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = "sum")]

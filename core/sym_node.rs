@@ -72,6 +72,12 @@ impl NodeSymKind {
     pub fn node_eq(&self, other: &NodeSymKind) -> bool {
         self.inner == other.inner
     }
+
+    #[napi(getter = periods)]
+    #[inline]
+    pub fn node_periods(&self) -> f64 {
+        self.inner.periods()
+    }
 }
 
 #[napi]

@@ -90,6 +90,12 @@ impl WasmSymKind {
     pub fn wasm_eq(&self, other: WasmSymKind) -> bool {
         self.inner == other.inner
     }
+
+    #[wasm_bindgen(getter = periods)]
+    #[inline]
+    pub fn wasm_periods(&self) -> f64 {
+        self.inner.periods()
+    }
 }
 
 #[wasm_bindgen(js_name = "Sym")]

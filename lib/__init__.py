@@ -1,8 +1,8 @@
 from qpace_core import *
 
-from lib.client import *
 import lib.ta as ta
-from lib.plot import plot, Line, BarPane, Pane
+from lib.client import Client
+from lib.plot import Plot, Line, BarPane, Pane, color_from_score
 
 __version__ = "__BAZED::QPACE_VERSION__"
 __core__version__: str = _get_core_version()

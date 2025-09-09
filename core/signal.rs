@@ -92,6 +92,32 @@ impl Signal {
     pub fn short() -> Self {
         Self::equity_pct(-1.0)
     }
+
+    #[inline]
+    pub fn get_equity_pct(&self) -> Option<f64> {
+        match self.kind {
+            SignalKind::EquityPct(pct) => Some(pct),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn get_size(&self) -> Option<f64> {
+        match self.kind {
+            SignalKind::Size(size) => Some(size),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn is_hold(&self) -> bool {
+        matches!(self.kind, SignalKind::Hold())
+    }
+
+    #[inline]
+    pub fn is_close_all(&self) -> bool {
+        matches!(self.kind, SignalKind::CloseAll())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

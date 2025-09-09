@@ -20,7 +20,7 @@ export const getCommands = (): Command[] => {
           profile.data.apiKey = apiKey;
           const client = await profile.getClient(false);
           try {
-            const user = await client.me();
+            const user = await client.user.me();
             verbose &&
               console.log(
                 `${QPACE_BG_PREFIX}Logged in as ${chalk.yellowBright(

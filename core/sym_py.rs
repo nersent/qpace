@@ -101,6 +101,12 @@ impl PySymKind {
     pub fn py_other(kind: String) -> Self {
         SymKind::Other(kind).into()
     }
+
+    #[getter(periods)]
+    #[inline]
+    pub fn py_periods(&self) -> f64 {
+        self.inner.periods()
+    }
 }
 
 #[gen_stub_pyclass]

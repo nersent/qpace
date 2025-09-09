@@ -91,4 +91,28 @@ impl PySignal {
     pub fn py_set_comment(&mut self, comment: Option<String>) {
         self.inner.set_comment(comment);
     }
+
+    #[getter(equity_pct)]
+    #[inline]
+    pub fn py_get_equity_pct(&self) -> Option<f64> {
+        self.inner.get_equity_pct()
+    }
+
+    #[getter(size)]
+    #[inline]
+    pub fn py_get_size(&self) -> Option<f64> {
+        self.inner.get_size()
+    }
+
+    #[getter(is_hold)]
+    #[inline]
+    pub fn py_is_hold(&self) -> bool {
+        self.inner.is_hold()
+    }
+
+    #[getter(is_close_all)]
+    #[inline]
+    pub fn py_is_close_all(&self) -> bool {
+        self.inner.is_close_all()
+    }
 }

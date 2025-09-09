@@ -1,4 +1,7 @@
-use crate::stats::{mean, returns, stdev, sum, var};
+use crate::{
+    stats::{mean, returns, stdev, sum, var},
+    timeframe_node::NodeTimeframe,
+};
 use napi_derive::napi;
 
 #[napi(js_name = "sum")]

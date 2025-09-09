@@ -29,7 +29,7 @@ impl PyBacktest {
 #[gen_stub_pymethods]
 #[pymethods]
 impl PyBacktest {
-    #[pyo3(signature = (ctx, initial_capital=1000.0, process_orders_on_close=false, debug=false))]
+    #[pyo3(signature = (ctx, initial_capital=1000.0, process_orders_on_close=false, debug=false, risk_free_rate=None, annualization_factor=None))]
     #[new]
     #[inline]
     pub fn py_new(
@@ -37,11 +37,15 @@ impl PyBacktest {
         initial_capital: f64,
         process_orders_on_close: bool,
         debug: bool,
+        risk_free_rate: Option<f64>,
+        annualization_factor: Option<f64>,
     ) -> Self {
         let mut config = BacktestConfig::default();
         config.set_initial_capital(initial_capital);
         config.set_process_orders_on_close(process_orders_on_close);
         config.set_debug(debug);
+        config.set_risk_free_rate(risk_free_rate.unwrap_or(f64::NAN));
+        config.set_annualization_factor(annualization_factor.unwrap_or(f64::NAN));
         Self {
             inner: Rc::new(RefCell::new(Backtest::new(ctx.inner().clone(), config))),
             ctx,
@@ -183,14 +187,20 @@ impl PyBacktest {
 
     #[pyo3(name = "sharpe_ratio")]
     #[inline]
-    pub fn py_sharpe_ratio(&self, rfr: f64) -> f64 {
-        self.inner.borrow().sharpe_ratio(rfr)
+    pub fn py_sharpe_ratio(&self) -> f64 {
+        self.inner.borrow().sharpe_ratio()
     }
 
     #[pyo3(name = "sortino_ratio")]
     #[inline]
-    pub fn py_sortino_ratio(&self, rfr: f64) -> f64 {
-        self.inner.borrow().sortino_ratio(rfr)
+    pub fn py_sortino_ratio(&self) -> f64 {
+        self.inner.borrow().sortino_ratio()
+    }
+
+    #[pyo3(name = "expectancy")]
+    #[inline]
+    pub fn py_expectancy(&self) -> f64 {
+        self.inner.borrow().expectancy()
     }
 
     #[getter(position_size)]
@@ -302,6 +312,33 @@ impl PyBacktest {
     pub fn py_display(&self) {
         self.inner.borrow().display(None);
     }
+
+    // pub fn create_hold(
+    //     ctx: Rc<RefCell<Ctx>>,
+    //     config: BacktestConfig,
+    //     range: (usize, usize),
+    //     qty: f64,
+    // ) -> Backtest {
+    //     let (entry, exit) = range;
+
+    //     let mut bt = Backtest::new(ctx.clone(), config);
+
+    //     for bar_index in ctx.borrow_mut().into_iter() {
+    //         bt.on_bar_open();
+
+    //         if bar_index == entry {
+    //             let order = OrderConfig::new(qty, Some("hold_entry".to_string()));
+    //             bt.order(order).unwrap();
+    //         } else if bar_index == exit {
+    //             let order = OrderConfig::new(-qty, Some("hold_exit".to_string()));
+    //             bt.order(order).unwrap();
+    //         }
+
+    //         bt.on_bar_close();
+    //     }
+    //     return bt;
+    // }
+
     // #[pyo3(name = "summary", signature = (risk_free_rate=0.0))]
     // #[inline]
     // pub fn py_summary(&self, risk_free_rate: f64) -> PyBacktestSummary {

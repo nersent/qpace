@@ -23,6 +23,7 @@ pub mod legacy;
 pub mod metrics;
 pub mod ohlcv;
 pub mod orderbook;
+pub mod plot;
 pub mod signal;
 pub mod stats;
 pub mod sym;
@@ -51,6 +52,7 @@ cfg_if::cfg_if! { if #[cfg(feature = "bindings_py")] {
   pub mod signal_py;
   pub mod orderbook_py;
   pub mod backtest_py;
+  pub mod plot_py;
   use timeframe_py::PyTimeframe;
   use sym_py::PySym;
   use sym_py::PySymKind;
@@ -123,6 +125,8 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBacktest>()?;
     m.add_class::<PySignal>()?;
     m.add_class::<ohlcv::OhlcvBar>()?;
+    m.add_class::<plot_py::PyLineStyle>()?;
+    m.add_class::<plot_py::PyPosition>()?;
     m.add_function(wrap_pyfunction!(get_version, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_expectancy_score, m)?)?;
@@ -146,6 +150,7 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(metrics_py::py_precision, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_recall, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_f1, m)?)?;
+    m.add_function(wrap_pyfunction!(metrics_py::py_annualization_factor, m)?)?;
     Ok(())
 }
 define_stub_info_gatherer!(stub_info);

@@ -220,4 +220,22 @@ impl Timeframe {
     pub fn unknown(&self) -> bool {
         matches!(self, Timeframe::Unknown())
     }
+
+    //     const qpTimeframeToTradingView = (
+    //   timeframe: qp.Timeframe,
+    // ): TradingViewTimeframe => {
+    //   if (timeframe.minutes) {
+    //     return `${timeframe.minutes}` as TradingViewTimeframe;
+    //   }
+    //   if (timeframe.hours) {
+    //     return `${timeframe.hours * 60}` as TradingViewTimeframe;
+    //   }
+    //   return timeframe.toString() as TradingViewTimeframe;
+    // };
+    // #[inline]
+    // pub fn to_tradingview() -> String {
+    //     match self {
+
+    //     }
+    // }
 }
