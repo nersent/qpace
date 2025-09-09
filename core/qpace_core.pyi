@@ -34,11 +34,14 @@ class Backtest:
     open_trades: builtins.list[Trade]
     closed_trades: builtins.list[Trade]
     trades: builtins.list[Trade]
-    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False): ...
-    def sharpe_ratio(self, rfr:builtins.float) -> builtins.float:
+    def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False, risk_free_rate:typing.Optional[builtins.float]=None, annualization_factor:typing.Optional[builtins.float]=None): ...
+    def sharpe_ratio(self) -> builtins.float:
         ...
 
-    def sortino_ratio(self, rfr:builtins.float) -> builtins.float:
+    def sortino_ratio(self) -> builtins.float:
+        ...
+
+    def expectancy(self) -> builtins.float:
         ...
 
     def on_bar_open(self) -> None:
@@ -72,6 +75,41 @@ class Backtest:
         ...
 
     def display(self) -> None:
+        ...
+
+
+class Box:
+    start_bar_index: builtins.int
+    start_value: builtins.float
+    end_bar_index: builtins.int
+    end_value: builtins.float
+    fill_color: typing.Optional[builtins.str]
+    line_color: typing.Optional[builtins.str]
+    line_style: LineStyle
+    line_width: builtins.int
+    def __new__(cls,start_bar_index:typing.Optional[builtins.int]=None, start_value:typing.Optional[builtins.float]=None, end_bar_index:typing.Optional[builtins.int]=None, end_value:typing.Optional[builtins.float]=None, fill_color:typing.Optional[builtins.str]=None, line_color:typing.Optional[builtins.str]=None, line_style:typing.Optional[LineStyle]=None, line_width:typing.Optional[builtins.int]=None): ...
+    def py_set_start_bar_index(self, value:builtins.int) -> None:
+        ...
+
+    def py_set_start_value(self, value:builtins.float) -> None:
+        ...
+
+    def py_set_end_bar_index(self, value:builtins.int) -> None:
+        ...
+
+    def py_set_end_value(self, value:builtins.float) -> None:
+        ...
+
+    def py_set_fill_color(self, value:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_line_color(self, value:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_line_style(self, value:LineStyle) -> None:
+        ...
+
+    def py_set_line_width(self, value:builtins.int) -> None:
         ...
 
 
@@ -126,6 +164,42 @@ class CtxSkip:
 
     @staticmethod
     def open_time_geq(open_time:datetime.datetime) -> CtxSkip:
+        ...
+
+
+class Label:
+    bar_index: builtins.int
+    text: builtins.str
+    color: typing.Optional[builtins.str]
+    position: Position
+    def __new__(cls,bar_index:typing.Optional[builtins.int]=None, text:typing.Optional[builtins.str]=None, color:typing.Optional[builtins.str]=None, position:typing.Optional[Position]=None): ...
+    def py_set_bar_index(self, value:builtins.int) -> None:
+        ...
+
+    def py_set_text(self, value:builtins.str) -> None:
+        ...
+
+    def py_set_color(self, value:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def py_set_position(self, value:Position) -> None:
+        ...
+
+
+class LineStyle:
+    def __str__(self) -> builtins.str:
+        ...
+
+    @staticmethod
+    def Solid() -> LineStyle:
+        ...
+
+    @staticmethod
+    def Dashed() -> LineStyle:
+        ...
+
+    @staticmethod
+    def Dotted() -> LineStyle:
         ...
 
 
@@ -213,7 +287,7 @@ class Ohlcv:
     def write_parquet(self, path:builtins.str) -> None:
         ...
 
-    def sanity_check(self) -> tuple[builtins.bool, builtins.list[builtins.str]]:
+    def sanity_check(self) -> tuple[builtins.bool, typing.Optional[builtins.str]]:
         ...
 
     def ref(self) -> Ohlcv:
@@ -267,9 +341,26 @@ class OhlcvBar:
         ...
 
 
+class Position:
+    def __str__(self) -> builtins.str:
+        ...
+
+    @staticmethod
+    def TopCenter() -> Position:
+        ...
+
+    @staticmethod
+    def BottomCenter() -> Position:
+        ...
+
+
 class Signal:
     id: typing.Optional[builtins.str]
     comment: typing.Optional[builtins.str]
+    equity_pct: typing.Optional[builtins.float]
+    size: typing.Optional[builtins.float]
+    is_hold: builtins.bool
+    is_close_all: builtins.bool
     @staticmethod
     def Hold() -> Signal:
         ...
@@ -315,6 +406,7 @@ class Sym:
     price_scale: builtins.float
     point_value: builtins.float
     metadata: typing.Optional[builtins.str]
+    qty_scale: builtins.float
     def __new__(cls,): ...
     def __str__(self) -> builtins.str:
         ...
@@ -386,6 +478,7 @@ class Sym:
 
 
 class SymKind:
+    periods: builtins.float
     def __str__(self) -> builtins.str:
         ...
 
@@ -521,6 +614,9 @@ class TradeDirection(Enum):
 def accuracy(tp_count:builtins.float, fp_count:builtins.float, fn_count:builtins.float, tn_count:builtins.float) -> builtins.float:
     ...
 
+def annualization_factor(timeframe:Timeframe, trading_days:builtins.float) -> builtins.float:
+    ...
+
 def avg_losing_trade(gross_loss:builtins.float, losing_trades:builtins.int) -> builtins.float:
     ...
 
@@ -584,7 +680,7 @@ def py_zip_ohlcv_bars(open_time:typing.Optional[typing.Sequence[typing.Optional[
 def recall(tp_count:builtins.float, fn_count:builtins.float) -> builtins.float:
     ...
 
-def round_contracts(size:builtins.float, min_qty:builtins.float, price_scale:builtins.float) -> builtins.float:
+def round_contracts(size:builtins.float, min_qty:builtins.float, qty_scale:builtins.float) -> builtins.float:
     ...
 
 def round_to_min_tick(value:builtins.float, min_tick:builtins.float) -> builtins.float:
