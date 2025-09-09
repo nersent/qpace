@@ -1,12 +1,12 @@
 name: CD
 
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       target:
-#         description: "Triplet to build (linux-x64-gnu / win32-x64-msvc)"
-#         required: false
-#         type: string
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Triplet to build (linux-x64-gnu / win32-x64-msvc)"
+        required: false
+        type: string
 
 # on:
 #   pull_request:
