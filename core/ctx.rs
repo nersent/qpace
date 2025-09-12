@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 
 use crate::{
+    metrics::annualization_factor,
     ohlcv::{Ohlcv, OhlcvBar, OhlcvReader},
     sym::Sym,
 };
@@ -103,6 +104,11 @@ impl Ctx {
     #[inline]
     pub fn skip(&mut self, skip: CtxSkip) {
         self.bar_index = skip.get_target_bar_index(&self)
+    }
+
+    #[inline]
+    pub fn annualization_factor(&self) -> f64 {
+        return annualization_factor(self.ohlcv.timeframe(), self.sym.kind().periods());
     }
 }
 
