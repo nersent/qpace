@@ -171,6 +171,6 @@ pub fn node_f1(precision: f64, recall: f64) -> f64 {
 
 #[napi(js_name = "annualization_factor")]
 #[inline]
-pub fn node_annualization_factor(timeframe: &NodeTimeframe, trading_days: f64) -> f64 {
-    return annualization_factor(timeframe.into(), trading_days);
+pub fn node_annualization_factor(timeframe: &NodeTimeframe, trading_days_per_year: f64) -> f64 {
+    return annualization_factor(timeframe.into(), trading_days_per_year);
 }

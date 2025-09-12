@@ -171,6 +171,6 @@ pub fn wasm_f1(precision: f64, recall: f64) -> f64 {
 
 #[wasm_bindgen(js_name = "annualization_factor")]
 #[inline]
-pub fn wasm_annualization_factor(timeframe: WasmTimeframe, trading_days: f64) -> f64 {
-    return annualization_factor(timeframe.into(), trading_days);
+pub fn wasm_annualization_factor(timeframe: WasmTimeframe, trading_days_per_year: f64) -> f64 {
+    return annualization_factor(timeframe.into(), trading_days_per_year);
 }
