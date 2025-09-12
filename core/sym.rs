@@ -12,6 +12,7 @@ pub enum SymKind {
 }
 
 impl SymKind {
+    // @TODO: rename to annual_factor?
     pub fn periods(&self) -> f64 {
         match self {
             SymKind::Crypto => 365.0,

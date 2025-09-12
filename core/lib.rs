@@ -140,6 +140,9 @@ fn py_lib_mod(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(metrics_py::py_avg_win_loss_ratio, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_sharpe_ratio, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_sortino_ratio, m)?)?;
+    m.add_function(wrap_pyfunction!(metrics_py::py_sharpe_ratio_from_returns, m)?)?;
+    m.add_function(wrap_pyfunction!(metrics_py::py_sortino_ratio_from_returns, m)?)?;
+    m.add_function(wrap_pyfunction!(metrics_py::py_omega_ratio_from_returns, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_omega_ratio, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_net_profit_pct, m)?)?;
     m.add_function(wrap_pyfunction!(metrics_py::py_gross_profit_pct, m)?)?;
