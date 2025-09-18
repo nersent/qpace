@@ -40,7 +40,7 @@ maturin("maturin", {
   deps: [":src"],
   scope: "qpace_core",
   workspace: WORKSPACE,
-  args: `--interpreter python3.12 --release --skip-auditwheel --no-default-features --features "bindings_py polars"`,
+  args: `--interpreter python3.12 --release --skip-auditwheel --no-default-features --features "bindings_py polars json"`,
 });
 
 fileSet("core", {
@@ -68,7 +68,7 @@ rustNapi("napi", {
   deps: [":ts_src"],
   workspace: WORKSPACE,
   args: [
-    `--manifest-path core/Cargo.toml --release --js index.js --platform --no-default-features --features="bindings_node polars"`,
+    `--manifest-path core/Cargo.toml --release --js index.js --platform --no-default-features --features="bindings_node polars json"`,
   ],
 });
 

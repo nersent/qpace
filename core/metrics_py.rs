@@ -2,8 +2,8 @@ use crate::{
     metrics::{
         accuracy, annualization_factor, avg_losing_trade, avg_trade, avg_win_loss_ratio,
         avg_winning_trade, expectancy, expectancy_score, f1, gross_loss_pct, gross_profit_pct,
-        long_net_profit_pct, long_net_profit_ratio, net_profit_pct, omega_ratio,
-        omega_ratio_from_returns, pnl, precision, profit_factor, recall, sharpe_ratio,
+        long_net_profit_pct, long_net_profit_ratio, max_drawdown_from_equity, net_profit_pct,
+        omega_ratio, omega_ratio_from_returns, pnl, precision, profit_factor, recall, sharpe_ratio,
         sharpe_ratio_from_returns, short_net_profit_pct, sortino_ratio, sortino_ratio_from_returns,
         win_rate,
     },
@@ -198,6 +198,13 @@ pub fn py_f1(precision: f64, recall: f64) -> f64 {
 #[gen_stub_pyfunction]
 #[pyfunction(name = "annualization_factor")]
 #[inline]
-pub fn py_annualization_factor(timeframe: PyTimeframe, trading_days: f64) -> f64 {
-    return annualization_factor(timeframe.into(), trading_days);
+pub fn py_annualization_factor(timeframe: PyTimeframe, trading_days_per_year: f64) -> f64 {
+    return annualization_factor(timeframe.into(), trading_days_per_year);
+}
+
+#[gen_stub_pyfunction]
+#[pyfunction(name = "max_drawdown_from_equity")]
+#[inline]
+pub fn py_max_drawdown_from_equity(equity: Vec<f64>) -> f64 {
+    return max_drawdown_from_equity(&equity);
 }

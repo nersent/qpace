@@ -354,6 +354,14 @@ impl Backtest {
     }
 
     #[inline]
+    pub fn open_trades_ids(&self) -> Vec<String> {
+        self.open_trades
+            .iter()
+            .filter_map(|x| x.entry().map(|x| x.id()).flatten().cloned())
+            .collect()
+    }
+
+    #[inline]
     pub fn open_longs_count(&self) -> usize {
         self.open_longs
     }
@@ -702,7 +710,7 @@ impl Backtest {
         // if self.config.debug {
         //     println!("[{} ->raw  signal]: {:?}", self.bar_index(), &signal);
         // }
-        let order: Option<OrderConfig> = match signal.kind() {
+        let mut order: Option<OrderConfig> = match signal.kind() {
             SignalKind::EquityPct(pct) => self.compute_equity_pct(*pct),
             SignalKind::Size(size) => Some(OrderConfig::new(*size, None)),
             SignalKind::CloseAll() => {
@@ -711,6 +719,9 @@ impl Backtest {
             }
             _ => None,
         };
+        if order.is_some() && signal.id().is_some() {
+            order.as_mut().unwrap().set_tag(signal.id().cloned());
+        }
         if self.config.debug {
             println!("[{} -> signal]: {:?}", self.bar_index(), &order);
         }

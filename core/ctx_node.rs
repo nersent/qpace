@@ -120,6 +120,12 @@ impl NodeCtx {
     pub fn node_ref(&self) -> Self {
         self.clone()
     }
+
+    #[napi(getter = annualizationFactor)]
+    #[inline]
+    pub fn node_annualization_factor(&self) -> f64 {
+        self.inner.borrow().annualization_factor()
+    }
 }
 
 impl Generator for NodeCtx {

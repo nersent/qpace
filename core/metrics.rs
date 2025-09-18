@@ -244,9 +244,31 @@ pub fn f1(precision: f64, recall: f64) -> f64 {
 // }
 
 #[inline]
-pub fn annualization_factor(timeframe: Timeframe, trading_days: f64) -> f64 {
+pub fn annualization_factor(timeframe: Timeframe, trading_days_per_year: f64) -> f64 {
+    let seconds_per_year = trading_days_per_year * 24.0 * 60.0 * 60.0;
     let timeframe_duration: Duration = timeframe.try_into().unwrap();
-    let seconds_per_year = trading_days * 24.0 * 60.0 * 60.0;
     let seconds_per_timeframe = timeframe_duration.num_seconds() as f64;
-    return seconds_per_year / seconds_per_timeframe * trading_days as f64;
+    seconds_per_year / seconds_per_timeframe
+}
+
+#[inline]
+pub fn max_drawdown_from_equity(equity: &[f64]) -> f64 {
+    let mut peak = f64::NEG_INFINITY;
+    let mut mdd = 0.0;
+
+    for &v in equity.iter() {
+        if !v.is_finite() {
+            continue;
+        }
+        if v > peak {
+            peak = v;
+        }
+        if peak.is_finite() && peak > 0.0 {
+            let dd = (peak - v) / peak;
+            if dd > mdd {
+                mdd = dd;
+            }
+        }
+    }
+    mdd
 }

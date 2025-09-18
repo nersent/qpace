@@ -34,6 +34,7 @@ class Backtest:
     open_trades: builtins.list[Trade]
     closed_trades: builtins.list[Trade]
     trades: builtins.list[Trade]
+    open_trades_ids: builtins.list[builtins.str]
     def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False, risk_free_rate:typing.Optional[builtins.float]=None, annualization_factor:typing.Optional[builtins.float]=None): ...
     def sharpe_ratio(self) -> builtins.float:
         ...
@@ -119,6 +120,7 @@ class Ctx:
     is_initialized: builtins.bool
     sym: Sym
     ohlcv: Ohlcv
+    annualization_factor: builtins.float
     def __new__(cls,ohlcv:typing.Optional[Ohlcv]=None, sym:typing.Optional[Sym]=None): ...
     def copy(self) -> Ctx:
         ...
@@ -391,6 +393,19 @@ class Signal:
     def py_set_comment(self, comment:typing.Optional[builtins.str]) -> None:
         ...
 
+    def __str__(self) -> builtins.str:
+        ...
+
+    def __repr__(self) -> builtins.str:
+        ...
+
+    def to_dict(self) -> typing.Any:
+        ...
+
+    @staticmethod
+    def from_dict(obj:typing.Any) -> Signal:
+        ...
+
 
 class Sym:
     id: typing.Optional[builtins.str]
@@ -614,7 +629,7 @@ class TradeDirection(Enum):
 def accuracy(tp_count:builtins.float, fp_count:builtins.float, fn_count:builtins.float, tn_count:builtins.float) -> builtins.float:
     ...
 
-def annualization_factor(timeframe:Timeframe, trading_days:builtins.float) -> builtins.float:
+def annualization_factor(timeframe:Timeframe, trading_days_per_year:builtins.float) -> builtins.float:
     ...
 
 def avg_losing_trade(gross_loss:builtins.float, losing_trades:builtins.int) -> builtins.float:
@@ -648,6 +663,9 @@ def long_net_profit_pct(long_net_profit:builtins.float, initial_capital:builtins
     ...
 
 def long_net_profit_ratio(long_net_profit:builtins.float, short_net_profit:builtins.float) -> builtins.float:
+    ...
+
+def max_drawdown_from_equity(equity:typing.Sequence[builtins.float]) -> builtins.float:
     ...
 
 def net_profit_pct(net_profit:builtins.float, initial_capital:builtins.float) -> builtins.float:

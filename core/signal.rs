@@ -1,3 +1,5 @@
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "json", serde(tag = "kind", content = "value"))]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum SignalKind {
     Size(f64),
@@ -6,6 +8,7 @@ pub enum SignalKind {
     CloseAll(),
 }
 
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Signal {
     kind: SignalKind,

@@ -110,6 +110,12 @@ impl WasmCtx {
     pub fn wasm_ref(&self) -> Self {
         self.clone()
     }
+
+    #[wasm_bindgen(getter = annualizationFactor)]
+    #[inline]
+    pub fn wasm_annualization_factor(&self) -> f64 {
+        self.inner.borrow().annualization_factor()
+    }
 }
 
 #[wasm_bindgen(js_name=CtxSkip)]

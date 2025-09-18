@@ -151,6 +151,12 @@ impl PyCtx {
     pub fn py_ref(&self) -> Self {
         self.clone()
     }
+
+    #[getter(annualization_factor)]
+    #[inline]
+    pub fn py_annualization_factor(&self) -> f64 {
+        self.inner.borrow().annualization_factor()
+    }
 }
 
 #[gen_stub_pyclass]

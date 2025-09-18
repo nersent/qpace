@@ -1,4 +1,6 @@
 use crate::signal::Signal;
+use napi::bindgen_prelude::*;
+use napi::{Error, Result, Status};
 use napi_derive::napi;
 
 #[napi]
@@ -23,6 +25,11 @@ impl From<Signal> for NodeSignal {
 
 #[napi]
 impl NodeSignal {
+    #[napi(js_name = toString)]
+    pub fn node_to_string(&self) -> String {
+        format!("{:?}", self.inner)
+    }
+
     #[napi(js_name = Hold)]
     #[inline]
     pub fn node_hold() -> Self {
@@ -81,5 +88,42 @@ impl NodeSignal {
     #[inline]
     pub fn node_set_comment(&mut self, comment: Option<String>) {
         self.inner.set_comment(comment);
+    }
+
+    #[napi(getter = equityPct)]
+    #[inline]
+    pub fn node_get_equity_pct(&self) -> Option<f64> {
+        self.inner.get_equity_pct()
+    }
+
+    #[napi(getter = size)]
+    #[inline]
+    pub fn node_get_size(&self) -> Option<f64> {
+        self.inner.get_size()
+    }
+
+    #[napi(getter = isHold)]
+    #[inline]
+    pub fn node_is_hold(&self) -> bool {
+        self.inner.is_hold()
+    }
+
+    #[napi(getter = isCloseAll)]
+    #[inline]
+    pub fn node_is_close_all(&self) -> bool {
+        self.inner.is_close_all()
+    }
+
+    #[cfg(feature = "json")]
+    #[napi(js_name = toJSON)]
+    pub fn node_to_json(&self, env: Env) -> Result<Unknown> {
+        env.to_js_value(&self.inner)
+    }
+
+    #[cfg(feature = "json")]
+    #[napi(js_name = fromJSON)]
+    pub fn node_from_json(env: Env, json: Unknown) -> Result<NodeSignal> {
+        let sig: Signal = env.from_js_value(json)?;
+        Ok(sig.into())
     }
 }
