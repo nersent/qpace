@@ -237,6 +237,12 @@ impl PyBacktest {
         self.inner.borrow().trades().into_iter().cloned().collect()
     }
 
+    #[getter(open_trades_ids)]
+    #[inline]
+    pub fn py_open_trades_ids(&self) -> Vec<String> {
+        self.inner.borrow().open_trades_ids()
+    }
+
     #[pyo3(name = "on_bar_open")]
     #[inline]
     pub fn py_on_bar_open(&mut self) {

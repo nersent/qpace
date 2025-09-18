@@ -1,6 +1,6 @@
 [package]
 name = "qpace_core"
-version = "0.2.8"
+version = "0.2.9"
 edition = "2021"
 
 [lib]
@@ -29,6 +29,7 @@ bindings_py = [
   "pyo3-stub-gen-derive",
   "env_logger",
   "pretty_table",
+  "pythonize",
 ]
 bindings_node = ["napi", "napi-derive", "napi-sys", "pretty_table"]
 bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook"]
@@ -62,6 +63,7 @@ pyo3 = { version = "0.23", optional = true, features = [
   "abi3-py310",
   "generate-import-lib",
 ] }
+pythonize = { version = "0.23", optional = true }
 pyo3-ffi = { version = "0.23", optional = true }
 pyo3-stub-gen = { version = "0.7", optional = true }
 pyo3-stub-gen-derive = { version = "0.7", optional = true }
@@ -69,6 +71,7 @@ napi = { version = "3.0.0-beta.8", optional = true, features = [
   "chrono_date",
   "napi8",
   "compat-mode",
+  "serde-json",
 ] }
 napi-derive = { version = "3.0.0-beta.8", features = [
   "type-def",

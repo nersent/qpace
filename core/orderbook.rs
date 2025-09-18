@@ -81,6 +81,10 @@ impl OrderConfig {
     pub fn new(size: f64, tag: Option<String>) -> Self {
         Self { size, tag }
     }
+
+    pub fn set_tag(&mut self, tag: Option<String>) {
+        self.tag = tag;
+    }
 }
 
 #[derive(Debug, Clone)]

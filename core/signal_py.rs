@@ -1,5 +1,6 @@
 use crate::signal::Signal;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use pyo3_stub_gen::derive::{gen_stub_pyclass, gen_stub_pymethods};
 
 #[gen_stub_pyclass]
@@ -114,5 +115,34 @@ impl PySignal {
     #[inline]
     pub fn py_is_close_all(&self) -> bool {
         self.inner.is_close_all()
+    }
+
+    #[pyo3(name = "__str__")]
+    #[inline]
+    pub fn py_str(&self) -> String {
+        format!("{:?}", self.inner)
+    }
+
+    #[pyo3(name = "__repr__")]
+    #[inline]
+    pub fn py_repr(&self) -> String {
+        format!("{:?}", self.inner)
+    }
+
+    #[cfg(feature = "json")]
+    #[pyo3(name = "to_dict")]
+    pub fn py_to_dict(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let any = pythonize::pythonize(py, &self.inner)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        Ok(any.into_py(py))
+    }
+
+    #[cfg(feature = "json")]
+    #[staticmethod]
+    #[pyo3(name = "from_dict")]
+    pub fn py_from_dict(_py: Python<'_>, obj: &Bound<'_, PyAny>) -> PyResult<PySignal> {
+        let sig: Signal = pythonize::depythonize(obj)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        Ok(sig.into())
     }
 }

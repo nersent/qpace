@@ -34,6 +34,7 @@ class Backtest:
     open_trades: builtins.list[Trade]
     closed_trades: builtins.list[Trade]
     trades: builtins.list[Trade]
+    open_trades_ids: builtins.list[builtins.str]
     def __new__(cls,ctx:Ctx, initial_capital:builtins.float=1000.0, process_orders_on_close:builtins.bool=False, debug:builtins.bool=False, risk_free_rate:typing.Optional[builtins.float]=None, annualization_factor:typing.Optional[builtins.float]=None): ...
     def sharpe_ratio(self) -> builtins.float:
         ...
@@ -390,6 +391,19 @@ class Signal:
         ...
 
     def py_set_comment(self, comment:typing.Optional[builtins.str]) -> None:
+        ...
+
+    def __str__(self) -> builtins.str:
+        ...
+
+    def __repr__(self) -> builtins.str:
+        ...
+
+    def to_dict(self) -> typing.Any:
+        ...
+
+    @staticmethod
+    def from_dict(obj:typing.Any) -> Signal:
         ...
 
 
