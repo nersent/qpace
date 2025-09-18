@@ -30,9 +30,10 @@ bindings_py = [
   "env_logger",
   "pretty_table",
   "pythonize",
+  "json",
 ]
-bindings_node = ["napi", "napi-derive", "napi-sys", "pretty_table"]
-bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook"]
+bindings_node = ["napi", "napi-derive", "napi-sys", "pretty_table", "json"]
+bindings_wasm = ["wasm-bindgen", "js-sys", "console_error_panic_hook", "json"]
 json = ["serde", "serde_json"]
 pretty_table = ["comfy-table", "textplots"]
 # polars_utils = ["polars"]
