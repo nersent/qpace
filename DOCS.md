@@ -730,3 +730,9 @@ export const ta = { ..._ta, init: initTa } as typeof _ta & {
 WASM may have problems with webpack. [webpack config that works](/examples/web/webpack.config.js)
 
 WASM `ta` must be initialized after `qp.init()` and is optional unless you use `qp.ta` methods
+
+## Common Issues
+
+### `qp.plot` doesn't work on WSL
+
+- Fix: <https://github.com/louisnw01/lightweight-charts-python/issues/63>
